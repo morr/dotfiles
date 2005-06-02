@@ -17,7 +17,7 @@ CASE_SENSITIVE="true"
 # Uncomment following line if you want red dots to be displayed while waiting for completion
 COMPLETION_WAITING_DOTS="true"
 
-plugins=(asdf ruby bundler capistrano gem osx npm rbenv ssh-agent rake brew \
+plugins=(asdf ruby bundler capistrano gem macos npm rbenv ssh-agent rake brew \
   command-not-found compleat cp history history-substring-search \
   git git-extras pow npm yarn docker)
 
