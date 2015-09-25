@@ -5,17 +5,19 @@
 [merge]
   summary = true
   verbosity = 1
-  ;tool = mvimdiff
-  tool = gvimdiff
+  tool = gvimdiff ;mvimdiff
   conflictstyle = diff3
   prompt = false
   keepBackup = false
 
 ;[mergetool "mvimdiff"]
   ;cmd = "mvim -f --nomru -c 'Gdiff' $MERGED" # use fugitive.vim for 3-way merge
-  ;;cmd = "mvim -f --nomru -c $LOCAL $MERGED $REMOTE $BASE"
   ;prompt = false
   ;keepBackup = false
+
+[alias]
+  d = difftool
+  m = mergetool
 
 [diff]
   tool = default-difftool
@@ -25,12 +27,6 @@
 
 [difftool "default-difftool"]
   cmd = mvim -d -f --nomru $LOCAL $REMOTE
-
-[alias]
-  d = difftool
-
-[alias]
-  m = mergetool
 
 [git-up "bundler"]
   check = true
