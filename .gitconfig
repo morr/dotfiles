@@ -1,0 +1,52 @@
+[user]
+  name = Andrey Sidorov
+  email = takandar@gmail.com
+
+[merge]
+  summary = true
+  verbosity = 1
+  ;tool = mvimdiff
+  tool = gvimdiff
+  conflictstyle = diff3
+  prompt = false
+  keepBackup = false
+
+;[mergetool "mvimdiff"]
+  ;cmd = "mvim -f --nomru -c 'Gdiff' $MERGED" # use fugitive.vim for 3-way merge
+  ;;cmd = "mvim -f --nomru -c $LOCAL $MERGED $REMOTE $BASE"
+  ;prompt = false
+  ;keepBackup = false
+
+[diff]
+  tool = default-difftool
+
+[difftool]
+  prompt = false
+
+[difftool "default-difftool"]
+  cmd = mvim -d -f --nomru $LOCAL $REMOTE
+
+[alias]
+  d = difftool
+
+[alias]
+  m = mergetool
+
+[git-up "bundler"]
+  check = true
+
+[core]
+  autocrlf = input
+  editor = mvim -f --nomru
+
+[push]
+  default = current
+
+[filter "media"]
+  clean = git-media-clean %f
+  smudge = git-media-smudge %f
+
+[filter "lfs"]
+  clean = git-lfs clean %f
+  smudge = git-lfs smudge %f
+  required = true
