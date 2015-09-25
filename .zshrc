@@ -1,7 +1,7 @@
 #export PATH=/usr/local/bin:/usr/bin
 #export PATH=/usr/local/bin:/usr/bin:$HOME/.rvm/bin # Add RVM to PATH for scripting
 #source "$HOME/.rvm/scripts/rvm"
-1
+
 # Customize to your needs...
 export PATH=$PATH:/bin:/usr/sbin:/sbin:/usr/local/share/npm/bin
 #echo $PATH
