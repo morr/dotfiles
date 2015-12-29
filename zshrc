@@ -1,4 +1,33 @@
 #-------------------------------------------------------------------------------
+# zsh basic configuration
+#-------------------------------------------------------------------------------
+ZSH=$HOME/.oh-my-zsh
+ZSH_THEME="ys"
+CASE_SENSITIVE="true"
+
+# Uncomment following line if you want to disable autosetting terminal title.
+# DISABLE_AUTO_TITLE="true"
+
+# Uncomment following line if you want red dots to be displayed while waiting for completion
+COMPLETION_WAITING_DOTS="true"
+
+plugins=(rails ruby bundler capistrano gem osx zeus rvm ssh-agent rake brew \
+  command-not-found compleat composer cp history history-substring-search \
+  git-remote-branch git git-flow git-extras github pow)
+
+HISTSIZE=100000
+HISTFILESIZE=200000
+TERM="xterm-256color"
+
+source $ZSH/oh-my-zsh.sh
+
+#-------------------------------------------------------------------------------
+# configs projects
+#-------------------------------------------------------------------------------
+alias dotfiles="cd ~/dotfiles/"
+alias vimfiles="cd ~/.vim"
+
+#-------------------------------------------------------------------------------
 # ingate projects
 #-------------------------------------------------------------------------------
 alias ingate_chef="cd ~/develop/chefuptimus"
@@ -28,7 +57,7 @@ alias psf='ps aux|grep $1'
 alias ll='ls -l'
 
 #-------------------------------------------------------------------------------
-# rails
+# rails aliases
 #-------------------------------------------------------------------------------
 alias r='rails'
 
@@ -96,29 +125,6 @@ zstyle ':completion:*:kill:*'   force-list always
 zstyle ':completion:*:processes-names' command 'ps -e -o comm='
 zstyle ':completion:*:*:killall:*' menu yes select
 zstyle ':completion:*:killall:*'   force-list always
-
-#-------------------------------------------------------------------------------
-# zsh basic configuration
-#-------------------------------------------------------------------------------
-ZSH=$HOME/.oh-my-zsh
-ZSH_THEME="ys"
-CASE_SENSITIVE="true"
-
-# Uncomment following line if you want to disable autosetting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment following line if you want red dots to be displayed while waiting for completion
-COMPLETION_WAITING_DOTS="true"
-
-plugins=(rails ruby bundler capistrano gem osx zeus rvm ssh-agent rake brew \
-  command-not-found compleat composer cp history history-substring-search \
-  git-remote-branch git git-flow git-extras github pow)
-
-HISTSIZE=100000
-HISTFILESIZE=200000
-TERM="xterm-256color"
-
-source $ZSH/oh-my-zsh.sh
 
 #-------------------------------------------------------------------------------
 # locales configuration
