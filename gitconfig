@@ -11,6 +11,7 @@
   keepBackup = false
 
 [mergetool "gvimdiff"]
+  ; cmd = "mvim -f --nomru -c 'Gdiff' $MERGED" # use fugitive.vim for 3-way merge
   prompt = false
   keepBackup = false
 
