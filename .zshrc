@@ -2,7 +2,8 @@
 # zsh basic configuration
 #-------------------------------------------------------------------------------
 ZSH=$HOME/.oh-my-zsh
-ZSH_THEME="ys"
+ZSH_THEME="nebirhos"
+
 CASE_SENSITIVE="true"
 
 # Uncomment following line if you want to disable autosetting terminal title.
@@ -30,24 +31,20 @@ alias vimfiles="cd ~/.vim"
 #-------------------------------------------------------------------------------
 # ingate projects
 #-------------------------------------------------------------------------------
-alias chefuptimus="cd ~/develop/chefuptimus"
+alias chef_umka="cd ~/develop/chefuptimus"
 alias uptimus="cd ~/develop/uptimus"
 alias umka="cd ~/develop/umka"
 alias sibas="cd ~/develop/sibas"
 
 alias u="umka"
 
-alias caravan="ssh devops@94.77.64.80"
-alias linode="ssh devops@176.58.123.252"
-alias linode2="ssh devops@178.79.156.106"
-alias nostradamus="ssh devops@176.58.113.204"
-
 #-------------------------------------------------------------------------------
 # home projects
 #-------------------------------------------------------------------------------
+alias chef_shiki="cd ~/develop/chef-shikimori2/"
 alias shiki="cd ~/develop/shikimori"
 
-alias hetzner="ssh devops@78.46.50.20"
+alias mount_hetzner='mkdir -p /Volumes/hetzner; sshfs devops@78.46.50.20:/ /Volumes/hetzner'
 
 #-------------------------------------------------------------------------------
 # common aliases
