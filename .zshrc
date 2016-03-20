@@ -2,7 +2,8 @@
 # zsh basic configuration
 #-------------------------------------------------------------------------------
 ZSH=$HOME/.oh-my-zsh
-ZSH_THEME="nebirhos"
+ZSH_THEME="../../dotfiles/.oh-my-zsh/themes/morr"
+# ZSH_THEME="ys"
 
 CASE_SENSITIVE="true"
 
