@@ -42,10 +42,40 @@ alias u="umka"
 #-------------------------------------------------------------------------------
 # home projects
 #-------------------------------------------------------------------------------
-alias chef_shiki="cd ~/develop/chef-shikimori2/"
+alias chef_shiki="cd ~/develop/chef_shikimori/"
 alias shiki="cd ~/develop/shikimori"
 
-alias mount_hetzner='mkdir -p /Volumes/hetzner; sshfs devops@78.46.50.20:/ /Volumes/hetzner'
+alias mount_hetzner='mkdir -p /Volumes/hetzner; sshfs shiki:/ /Volumes/hetzner'
+
+# shikimori sync commands
+sync_shikimori_images() {
+  local local_path=~/shikimori.org/images/
+  local shiki_path=/home/apps/shikimori/production/shared/public/images/
+
+  for dir in $(ssh shiki ls $shiki_path)
+  do
+    if [[ "$dir" == "image" || "$dir" == "user_image" || "$dir" == "screenshot" || "$dir" == "cosplay_image" || "$dir" == "webm_video" ]]; then
+      echo "skipping $dir"
+      continue
+    else
+      echo "processing $dir ..."
+      rsync -urv -e ssh shiki:$shiki_path$dir $local_path
+    fi
+  done
+}
+alias shikisync=sync_shikimori_images
+
+backup_shikimori_images() {
+  local local_path=/Volumes/HDD/shikimori/
+  local shiki_path=/home/apps/shikimori/production/shared/public/images/
+
+  for dir in $(ssh shiki ls $shiki_path)
+  do
+    echo "processing $dir ..."
+    rsync -urv -e ssh shiki:$shiki_path$dir $local_path
+  done
+}
+alias shikibackup=backup_shikimori_images
 
 #-------------------------------------------------------------------------------
 # common aliases
