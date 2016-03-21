@@ -39,7 +39,8 @@ ys_hg_prompt_info() {
 	fi
 }
 
-local exit_code="%(?,%?,%{$fg[red]%}%?%{$reset_color%})"
+local shell_level=" %{$fg[white]%}L:%{$fg[magenta]%}%L"
+local return_code="%(?..%{$fg[red]%}%? ↵)%{$reset_color%}"
 
 # Prompt format:
 #
@@ -62,6 +63,8 @@ ${hg_info}\
 ${git_info}\
  \
 %{$fg[white]%}[%*] \
- %{$fg[white]%}L:%{$fg[magenta]%}%L %{$fg[white]%}C:%{$fg[magenta]%}$exit_code
+$shell_level
 %{$terminfo[bold]$fg[red]%}$ %{$reset_color%}"
+RPROMPT='${return_code}'
+# %{$fg[white]%}L:%{$fg[magenta]%}%L %{$fg[white]%}C:%{$fg[magenta]%}$exit_code
 # %{$fg[magenta]%}tty:%l L:%L N:%i C:$exit_code

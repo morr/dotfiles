@@ -102,6 +102,8 @@ alias bugfix='git add -A && git commit -m "bugfixes"'
 alias migrate='rake db:migrate && RAILS_ENV=test rake db:migrate'
 alias rollback='rake db:rollback STEP=1 && RAILS_ENV=test rake db:rollback STEP=1'
 
+alias deploy='git push && cap production deploy'
+
 alias gcm=git_commit_m
 alias gbd=git_delete_branch
 alias gbdf=git_delete_branch_force
