@@ -66,6 +66,7 @@ ${git_info}\
 %{$fg[white]%}[%*] \
 $shell_level
 %{$terminfo[bold]$fg[red]%}$ %{$reset_color%}"
-
 # %{$fg[white]%}L:%{$fg[magenta]%}%L %{$fg[white]%}C:%{$fg[magenta]%}$exit_code
 # %{$fg[magenta]%}tty:%l L:%L N:%i C:$exit_code
+
+RPROMPT="$return_code"
