@@ -1,3 +1,7 @@
+# HOWTO
+# install zsh: sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+# fish syntax highlight: cd ~/.oh-my-zsh && git clone git://github.com/zsh-users/zsh-syntax-highlighting.git
+
 #-------------------------------------------------------------------------------
 # zsh basic configuration
 #-------------------------------------------------------------------------------
@@ -13,15 +17,18 @@ CASE_SENSITIVE="true"
 # Uncomment following line if you want red dots to be displayed while waiting for completion
 COMPLETION_WAITING_DOTS="true"
 
-plugins=(rails ruby bundler capistrano gem osx zeus rvm ssh-agent rake brew \
-  command-not-found compleat composer cp history history-substring-search \
+plugins=(rails ruby bundler capistrano gem osx npm rvm ssh-agent rake brew \
+  command-not-found compleat cp history history-substring-search \
   git-remote-branch git git-flow git-extras github pow)
 
 HISTSIZE=100000
 HISTFILESIZE=200000
 TERM="xterm-256color"
 
+# oh-my-zsh
 source $ZSH/oh-my-zsh.sh
+# fish syntax highlight
+source ~/.oh-my-zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh  
 
 #-------------------------------------------------------------------------------
 # configs projects
