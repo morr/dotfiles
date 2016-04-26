@@ -138,10 +138,11 @@ grep_find() {
 }
 my_find() {
   find . -type f \
-    \( -name "*.rb" -or -name "*.erb" -or -name "*.rss" -or -name "*.xml" -or \
-       -name "*.slim" -or -name "*.haml" -or -name "*.html" -or \
-       -name "*.js" -or -name "*.coffee" -or -name "*.ejs" -or -name "*.jst" \
-       -or -name "*.eco" -or -name "*.css" -or -name "*.scss" \
+    \( -name "*.rb" -or -name "*.erb" -or -name "*.rss" -or -name "*.xml" \
+       -or -name "*.slim" -or -name "*.haml" -or -name "*.html" \
+       -or -name "*.js" -or -name "*.coffee" -or -name "*.ejs" -or -name "*.jst" \
+       -or -name "*.jade"  -or -name "*.eco" \
+       -or -name "*.css" -or -name "*.scss" \
        -or -name "*.sass" -or -name "*.yml" -or -name "*.vim" \
        -or -name "*.rabl" -or -name "*.builder"  -or -name "*.txt" \) \
     -exec grep -l "$*" {} \;
