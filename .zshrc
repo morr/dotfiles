@@ -57,7 +57,7 @@ alias mount_hetzner='mkdir -p /Volumes/hetzner; sshfs shiki:/ /Volumes/hetzner'
 # shikimori sync commands
 sync_shikimori_images() {
   local local_path=~/shikimori.org/images/
-  local shiki_path=/home/apps/shikimori/production/shared/public/images/
+  local shiki_path=/home/apps/shikimori/production/shared/public/system/
 
   for dir in $(ssh shiki ls $shiki_path)
   do
@@ -74,7 +74,7 @@ alias shikisync=sync_shikimori_images
 
 backup_shikimori_images() {
   local local_path=/Volumes/HDD/shikimori/
-  local shiki_path=/home/apps/shikimori/production/shared/public/images/
+  local shiki_path=/home/apps/shikimori/production/shared/public/system/
 
   for dir in $(ssh shiki ls $shiki_path)
   do
@@ -185,3 +185,52 @@ LC_ALL="ru_RU.UTF-8"
 # PATH for Bundler and NodeJS
 #-------------------------------------------------------------------------------
 export PATH=/usr/local/bin:/usr/local/share/npm/bin:$PATH
+
+export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+
+#-------------------------------------------------------------------------------
+# iterm2 colors
+#-------------------------------------------------------------------------------
+tab-color() {
+  echo -ne "\033]6;1;bg;red;brightness;$1\a"
+  echo -ne "\033]6;1;bg;green;brightness;$2\a"
+  echo -ne "\033]6;1;bg;blue;brightness;$3\a"
+}
+tab-reset() {
+  echo -ne "\033]6;1;bg;*;default\a"
+}
+# ssh
+color-ssh() {
+  if [[ -n "$ITERM_SESSION_ID" ]]; then
+    trap "tab-reset" INT EXIT
+    tab-color 255 0 0
+    # if [[ "$*" =~ "production|ec2-.*compute-1" ]]; then
+      # tab-color 255 0 0
+    # else
+      # tab-color 0 255 0
+    # fi
+  fi
+  ssh $*
+}
+compdef _ssh color-ssh=ssh
+alias ssh=color-ssh
+# guard
+color-guard() {
+  if [[ -n "$ITERM_SESSION_ID" ]]; then
+    trap "tab-reset" INT EXIT
+    tab-color 196 157 214
+  fi
+  guard $*
+}
+compdef _guard color-guard=guard
+alias guard=color-guard
+# console
+color-rc() {
+  if [[ -n "$ITERM_SESSION_ID" ]]; then
+    trap "tab-reset" INT EXIT
+    tab-color 128 181 245
+  fi
+  rc $*
+}
+compdef _rc color-rc=rc
+alias rc=color-rc
