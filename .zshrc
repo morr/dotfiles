@@ -217,19 +217,29 @@ alias ssh=color-ssh
 color-guard() {
   if [[ -n "$ITERM_SESSION_ID" ]]; then
     trap "tab-reset" INT EXIT
-    tab-color 200 161 218
+    tab-color 255 100 100
   fi
   guard $*
 }
 compdef _guard color-guard=guard
 alias guard=color-guard
-# console
+# rails console
 color-rc() {
   if [[ -n "$ITERM_SESSION_ID" ]]; then
     trap "tab-reset" INT EXIT
-    tab-color 125 178 242
+    tab-color 150 255 110
   fi
   rc $*
 }
 compdef _rc color-rc=rc
 alias rc=color-rc
+# sidekiq
+color-sidekiq() {
+  if [[ -n "$ITERM_SESSION_ID" ]]; then
+    trap "tab-reset" INT EXIT
+    tab-color 150 100 255
+  fi
+  sidekiq $*
+}
+compdef _sidekiq color-sidekiq=sidekiq
+alias sidekiq=color-sidekiq
