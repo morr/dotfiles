@@ -197,6 +197,7 @@ tab-color() {
 }
 tab-reset() {
   echo -ne "\033]6;1;bg;*;default\a"
+  trap - INT EXIT
 }
 # ssh
 color-ssh() {
@@ -227,7 +228,7 @@ alias guard=color-guard
 color-rc() {
   if [[ -n "$ITERM_SESSION_ID" ]]; then
     trap "tab-reset" INT EXIT
-    tab-color 150 255 110
+    tab-color 125 255 90
   fi
   rc $*
 }

@@ -7853,13 +7853,19 @@
 		<integer>1</integer>
 	</dict>
 	<key>NSWindow Frame Preferences</key>
-	<string>1314 601 606 456 0 0 1920 1057 </string>
+	<string>194 321 606 456 0 0 1280 777 </string>
 	<key>NSWindow Frame SUAutomaticUpdateAlert</key>
 	<string>652 663 616 174 0 0 1920 1057 </string>
 	<key>NSWindow Frame SUUpdateAlert</key>
 	<string>650 498 620 392 0 0 1920 1057 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>-1282 289 1274 768 -1280 280 1280 777 </string>
+	<string>-1279 284 1274 768 -1280 280 1280 777 </string>
+	<key>NSWindow Frame iTerm Window 1</key>
+	<string>0 4 1280 773 0 0 1280 777 </string>
+	<key>NeverWarnAboutShortLivedSessions_A81F92DA-4CAD-4F04-92FD-751E252CFDFE</key>
+	<true/>
+	<key>NeverWarnAboutShortLivedSessions_A81F92DA-4CAD-4F04-92FD-751E252CFDFE_selection</key>
+	<integer>0</integer>
 	<key>New Bookmarks</key>
 	<array>
 		<dict>
@@ -8519,7 +8525,7 @@
 	<key>NoSyncInstallationId</key>
 	<string>1F6371BE-F2B7-420B-A673-5508D239788B</string>
 	<key>NoSyncLastTipTime</key>
-	<real>485337615.66962999</real>
+	<real>485942776.55998898</real>
 	<key>NoSyncPermissionToShowTip</key>
 	<true/>
 	<key>NoSyncSilenceAnnoyingBellAutomatically</key>
@@ -8564,6 +8570,10 @@
 		<string>0028</string>
 		<string>0029</string>
 		<string>0030</string>
+		<string>0031</string>
+		<string>0032</string>
+		<string>0033</string>
+		<string>0034</string>
 	</array>
 	<key>OnlyWhenMoreTabs</key>
 	<true/>
@@ -8633,7 +8643,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2016-05-17T13:02:56Z</date>
+	<date>2016-05-25T14:32:50Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>ShowBookmarkName</key>
@@ -8683,6 +8693,6 @@
 	<key>findRegex_iTerm</key>
 	<false/>
 	<key>iTerm Version</key>
-	<string>2.9.20160510</string>
+	<string>2.9.20160523</string>
 </dict>
 </plist>
