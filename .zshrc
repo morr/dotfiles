@@ -39,7 +39,7 @@ alias vimfiles="cd ~/.vim"
 #-------------------------------------------------------------------------------
 # ingate projects
 #-------------------------------------------------------------------------------
-alias chef_umka="cd ~/develop/chefuptimus"
+alias chef_ingate="cd ~/develop/chef/"
 alias uptimus="cd ~/develop/uptimus"
 alias umka="cd ~/develop/umka"
 alias sibas="cd ~/develop/sibas"
