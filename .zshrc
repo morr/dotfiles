@@ -28,7 +28,7 @@ TERM="xterm-256color"
 # oh-my-zsh
 source $ZSH/oh-my-zsh.sh
 # fish syntax highlight
-source ~/.oh-my-zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh  
+source ~/.oh-my-zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 #-------------------------------------------------------------------------------
 # configs projects
@@ -45,6 +45,8 @@ alias umka="cd ~/develop/umka"
 alias sibas="cd ~/develop/sibas"
 
 alias u="umka"
+alias rtb_web="cd ~/develop/releadgion_rtb_bid_web"
+alias rtb_bid="cd ~/develop/releadgion_rtb_bidder"
 
 #-------------------------------------------------------------------------------
 # home projects

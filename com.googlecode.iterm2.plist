@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>AboutToPasteTabsWithCancel</key>
+	<true/>
+	<key>AboutToPasteTabsWithCancel_selection</key>
+	<integer>2</integer>
 	<key>AdjustWindowForFontSizeChange</key>
 	<true/>
 	<key>AllowClipboardAccess</key>
@@ -7853,13 +7857,13 @@
 		<integer>1</integer>
 	</dict>
 	<key>NSWindow Frame Preferences</key>
-	<string>194 321 606 456 0 0 1280 777 </string>
+	<string>-1086 601 606 456 -1280 280 1280 777 </string>
 	<key>NSWindow Frame SUAutomaticUpdateAlert</key>
 	<string>652 663 616 174 0 0 1920 1057 </string>
 	<key>NSWindow Frame SUUpdateAlert</key>
 	<string>650 498 620 392 0 0 1920 1057 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>-1279 284 1274 768 -1280 280 1280 777 </string>
+	<string>-1278 281 1274 768 -1280 280 1280 777 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>0 4 1280 773 0 0 1280 777 </string>
 	<key>NeverWarnAboutShortLivedSessions_A81F92DA-4CAD-4F04-92FD-751E252CFDFE</key>
@@ -8525,7 +8529,11 @@
 	<key>NoSyncInstallationId</key>
 	<string>1F6371BE-F2B7-420B-A673-5508D239788B</string>
 	<key>NoSyncLastTipTime</key>
-	<real>485942776.55998898</real>
+	<real>486631366.10625201</real>
+	<key>NoSyncNeverRemindPrefsChangesLostForFile</key>
+	<true/>
+	<key>NoSyncNeverRemindPrefsChangesLostForFile_selection</key>
+	<integer>0</integer>
 	<key>NoSyncPermissionToShowTip</key>
 	<true/>
 	<key>NoSyncSilenceAnnoyingBellAutomatically</key>
@@ -8536,6 +8544,8 @@
 	<real>478102907.195292</real>
 	<key>NoSyncTimeOfLastPromoDownload</key>
 	<real>478477710.06417501</real>
+	<key>NoSyncTipsDisabled</key>
+	<true/>
 	<key>NoSyncTipsToNotShow</key>
 	<array>
 		<string>000</string>
@@ -8574,6 +8584,11 @@
 		<string>0032</string>
 		<string>0033</string>
 		<string>0034</string>
+		<string>0035</string>
+		<string>0036</string>
+		<string>0037</string>
+		<string>0038</string>
+		<string>0039</string>
 	</array>
 	<key>OnlyWhenMoreTabs</key>
 	<true/>
@@ -8587,6 +8602,8 @@
 	<false/>
 	<key>PasteFromClipboard</key>
 	<false/>
+	<key>PasteTabToStringTabStopSize</key>
+	<integer>2</integer>
 	<key>PointerActions</key>
 	<dict>
 		<key>Button,1,1,,</key>
@@ -8643,7 +8660,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2016-05-25T14:32:50Z</date>
+	<date>2016-07-28T07:18:00Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>ShowBookmarkName</key>
