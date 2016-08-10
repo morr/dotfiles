@@ -45,7 +45,8 @@ alias umka="cd ~/develop/umka"
 alias sibas="cd ~/develop/sibas"
 
 alias u="umka"
-alias rtb_web="cd ~/develop/releadgion_rtb_bid_web"
+alias rtb_web="cd ~/develop/releadgion_rtb_web"
+alias rtb_api="cd ~/develop/releadgion_rtb_api"
 alias rtb_bid="cd ~/develop/releadgion_rtb_bidder"
 
 #-------------------------------------------------------------------------------
