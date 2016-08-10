@@ -44,9 +44,9 @@ alias uptimus="cd ~/develop/uptimus"
 alias umka="cd ~/develop/umka"
 alias sibas="cd ~/develop/sibas"
 alias anabas="cd ~/develop/anabas"
-alias rtb_web="cd ~/develop/releadgion_rtb_web"
-alias rtb_api="cd ~/develop/releadgion_rtb_api"
-alias rtb_bid="cd ~/develop/releadgion_rtb_bidder"
+alias rtb_web="cd ~/develop/rtb_web"
+alias rtb_api="cd ~/develop/rtb_api"
+alias rtb_bid="cd ~/develop/rtb_bidder"
 
 alias u="umka"
 
