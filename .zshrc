@@ -39,15 +39,16 @@ alias vimfiles="cd ~/.vim"
 #-------------------------------------------------------------------------------
 # ingate projects
 #-------------------------------------------------------------------------------
-alias chef_ingate="cd ~/develop/chef-releadgion/"
+alias chef_ingate="cd ~/develop/chef-releadgion"
 alias uptimus="cd ~/develop/uptimus"
 alias umka="cd ~/develop/umka"
 alias sibas="cd ~/develop/sibas"
-
-alias u="umka"
+alias anabas="cd ~/develop/anabas"
 alias rtb_web="cd ~/develop/releadgion_rtb_web"
 alias rtb_api="cd ~/develop/releadgion_rtb_api"
 alias rtb_bid="cd ~/develop/releadgion_rtb_bidder"
+
+alias u="umka"
 
 #-------------------------------------------------------------------------------
 # home projects
