@@ -148,7 +148,9 @@ my_find() {
        -or -name "*.jade"  -or -name "*.eco" \
        -or -name "*.css" -or -name "*.scss" \
        -or -name "*.sass" -or -name "*.yml" -or -name "*.vim" \
-       -or -name "*.rabl" -or -name "*.builder"  -or -name "*.txt" \) \
+       -or -name "*.rabl" -or -name "*.builder" -or -name "*.jbuilder"
+       -or -name "*.txt"
+    \) \
     -exec grep -l "$*" {} \;
 }
 my_find_vim() {
