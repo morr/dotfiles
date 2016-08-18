@@ -151,9 +151,7 @@ my_find() {
        -or -name "*.jade"  -or -name "*.eco" \
        -or -name "*.css" -or -name "*.scss" \
        -or -name "*.sass" -or -name "*.yml" -or -name "*.vim" \
-       -or -name "*.rabl" -or -name "*.builder" -or -name "*.jbuilder" \
-       -or -name "*.txt" \
-    \) \
+       -or -name "*.rabl" -or -name "*.builder"  -or -name "*.txt" \) \
     -exec grep -l "$*" {} \;
 }
 my_find_vim() {
@@ -243,6 +241,16 @@ color-rc() {
 }
 compdef _rc color-rc=rc
 alias rc=color-rc
+# hanami console
+color-hc() {
+  if [[ -n "$ITERM_SESSION_ID" ]]; then
+    trap "tab-reset" INT EXIT
+    tab-color 125 255 90
+  fi
+  hanami console $*
+}
+compdef _hc color-hc=hc
+alias hc=color-hc
 # sidekiq
 color-sidekiq() {
   if [[ -n "$ITERM_SESSION_ID" ]]; then
