@@ -1,6 +1,7 @@
 [user]
   name = Andrey Sidorov
   email = takandar@gmail.com
+  signingkey = 416D5A8BFDE0E372
 
 [merge]
   summary = true
@@ -53,4 +54,4 @@
   required = true
 
 [commit]
-  gpgsign = true
+	gpgsign = true
