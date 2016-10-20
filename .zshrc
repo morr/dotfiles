@@ -237,7 +237,7 @@ alias guard=color-guard
 color-rc() {
   if [[ -n "$ITERM_SESSION_ID" ]]; then
     trap "tab-reset" INT EXIT
-    tab-color 125 255 90
+    tab-color 90 255 55
   fi
   rc $*
 }
