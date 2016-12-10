@@ -59,6 +59,7 @@ alias u="umka"
 #-------------------------------------------------------------------------------
 alias chef_shiki="cd ~/develop/chef_shikimori/"
 alias shiki="cd ~/develop/shikimori"
+alias mal_parser="cd ~/develop/mal_parser"
 
 alias mount_hetzner='mkdir -p /Volumes/hetzner; sshfs shiki:/ /Volumes/hetzner'
 
