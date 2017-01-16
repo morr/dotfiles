@@ -228,7 +228,7 @@ alias ssh=color-ssh
 color-guard() {
   if [[ -n "$ITERM_SESSION_ID" ]]; then
     trap "tab-reset" INT EXIT
-    tab-color 155 194 245
+    tab-color 237 179 107
   fi
   guard $*
 }
