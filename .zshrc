@@ -147,8 +147,16 @@ grep_find() {
   fgrep -ir "$*" .
 }
 my_find() {
-  find . -type f \
-    \( -name "*.rb" -or -name "*.erb" -or -name "*.rss" -or -name "*.xml" \
+  find . \
+    -type d \( \
+      -path ./node_modules \
+      -or -path ./public/packs \
+      -or -path ./public/assets \
+      -or -path ./tmp \) \
+    -prune \
+    -or \
+    -type f \( \
+       -name "*.rb" -or -name "*.erb" -or -name "*.rss" -or -name "*.xml" \
        -or -name "*.slim" -or -name "*.haml" -or -name "*.html" \
        -or -name "*.js" -or -name "*.coffee" -or -name "*.ejs" -or -name "*.jst" \
        -or -name "*.jade"  -or -name "*.eco" \
