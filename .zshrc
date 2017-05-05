@@ -271,7 +271,17 @@ color-sidekiq() {
   sidekiq $*
 }
 compdef _sidekiq color-sidekiq=sidekiq
-alias sidekiq=color-sidekiq
+alias webpack=color-sidekiq
+# webpack
+color-webpack() {
+  if [[ -n "$ITERM_SESSION_ID" ]]; then
+    trap "tab-reset" INT EXIT
+    tab-color 121 174 238
+  fi
+  bin/webpack-watcher $*
+}
+compdef _webpack color-webpack=webpack
+alias ww=color-webpack
 
 function tabc() {
   NAME=$1; if [ -z "$NAME" ]; then NAME="Default"; fi # if you have trouble with this, change
