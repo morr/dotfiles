@@ -271,7 +271,7 @@ color-sidekiq() {
   sidekiq $*
 }
 compdef _sidekiq color-sidekiq=sidekiq
-alias webpack=color-sidekiq
+alias sidekiq=color-sidekiq
 # webpack
 color-webpack() {
   if [[ -n "$ITERM_SESSION_ID" ]]; then
