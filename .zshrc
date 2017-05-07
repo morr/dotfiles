@@ -278,7 +278,7 @@ color-webpack() {
     trap "tab-reset" INT EXIT
     tab-color 121 174 238
   fi
-  bin/webpack-watcher $*
+  bin/webpack-dev-server $*
 }
 compdef _webpack color-webpack=webpack
 alias ww=color-webpack
