@@ -19,7 +19,7 @@ COMPLETION_WAITING_DOTS="true"
 
 plugins=(rails ruby bundler capistrano gem osx npm rvm ssh-agent rake brew \
   command-not-found compleat cp history history-substring-search \
-  git-remote-branch git git-flow git-extras github pow)
+  git-remote-branch git git-flow git-extras github pow npm yarn)
 
 HISTSIZE=100000
 HISTFILESIZE=200000
@@ -272,6 +272,16 @@ color-sidekiq() {
 }
 compdef _sidekiq color-sidekiq=sidekiq
 alias sidekiq=color-sidekiq
+# foreman
+color-foreman() {
+  if [[ -n "$ITERM_SESSION_ID" ]]; then
+    trap "tab-reset" INT EXIT
+    tab-color 150 100 255
+  fi
+  foreman $*
+}
+compdef _foreman color-sidekiq=sidekiq
+alias foreman=color-sidekiq
 # webpack
 color-webpack() {
   if [[ -n "$ITERM_SESSION_ID" ]]; then
