@@ -11,13 +11,12 @@ ZSH_THEME="../../dotfiles/.oh-my-zsh/themes/morr"
 
 CASE_SENSITIVE="true"
 
-# Uncomment following line if you want to disable autosetting terminal title.
-# DISABLE_AUTO_TITLE="true"
+# Uncomment following line if you want to disable autosetting terminal title. # DISABLE_AUTO_TITLE="true"
 
 # Uncomment following line if you want red dots to be displayed while waiting for completion
 COMPLETION_WAITING_DOTS="true"
 
-plugins=(rails ruby bundler capistrano gem osx npm rvm ssh-agent rake brew \
+plugins=(rails ruby bundler capistrano gem osx npm rbenv ssh-agent rake brew \
   command-not-found compleat cp history history-substring-search \
   git-remote-branch git git-flow git-extras github pow npm yarn)
 
@@ -185,16 +184,11 @@ LC_NUMERIC="ru_RU.UTF-8"
 LC_TIME="ru_RU.UTF-8"
 LC_ALL="ru_RU.UTF-8"
 
-#-------------------------------------------------------------------------------
-# RVM
-#-------------------------------------------------------------------------------
-[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
 
 #-------------------------------------------------------------------------------
 # PATH for Bundler and NodeJS
 #-------------------------------------------------------------------------------
 export PATH=/usr/local/bin:/usr/local/share/npm/bin:$PATH
-export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
 
 #-------------------------------------------------------------------------------
 # iterm2 colors
@@ -295,3 +289,8 @@ function colorssh() {
   tabc
 }
 alias ssh="colorssh"
+
+#-------------------------------------------------------------------------------
+# rbenv
+#-------------------------------------------------------------------------------
+eval "$(rbenv init -)"
