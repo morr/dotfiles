@@ -23,6 +23,7 @@ plugins=(rails ruby bundler capistrano gem osx npm rbenv ssh-agent rake brew \
 HISTSIZE=100000
 HISTFILESIZE=200000
 TERM="xterm-256color"
+export EDITOR="mvim"
 
 # oh-my-zsh
 source $ZSH/oh-my-zsh.sh
