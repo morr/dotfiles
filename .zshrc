@@ -37,27 +37,17 @@ alias dotfiles="cd ~/dotfiles/"
 alias vimfiles="cd ~/.vim"
 
 #-------------------------------------------------------------------------------
-# ingate projects
+# work projects
 #-------------------------------------------------------------------------------
-alias chef_ingate="cd ~/develop/chef-releadgion"
-alias uptimus="cd ~/develop/uptimus"
-alias umka="cd ~/develop/umka"
-alias sibas="cd ~/develop/sibas"
-alias anabas="cd ~/develop/anabas"
-alias anabas_web="cd ~/develop/anabas_web"
-alias rtb_web="cd ~/develop/rtb_web"
-alias rtb-web="rtb_web"
-alias rtb_api="cd ~/develop/rtb_api"
-alias rtb-api="rtb_api"
-alias rtb_bidder="cd ~/develop/rtb_bidder"
-alias rtb-bidder="rtb_bidder"
+alias ereborchef="cd ~/develop/work/ereborchef"
+alias erebor="cd ~/develop/work/erebor"
 
-alias u="umka"
+alias e="erebor"
 
 #-------------------------------------------------------------------------------
 # home projects
 #-------------------------------------------------------------------------------
-alias chef_shiki="cd ~/develop/chef_shikimori/"
+alias shikichef="cd ~/develop/shikichef/"
 alias shiki="cd ~/develop/shikimori"
 alias mal_parser="cd ~/develop/mal_parser"
 
@@ -136,12 +126,13 @@ git_delete_branch_force() {
 }
 
 #-------------------------------------------------------------------------------
-# search aliases
+# search&replace aliases
 #-------------------------------------------------------------------------------
 alias gr=grep_find
 alias f=my_find
 alias fvim=my_find_vim
 alias files='find . -maxdepth 1 -type f | wc -l'
+alias replace='function _replace(){ ag -0 -l $1 | xargs -0 sed -i "" -e "s/$1/$2/g"; };_replace'
 
 grep_find() {
   fgrep -ir "$*" .
