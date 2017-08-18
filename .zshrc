@@ -266,8 +266,8 @@ color-foreman() {
   fi
   foreman $*
 }
-compdef _foreman color-sidekiq=sidekiq
-alias foreman=color-sidekiq
+compdef _foreman color-foreman=foreman
+alias foreman=color-foreman
 # webpack
 color-webpack() {
   if [[ -n "$ITERM_SESSION_ID" ]]; then
