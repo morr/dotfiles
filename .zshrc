@@ -39,7 +39,7 @@ alias vimfiles="cd ~/.vim"
 #-------------------------------------------------------------------------------
 # work projects
 #-------------------------------------------------------------------------------
-alias ereborchef="cd ~/develop/work/ereborchef"
+alias chef-erebor="cd ~/develop/work/chef-erebor"
 alias erebor="cd ~/develop/work/erebor"
 
 alias e="erebor"
@@ -47,9 +47,10 @@ alias e="erebor"
 #-------------------------------------------------------------------------------
 # home projects
 #-------------------------------------------------------------------------------
-alias shikichef="cd ~/develop/shikichef/"
+alias chef-shiki="cd ~/develop/chef-shiki"
 alias shiki="cd ~/develop/shikimori"
 alias mal_parser="cd ~/develop/mal_parser"
+alias neko="cd ~/develop/neko-achievements"
 
 alias mount_hetzner='mkdir -p /Volumes/hetzner; sshfs shiki:/ /Volumes/hetzner'
 
