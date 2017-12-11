@@ -31,7 +31,7 @@ export ERL_AFLAGS="-kernel shell_history enabled"
 # oh-my-zsh
 source $ZSH/oh-my-zsh.sh
 # fish syntax highlight
-source ~/.oh-my-zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+#source ~/.oh-my-zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 #-------------------------------------------------------------------------------
 # configs projects
@@ -276,6 +276,16 @@ color-foreman() {
 }
 compdef _foreman color-foreman=foreman
 alias foreman=color-foreman
+# honcho
+color-honcho() {
+  if [[ -n "$ITERM_SESSION_ID" ]]; then
+    trap "tab-reset" INT EXIT
+    tab-color 150 100 255
+  fi
+  honcho $*
+}
+compdef _honcho color-honcho=honcho
+alias honcho=color-honcho
 # webpack
 color-webpack() {
   if [[ -n "$ITERM_SESSION_ID" ]]; then
@@ -303,3 +313,5 @@ alias ssh="colorssh"
 # rbenv
 #-------------------------------------------------------------------------------
 eval "$(rbenv init -)"
+
+test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"

@@ -5,6 +5,7 @@ files = %w(
   .gemrc
   .gitconfig
   .pryrc
+  .irbrc
   .zshrc
   .ssh/config
 )
