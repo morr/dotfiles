@@ -23,7 +23,10 @@ plugins=(rails ruby bundler capistrano gem osx npm rbenv ssh-agent rake brew \
 HISTSIZE=100000
 HISTFILESIZE=200000
 TERM="xterm-256color"
+
 export EDITOR="mvim"
+# some shit to enable erlang history
+export ERL_AFLAGS="-kernel shell_history enabled"
 
 # oh-my-zsh
 source $ZSH/oh-my-zsh.sh
@@ -87,15 +90,20 @@ alias shikibackup=backup_shikimori_images
 #-------------------------------------------------------------------------------
 # common aliases
 #-------------------------------------------------------------------------------
-
 alias psf='ps aux|grep $1'
-alias ll='ls -l'
+alias ll='ls -lAh'
 
 #-------------------------------------------------------------------------------
 # rails aliases
 #-------------------------------------------------------------------------------
 alias r='rails'
 alias log='tail -f log/development.log'
+alias foreman='honcho'
+
+#-------------------------------------------------------------------------------
+# elixir aliases
+#-------------------------------------------------------------------------------
+alias iex='iex -S mix'
 
 #-------------------------------------------------------------------------------
 # git aliases
@@ -177,15 +185,14 @@ zstyle ':completion:*:killall:*'   force-list always
 #-------------------------------------------------------------------------------
 # locales configuration
 #-------------------------------------------------------------------------------
-LANG="ru_RU.UTF-8"
-LC_COLLATE="ru_RU.UTF-8"
-LC_CTYPE="ru_RU.UTF-8"
-LC_MESSAGES="ru_RU.UTF-8"
-LC_MONETARY="ru_RU.UTF-8"
-LC_NUMERIC="ru_RU.UTF-8"
-LC_TIME="ru_RU.UTF-8"
-LC_ALL="ru_RU.UTF-8"
-
+export LANG="ru_RU.UTF-8"
+export LC_COLLATE="ru_RU.UTF-8"
+export LC_CTYPE="ru_RU.UTF-8"
+export LC_MESSAGES="ru_RU.UTF-8"
+export LC_MONETARY="ru_RU.UTF-8"
+export LC_NUMERIC="ru_RU.UTF-8"
+export LC_TIME="ru_RU.UTF-8"
+export LC_ALL="ru_RU.UTF-8"
 
 #-------------------------------------------------------------------------------
 # PATH for Bundler and NodeJS
