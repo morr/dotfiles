@@ -33,6 +33,9 @@ source $ZSH/oh-my-zsh.sh
 # fish syntax highlight
 #source ~/.oh-my-zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
+# fix lag on paste text into console
+unset zle_bracketed_paste
+
 #-------------------------------------------------------------------------------
 # configs projects
 #-------------------------------------------------------------------------------
