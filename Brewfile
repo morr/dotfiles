@@ -94,7 +94,7 @@ cask_args appdir: '/Applications'
 
 cask 'font-cousine'
 cask 'font-d2coding'
-cask 'font-droid-sans-mono'
+# cask 'font-droid-sans-mono'
 cask 'font-fira-mono'
 cask 'font-inconsolata-dz'
 # for iTerm2
@@ -110,7 +110,7 @@ cask 'font-iosevka'
 # - `open /usr/local/Caskroom/utorrent/latest/uTorrent.app`
 # - system preferences:
 #   - Users & Groups -> Login Items: remove (don't hide)
-cask 'utorrent'
+# cask 'utorrent'
 
 #-------------------------------------------------------------------------------
 # App Store
