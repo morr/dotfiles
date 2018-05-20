@@ -18,7 +18,7 @@ COMPLETION_WAITING_DOTS="true"
 
 plugins=(rails ruby bundler capistrano gem osx npm rbenv ssh-agent rake brew \
   command-not-found compleat cp history history-substring-search \
-  git-remote-branch git git-flow git-extras github pow npm yarn)
+  git-remote-branch git git-flow git-extras github pow npm yarn docker)
 
 HISTSIZE=100000
 HISTFILESIZE=200000
@@ -47,10 +47,15 @@ alias vimfiles="cd ~/.vim"
 #-------------------------------------------------------------------------------
 alias chef-erebor="cd ~/develop/work/chef-erebor"
 alias erebor="cd ~/develop/work/erebor"
+alias chef-bidon="cd ~/develop/work/chef-bidon"
 alias bidon="cd ~/develop/work/bidon"
 
 alias e="erebor"
 alias b="bidon"
+
+
+alias chef-as="cd ~/develop/work/chef-as"
+alias as="cd ~/develop/work/amazing-supplies/"
 
 #-------------------------------------------------------------------------------
 # home projects
@@ -104,6 +109,7 @@ alias ll='ls -lAh'
 alias r='rails'
 alias log='tail -f log/development.log'
 alias foreman='honcho'
+alias hs='honcho start'
 
 #-------------------------------------------------------------------------------
 # elixir aliases
@@ -120,8 +126,8 @@ alias finalize='git rebase --interactive --autosquash master'
 alias update='git add -A && git commit -m "updates"'
 alias bugfix='git add -A && git commit -m "bugfixes"'
 
-alias migrate='rails db:migrate && RAILS_ENV=test rails db:migrate'
-alias rollback='rails db:rollback STEP=1 && RAILS_ENV=test rails db:rollback STEP=1'
+alias migrate='rake db:migrate && RAILS_ENV=test rake db:migrate'
+alias rollback='rake db:rollback STEP=1 && RAILS_ENV=test rake db:rollback STEP=1'
 
 alias deploy='git push && cap production deploy'
 
@@ -163,7 +169,8 @@ my_find() {
     -type f \( \
        -name "*.rb" -or -name "*.erb" -or -name "*.rss" -or -name "*.xml" \
        -or -name "*.slim" -or -name "*.haml" -or -name "*.html" \
-       -or -name "*.js" -or -name "*.coffee" -or -name "*.ejs" -or -name "*.jst" \
+       -or -name "*.js" -or -name "*.coffee" -or -name "*.ejs"  \
+       -or -name "*.jsx" -or -name "*.jst" \
        -or -name "*.jade"  -or -name "*.eco" \
        -or -name "*.css" -or -name "*.scss" \
        -or -name "*.sass" -or -name "*.yml" -or -name "*.vim" \
@@ -261,6 +268,26 @@ color-hc() {
 }
 compdef _hc color-hc=hc
 alias hc=color-hc
+# docker-compose
+color-docker-compose() {
+  if [[ -n "$ITERM_SESSION_ID" ]]; then
+    trap "tab-reset" INT EXIT
+    tab-color 128 51 170
+  fi
+  docker-compose $*
+}
+compdef _docker-compose color-docker-compose=docker-compose
+alias docker-compose=color-docker-compose
+# rails
+color-rails() {
+  if [[ -n "$ITERM_SESSION_ID" ]]; then
+    trap "tab-reset" INT EXIT
+    tab-color 255 128 128
+  fi
+  rails $*
+}
+compdef _rails color-rails=rails
+alias rails=color-rails
 # sidekiq
 color-sidekiq() {
   if [[ -n "$ITERM_SESSION_ID" ]]; then
