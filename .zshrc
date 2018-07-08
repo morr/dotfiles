@@ -232,13 +232,13 @@ if [[ -n "$ITERM_SESSION_ID" ]]; then
 
   function iterm2_tab_preexec() {
     if [[ "$1" =~ "^(guard$|yarn test)" ]]; then
-      tab-color 237 179 107
+      tab-color 208 117 39
     elif [[ "$1" =~ "^(rc|rails console|hc|hanami console)$" ]]; then
       tab-color 90 255 55
     elif [[ "$1" =~ "^(sidekiq|forman|docker-compose|hs$)" ]]; then
       # tab-color 128 51 170
       tab-color 150 100 255
-    elif [[ "$1" =~ "^(webpack|yarn start|ww)$" ]]; then
+    elif [[ "$1" =~ "^(webpack|ww)$" ]]; then
       tab-color 121 174 238
     elif [[ "$1" =~ "^(rails|yarn)" ]]; then
       tab-color 255 128 128
