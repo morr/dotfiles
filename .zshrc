@@ -213,123 +213,46 @@ export LC_ALL="ru_RU.UTF-8"
 export PATH=/usr/local/bin:/usr/local/share/npm/bin:$PATH
 
 #-------------------------------------------------------------------------------
-# iterm2 colors
+# tab colors
 #-------------------------------------------------------------------------------
-tab-color() {
-  echo -ne "\033]6;1;bg;red;brightness;$1\a"
-  echo -ne "\033]6;1;bg;green;brightness;$2\a"
-  echo -ne "\033]6;1;bg;blue;brightness;$3\a"
-}
-tab-reset() {
-  echo -ne "\033]6;1;bg;*;default\a"
-  trap - INT EXIT
-}
-# ssh
-color-ssh() {
-  if [[ -n "$ITERM_SESSION_ID" ]]; then
-    trap "tab-reset" INT EXIT
-    tab-color 255 0 0
-    # if [[ "$*" =~ "production|ec2-.*compute-1" ]]; then
-      # tab-color 255 0 0
-    # else
-      # tab-color 0 255 0
-    # fi
-  fi
-  ssh $*
-}
-compdef _ssh color-ssh=ssh
-alias ssh=color-ssh
-# guard
-color-guard() {
-  if [[ -n "$ITERM_SESSION_ID" ]]; then
-    trap "tab-reset" INT EXIT
-    tab-color 237 179 107
-  fi
-  guard $*
-}
-compdef _guard color-guard=guard
-alias guard=color-guard
-# rails console
-color-rc() {
-  if [[ -n "$ITERM_SESSION_ID" ]]; then
-    trap "tab-reset" INT EXIT
-    tab-color 90 255 55
-  fi
-  rc $*
-}
-compdef _rc color-rc=rc
-alias rc=color-rc
-# hanami console
-color-hc() {
-  if [[ -n "$ITERM_SESSION_ID" ]]; then
-    trap "tab-reset" INT EXIT
-    tab-color 125 255 90
-  fi
-  hanami console $*
-}
-compdef _hc color-hc=hc
-alias hc=color-hc
-# docker-compose
-color-docker-compose() {
-  if [[ -n "$ITERM_SESSION_ID" ]]; then
-    trap "tab-reset" INT EXIT
-    tab-color 128 51 170
-  fi
-  docker-compose $*
-}
-compdef _docker-compose color-docker-compose=docker-compose
-alias docker-compose=color-docker-compose
-# rails
-color-rails() {
-  if [[ -n "$ITERM_SESSION_ID" ]]; then
-    trap "tab-reset" INT EXIT
-    tab-color 255 128 128
-  fi
-  rails $*
-}
-compdef _rails color-rails=rails
-alias rails=color-rails
-# sidekiq
-color-sidekiq() {
-  if [[ -n "$ITERM_SESSION_ID" ]]; then
-    trap "tab-reset" INT EXIT
-    tab-color 150 100 255
-  fi
-  sidekiq $*
-}
-compdef _sidekiq color-sidekiq=sidekiq
-alias sidekiq=color-sidekiq
-# foreman
-color-foreman() {
-  if [[ -n "$ITERM_SESSION_ID" ]]; then
-    trap "tab-reset" INT EXIT
-    tab-color 150 100 255
-  fi
-  foreman $*
-}
-compdef _foreman color-foreman=foreman
-alias foreman=color-foreman
-# honcho
-color-honcho() {
-  if [[ -n "$ITERM_SESSION_ID" ]]; then
-    trap "tab-reset" INT EXIT
-    tab-color 150 100 255
-  fi
-  honcho $*
-}
-compdef _honcho color-honcho=honcho
-alias honcho=color-honcho
-# webpack
-color-webpack() {
-  if [[ -n "$ITERM_SESSION_ID" ]]; then
-    trap "tab-reset" INT EXIT
-    tab-color 121 174 238
-  fi
-  bin/webpack-dev-server $*
-}
-compdef _webpack color-webpack=webpack
-alias ww=color-webpack
+if [[ -n "$ITERM_SESSION_ID" ]]; then
+  tab-color() {
+    echo -ne "\033]6;1;bg;red;brightness;$1\a"
+    echo -ne "\033]6;1;bg;green;brightness;$2\a"
+    echo -ne "\033]6;1;bg;blue;brightness;$3\a"
+  }
+  tab-red() { tab-color 255 0 0 }
+  tab-green() { tab-color 0 255 0 }
+  tab-blue() { tab-color 0 0 255 }
+  tab-reset() { echo -ne "\033]6;1;bg;*;default\a" }
 
+  function iterm2_tab_precmd() {
+    tab-reset
+  }
+
+  function iterm2_tab_preexec() {
+    if [[ "$1" =~ "^(guard$|yarn test)" ]]; then
+      tab-color 237 179 107
+    elif [[ "$1" =~ "^(rc|rails console|hc|hanami console)$" ]]; then
+      tab-color 90 255 55
+    elif [[ "$1" =~ "^(sidekiq|forman|docker-compose|hs$)" ]]; then
+      # tab-color 128 51 170
+      tab-color 150 100 255
+    elif [[ "$1" =~ "^(webpack|yarn start|ww)$" ]]; then
+      tab-color 121 174 238
+    elif [[ "$1" =~ "^(rails|yarn)" ]]; then
+      tab-color 255 128 128
+    fi
+  }
+
+  autoload -U add-zsh-hook
+  add-zsh-hook precmd  iterm2_tab_precmd
+  add-zsh-hook preexec iterm2_tab_preexec
+fi
+
+#-------------------------------------------------------------------------------
+# background colors
+#-------------------------------------------------------------------------------
 function tabc() {
   NAME=$1; if [ -z "$NAME" ]; then NAME="Default"; fi # if you have trouble with this, change
                                                       # "Default" to the name of your default theme
