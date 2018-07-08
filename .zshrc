@@ -47,15 +47,16 @@ alias vimfiles="cd ~/.vim"
 #-------------------------------------------------------------------------------
 alias chef-erebor="cd ~/develop/work/chef-erebor"
 alias erebor="cd ~/develop/work/erebor"
+alias e="erebor"
+
 alias chef-bidon="cd ~/develop/work/chef-bidon"
 alias bidon="cd ~/develop/work/bidon"
-
-alias e="erebor"
 alias b="bidon"
 
-
-alias chef-as="cd ~/develop/work/chef-as"
+alias chef-grin="cd ~/develop/work/chef-grin"
 alias as="cd ~/develop/work/amazing-supplies/"
+
+alias grin="cd ~/develop/work/grin/"
 
 #-------------------------------------------------------------------------------
 # home projects
