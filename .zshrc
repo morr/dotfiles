@@ -57,6 +57,7 @@ alias chef-grin="cd ~/develop/work/chef-grin"
 alias as="cd ~/develop/work/amazing-supplies/"
 
 alias grin="cd ~/develop/work/grin/"
+alias grin-landing="cd ~/develop/work/grin-landing/"
 
 #-------------------------------------------------------------------------------
 # home projects
