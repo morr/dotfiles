@@ -112,6 +112,7 @@ alias r='rails'
 alias log='tail -f log/development.log'
 alias foreman='honcho'
 alias hs='honcho start'
+alias ys='yarn start'
 
 #-------------------------------------------------------------------------------
 # elixir aliases
@@ -236,6 +237,8 @@ if [[ -n "$ITERM_SESSION_ID" ]]; then
       tab-color 255 177 0
     elif [[ "$1" =~ "^(rc|rails console|hc|hanami console)$" ]]; then
       tab-color 90 255 55
+    elif [[ "$1" =~ "^ys$" ]]; then
+      tab-color 0 255 192
     elif [[ "$1" =~ "^(sidekiq|forman|docker-compose|hs$)" ]]; then
       # tab-color 128 51 170
       tab-color 150 100 255
