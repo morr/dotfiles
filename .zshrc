@@ -53,8 +53,10 @@ alias chef-bidon="cd ~/develop/work/chef-bidon"
 alias bidon="cd ~/develop/work/bidon"
 alias b="bidon"
 
-alias chef-grin="cd ~/develop/work/chef-grin"
 alias as="cd ~/develop/work/amazing-supplies/"
+
+alias chef-as="cd ~/develop/work/chef-as"
+alias chef-grin="cd ~/develop/work/chef-grin"
 
 alias grin="cd ~/develop/work/grin/"
 alias grin-landing="cd ~/develop/work/grin-landing/"
@@ -200,14 +202,23 @@ zstyle ':completion:*:killall:*'   force-list always
 #-------------------------------------------------------------------------------
 # locales configuration
 #-------------------------------------------------------------------------------
-export LANG="ru_RU.UTF-8"
-export LC_COLLATE="ru_RU.UTF-8"
-export LC_CTYPE="ru_RU.UTF-8"
-export LC_MESSAGES="ru_RU.UTF-8"
-export LC_MONETARY="ru_RU.UTF-8"
-export LC_NUMERIC="ru_RU.UTF-8"
-export LC_TIME="ru_RU.UTF-8"
-export LC_ALL="ru_RU.UTF-8"
+# export LANG="ru_RU.UTF-8"
+# export LC_COLLATE="ru_RU.UTF-8"
+# export LC_CTYPE="ru_RU.UTF-8"
+# export LC_MESSAGES="ru_RU.UTF-8"
+# export LC_MONETARY="ru_RU.UTF-8"
+# export LC_NUMERIC="ru_RU.UTF-8"
+# export LC_TIME="ru_RU.UTF-8"
+# export LC_ALL="ru_RU.UTF-8"
+
+export LANG="en_US.UTF-8"
+export LC_COLLATE="en_US.UTF-8"
+export LC_CTYPE="en_US.UTF-8"
+export LC_MESSAGES="en_US.UTF-8"
+export LC_MONETARY="en_US.UTF-8"
+export LC_NUMERIC="en_US.UTF-8"
+export LC_TIME="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
 
 #-------------------------------------------------------------------------------
 # PATH for Bundler and NodeJS
@@ -235,9 +246,9 @@ if [[ -n "$ITERM_SESSION_ID" ]]; then
   function iterm2_tab_preexec() {
     if [[ "$1" =~ "^(guard$|yarn test)" ]]; then
       tab-color 255 177 0
-    elif [[ "$1" =~ "^(rc|rails console|hc|hanami console)$" ]]; then
+    elif [[ "$1" =~ "^(rc|rails console|hc|hanami console|iex)$" ]]; then
       tab-color 90 255 55
-    elif [[ "$1" =~ "^ys$" ]]; then
+    elif [[ "$1" =~ "^(ys|yarn start)$" ]]; then
       tab-color 0 255 192
     elif [[ "$1" =~ "^(sidekiq|forman|docker-compose|hs$)" ]]; then
       # tab-color 128 51 170
