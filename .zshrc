@@ -61,6 +61,9 @@ alias chef-grin="cd ~/develop/work/chef-grin"
 alias grin="cd ~/develop/work/grin/"
 alias grin-landing="cd ~/develop/work/grin-landing/"
 
+alias cw="cd ~/develop/work/cardwiz/"
+alias cwd="cd ~/develop/work/cardwiz-data/"
+
 #-------------------------------------------------------------------------------
 # home projects
 #-------------------------------------------------------------------------------
@@ -253,7 +256,7 @@ if [[ -n "$ITERM_SESSION_ID" ]]; then
     elif [[ "$1" =~ "^(sidekiq|forman|docker-compose|hs$)" ]]; then
       # tab-color 128 51 170
       tab-color 150 100 255
-    elif [[ "$1" =~ "^(webpack|ww)$" ]]; then
+    elif [[ "$1" =~ "^(webpack|ww|bin/webpack-dev-server)$" ]]; then
       tab-color 121 174 238
     elif [[ "$1" =~ "^(rails|yarn)" ]]; then
       tab-color 255 128 128
