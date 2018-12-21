@@ -99,11 +99,13 @@ backup_shikimori_images() {
   local local_path=/Volumes/HDD/shikimori/
   local shiki_path=/home/apps/shikimori/production/shared/public/system/
 
-  for dir in $(ssh shiki ls $shiki_path)
+  unalias ssh
+  for dir in $(ssh shiki_web ls $shiki_path)
   do
     echo "processing $dir ..."
-    rsync -urv -e ssh shiki:$shiki_path$dir $local_path
+    `rsync -urv -e ssh shiki_web:$shiki_path$dir $local_path`
   done
+  alias ssh="colorssh"
 }
 alias shikibackup=backup_shikimori_images
 
