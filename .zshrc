@@ -96,15 +96,25 @@ sync_shikimori_images() {
 alias shikisync=sync_shikimori_images
 
 backup_shikimori_images() {
-  local local_path=/Volumes/HDD/shikimori/
+  local local_path=/Volumes/HDD/shikimori_new/
   local shiki_path=/home/apps/shikimori/production/shared/public/system/
+  local shiki_path_2=/mnt/store/system/
 
   unalias ssh
   for dir in $(ssh shiki_web ls $shiki_path)
   do
     echo "processing $dir ..."
-    `rsync -urv -e ssh shiki_web:$shiki_path$dir $local_path`
+    rsync -urv -e ssh shiki_web:$shiki_path$dir $local_path
+    # --exclude=keepall --delete
+    # https://unix.stackexchange.com/questions/18564/asking-rsync-to-delete-files-on-the-receiving-side-that-dont-exist-on-the-sendic
   done
+
+  for dir in $(ssh shiki_web ls $shiki_path_2)
+  do
+    echo "processing $dir ..."
+    rsync -urv -e ssh shiki_web:$shiki_path_2$dir $local_path
+  done
+
   alias ssh="colorssh"
 }
 alias shikibackup=backup_shikimori_images
