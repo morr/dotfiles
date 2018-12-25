@@ -271,12 +271,14 @@ if [[ -n "$ITERM_SESSION_ID" ]]; then
     elif [[ "$1" =~ "^(sidekiq|forman|docker-compose|hs$)" ]]; then
       # tab-color 128 51 170
       tab-color 150 100 255
-    elif [[ "$1" =~ "^(webpack|ww|bin/webpack-dev-server)$" ]]; then
+    elif [[ "$1" =~ "^(webpack|ww|./bin/webpack-dev-server)$" ]]; then
       tab-color 121 174 238
     elif [[ "$1" =~ "^(rails|yarn)" ]]; then
       tab-color 255 128 128
     elif [[ "$1" =~ "^(deploy|cap (production|staging )?deploy)" ]]; then
       tab-color 255 0 0
+    elif [[ "$1" =~ "^(shikibackup)" ]]; then
+      tab-color 255 174 174
     fi
   }
 
