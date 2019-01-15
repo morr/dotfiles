@@ -67,6 +67,9 @@ alias chef-cwd="cd ~/develop/work/chef-cardwiz-data/"
 alias cw="cd ~/develop/work/cardwiz/"
 alias chef-cw="cd ~/develop/work/chef-cardwiz/"
 
+alias ms="cd ~/develop/work/minisklad/"
+alias chef-ms="cd ~/develop/work/chef-minisklad/"
+
 #-------------------------------------------------------------------------------
 # home projects
 #-------------------------------------------------------------------------------
