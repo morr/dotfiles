@@ -136,6 +136,7 @@ alias log='tail -f log/development.log'
 alias foreman='honcho'
 alias hs='honcho start'
 alias ys='yarn start'
+alias ww='./bin/webpack-dev-server'
 
 #-------------------------------------------------------------------------------
 # elixir aliases
