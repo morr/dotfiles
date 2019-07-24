@@ -70,6 +70,8 @@ alias chef-cw="cd ~/develop/work/chef-cardwiz/"
 alias ms="cd ~/develop/work/minisklad/"
 alias chef-ms="cd ~/develop/work/chef-minisklad/"
 
+alias n1="cd ~/develop/work/n1-search-form/"
+
 #-------------------------------------------------------------------------------
 # home projects
 #-------------------------------------------------------------------------------
@@ -99,7 +101,7 @@ sync_shikimori_images() {
 alias shikisync=sync_shikimori_images
 
 backup_shikimori_images() {
-  local local_path=/Volumes/HDD/shikimori_new/
+  local local_path=/Volumes/HDD-2/shikimori_new/
   local shiki_path=/home/apps/shikimori/production/shared/public/system/
   local shiki_path_2=/mnt/store/system/
 
