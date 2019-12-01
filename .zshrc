@@ -1,7 +1,7 @@
 # HOWTO
 # install zsh: sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 # fish syntax highlight: cd ~/.oh-my-zsh && git clone git://github.com/zsh-users/zsh-syntax-highlighting.git
-
+#set rubydll=/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/libruby.2.6.dylib
 #-------------------------------------------------------------------------------
 # zsh basic configuration
 #-------------------------------------------------------------------------------
@@ -68,9 +68,8 @@ alias cw="cd ~/develop/work/cardwiz/"
 alias chef-cw="cd ~/develop/work/chef-cardwiz/"
 
 alias ms="cd ~/develop/work/minisklad/"
+alias ms-app="cd ~/develop/work/minisklad-app//"
 alias chef-ms="cd ~/develop/work/chef-minisklad/"
-
-alias n1="cd ~/develop/work/n1-search-form/"
 
 #-------------------------------------------------------------------------------
 # home projects
