@@ -11,12 +11,13 @@ ZSH_THEME="../../dotfiles/.oh-my-zsh/themes/morr"
 
 CASE_SENSITIVE="true"
 
-# Uncomment following line if you want to disable autosetting terminal title. # DISABLE_AUTO_TITLE="true"
+# Uncomment following line if you want to disable autosetting terminal title.
+# DISABLE_AUTO_TITLE="true"
 
 # Uncomment following line if you want red dots to be displayed while waiting for completion
 COMPLETION_WAITING_DOTS="true"
 
-plugins=(rails ruby bundler capistrano gem osx npm rbenv ssh-agent rake brew \
+plugins=(ruby bundler capistrano gem osx npm rbenv ssh-agent rake brew \
   command-not-found compleat cp history history-substring-search \
   git-remote-branch git git-flow git-extras github pow npm yarn docker)
 
@@ -35,6 +36,18 @@ source $ZSH/oh-my-zsh.sh
 
 # fix lag on paste text into console
 unset zle_bracketed_paste
+
+#-------------------------------------------------------------------------------
+# ubuntu config
+#-------------------------------------------------------------------------------
+unamestr=`uname`
+if [[ "$unamestr" == 'Linux' ]]; then
+  zstyle :omz:plugins:ssh-agent identities id_rsa github_2_rsa
+  # xmodmap -e "keycode 94 = asciitilde"
+  alias mvim="gvim"
+
+  export PATH=$HOME/.local/bin:$PATH
+fi
 
 #-------------------------------------------------------------------------------
 # configs projects
@@ -133,6 +146,7 @@ alias ll='ls -lAh'
 # rails aliases
 #-------------------------------------------------------------------------------
 alias r='rails'
+alias rc='rails console'
 alias log='tail -f log/development.log'
 alias foreman='honcho'
 alias hs='honcho start'
