@@ -1,7 +1,7 @@
 [user]
   name = Andrey Sidorov
   email = takandar@gmail.com
-  signingkey = 416D5A8BFDE0E372
+  signingkey = 084D4F9AF302F65A
 
 [merge]
   summary = true
