@@ -149,7 +149,7 @@ alias r='rails'
 alias rc='rails console'
 alias log='tail -f log/development.log'
 alias foreman='honcho'
-alias hs='overmind start'
+alias os='overmind start'
 alias ys='yarn start'
 alias ww='./bin/webpack-dev-server'
 
