@@ -287,7 +287,7 @@ if [[ -n "$ITERM_SESSION_ID" ]]; then
       tab-color 90 255 55
     elif [[ "$1" =~ "^(ys|yarn start)$" ]]; then
       tab-color 0 255 192
-    elif [[ "$1" =~ "^(sidekiq|forman|docker-compose|hs$)" ]]; then
+    elif [[ "$1" =~ "^(sidekiq|forman|docker-compose|os$)" ]]; then
       # tab-color 128 51 170
       tab-color 150 100 255
     elif [[ "$1" =~ "^(webpack|ww|./bin/webpack-dev-server)$" ]]; then
