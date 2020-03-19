@@ -113,7 +113,7 @@ sync_shikimori_images() {
 alias shikisync=sync_shikimori_images
 
 backup_shikimori_images() {
-  local local_path=/Volumes/HDD-2/shikimori_new/
+  local local_path=/Volumes/backup/shikimori_new/
   local shiki_path=/home/apps/shikimori/production/shared/public/system/
   local shiki_path_2=/mnt/store/system/
 
@@ -149,7 +149,7 @@ alias r='rails'
 alias rc='rails console'
 alias log='tail -f log/development.log'
 alias foreman='honcho'
-alias hs='honcho start'
+alias hs='overmind start'
 alias ys='yarn start'
 alias ww='./bin/webpack-dev-server'
 
@@ -337,3 +337,5 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 # GPG
 #-------------------------------------------------------------------------------
 export GPG_TTY=$(tty)
+
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
