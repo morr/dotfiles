@@ -1,6 +1,7 @@
-yarn.lock
 **/*.svg
 **/*.png
 **/*.jpg
 **/*.gz
+yarn.lock
 node_modules
+public
