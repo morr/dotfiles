@@ -1,3 +1,7 @@
+*/*.svg
+*/*.png
+*/*.jpg
+*/*.gz
 **/*.svg
 **/*.png
 **/*.jpg
@@ -5,3 +9,4 @@
 yarn.lock
 node_modules
 public
+spec/vcr_cassettes
