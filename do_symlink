@@ -1,19 +1,20 @@
 #!/usr/bin/env ruby
 
-files = %w(
+files = %w[
   .bash_profile
   .gemrc
   .gitconfig
   .pryrc
   .irbrc
   .zshrc
+  .agignore
   .ssh/config
-)
+]
 
 files.each do |file|
   puts "symlinking #{file}"
-  %x(rm -f $HOME/#{file})
-  %x(ln ./#{file} $HOME/#{file})
+  `rm -f $HOME/#{file}`
+  `ln ./#{file} $HOME/#{file}`
 end
 
-puts "done!"
+puts 'done!'
