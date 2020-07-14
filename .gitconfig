@@ -24,6 +24,7 @@
 [alias]
   d = difftool
   m = mergetool
+  up = pull --rebase --autostash
 
 [diff]
   tool = default-difftool
