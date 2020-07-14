@@ -17,4 +17,10 @@ files.each do |file|
   `ln ./#{file} $HOME/#{file}`
 end
 
+conf = '.gnupg/gpg.conf'
+puts "symlinking #{conf}"
+`rm -f $HOME/#{conf}`
+`ln ./#{conf} $HOME/#{conf}`
+puts 'dont forget to write passphrase to /Users/morr/.gnupg/passphrase'
+
 puts 'done!'
