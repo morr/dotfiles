@@ -21,8 +21,8 @@ plugins=(ruby bundler capistrano gem osx npm rbenv ssh-agent rake brew \
   command-not-found compleat cp history history-substring-search \
   git git-flow git-extras github pow npm yarn docker)
 
-HISTSIZE=100000
-HISTFILESIZE=200000
+HISTSIZE=1000000
+HISTFILESIZE=2000000
 TERM="xterm-256color"
 
 export EDITOR="mvim"
