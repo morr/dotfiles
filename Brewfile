@@ -21,6 +21,7 @@ brew 'coreutils'
 brew 'curl'
 brew 'git'
 brew 'wget'
+brew 'asdf'
 
 brew 'overmind'
 brew 'tmux'
