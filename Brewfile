@@ -21,7 +21,6 @@ brew 'overmind'
 brew 'tmux'
 
 brew 'elixir'
-brew 'fontforge'
 brew 'git'
 brew 'gpg'
 brew 'htop'
