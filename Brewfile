@@ -17,36 +17,22 @@ tap 'puma/puma'
 # Homebrew
 #-------------------------------------------------------------------------------
 
-#brew 'chromedriver'
-#brew 'djview4'
-
-# after installation:
-# - `aws configure`
-# brew 'awscli'
-brew 'ccze'
-# for cpsm vim plugin
-brew 'cmake'
-# for cpsm vim plugin
-brew 'boost'
 brew 'elixir'
 brew 'fontforge'
 brew 'git'
 brew 'gpg'
-brew 'honcho'
 brew 'htop'
 brew 'imagemagick'
 brew 'jq'
 # provides rsvg-convert utility to convert svg to png
-brew 'librsvg'
+# brew 'librsvg'
 
 brew 'mas'
 brew 'memcached', restart_service: :changed
 brew 'mc'
-brew 'mpv'
-# for reenter_feed
-# for react-native
-# (same as nodejs)
+# brew 'mpv' # media player
 brew 'node'
+
 # https://github.com/Homebrew/brew/blob/master/docs/Versions.md
 # brew 'postgresql@9.5', restart_service: :changed
 
