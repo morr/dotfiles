@@ -9,16 +9,15 @@
 # Taps (third-party repositories)
 #-------------------------------------------------------------------------------
 
-# remove formula with its unused dependencies:
-# `brew rmtree mpv`
-tap 'caskroom/cask'
-tap 'caskroom/fonts'
 tap 'homebrew/bundle'
 tap 'homebrew/services'
+tap 'puma/puma'
 
 #-------------------------------------------------------------------------------
 # Homebrew
 #-------------------------------------------------------------------------------
+
+brew 'macvim'
 
 #brew 'chromedriver'
 #brew 'djview4'
@@ -32,7 +31,6 @@ brew 'cmake'
 # for cpsm vim plugin
 brew 'boost'
 brew 'elixir'
-# for ~/scripts/fontpatcher
 brew 'fontforge'
 brew 'git'
 brew 'gpg'
@@ -43,7 +41,6 @@ brew 'jq'
 # provides rsvg-convert utility to convert svg to png
 brew 'librsvg'
 
-brew 'macvim'
 brew 'mas'
 brew 'memcached', restart_service: :changed
 brew 'mc'
@@ -63,7 +60,7 @@ brew 'node'
 # - add symlinks to _~/.puma-dev/_
 # - add `gem 'puma'` to _Gemfile_ of all symlinked applications
 #   (for development and test groups only)
-brew 'puma-dev'
+brew 'puma/puma/puma-dev'
 # - it's much easier to install pow manually:
 #   `curl get.pow.cx | sh`
 # - create symlinks for all required projects:
@@ -92,14 +89,9 @@ brew 'zsh'
 
 cask_args appdir: '/Applications'
 
-cask 'font-cousine'
-cask 'font-d2coding'
-# cask 'font-droid-sans-mono'
-cask 'font-fira-mono'
-cask 'font-inconsolata-dz'
-# for iTerm2
-cask 'font-inconsolata-lgc'
-cask 'font-iosevka'
+cask 'karabiner-elements'
+cask 'iterm2'
+cask 'mucommander'
 
 # cask 'google-chrome'
 # cask 'iterm2'
