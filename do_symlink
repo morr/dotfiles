@@ -8,6 +8,7 @@ files = %w[
   .irbrc
   .zshrc
   .agignore
+  .asdfrc
   .tool-versions
   .ssh/config
 ]
