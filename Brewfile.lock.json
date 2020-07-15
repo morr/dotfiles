@@ -557,6 +557,10 @@
             }
           }
         }
+      },
+      "asdf": {
+        "version": "0.7.8",
+        "bottle": false
       }
     },
     "cask": {
