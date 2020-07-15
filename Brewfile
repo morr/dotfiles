@@ -24,7 +24,7 @@ brew 'macvim'
 
 # after installation:
 # - `aws configure`
-brew 'awscli'
+# brew 'awscli'
 brew 'ccze'
 # for cpsm vim plugin
 brew 'cmake'

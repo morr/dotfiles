@@ -35,9 +35,6 @@
 [difftool "default-difftool"]
   cmd = mvim -d -f --nomru $LOCAL $REMOTE
 
-[git-up "bundler"]
-  check = true
-
 [core]
   autocrlf = input
   editor = mvim -f --nomru
