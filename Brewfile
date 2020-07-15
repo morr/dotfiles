@@ -17,6 +17,9 @@ tap 'puma/puma'
 # Homebrew
 #-------------------------------------------------------------------------------
 
+brew 'overmind'
+brew 'tmux'
+
 brew 'elixir'
 brew 'fontforge'
 brew 'git'
