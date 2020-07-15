@@ -20,7 +20,6 @@ tap 'puma/puma'
 brew 'overmind'
 brew 'tmux'
 
-brew 'elixir'
 brew 'git'
 brew 'gpg'
 brew 'htop'
@@ -72,6 +71,8 @@ brew 'zsh'
 #-------------------------------------------------------------------------------
 # Homebrew-Cask
 #-------------------------------------------------------------------------------
+
+cask 'java'
 
 cask_args appdir: '/Applications'
 
