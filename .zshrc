@@ -339,3 +339,8 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 export GPG_TTY=$(tty)
 
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+
+#-------------------------------------------------------------------------------
+# ZSH
+#-------------------------------------------------------------------------------
+export PATH="/usr/local/sbin:$PATH"
