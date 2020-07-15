@@ -17,8 +17,6 @@ tap 'puma/puma'
 # Homebrew
 #-------------------------------------------------------------------------------
 
-brew 'macvim'
-
 #brew 'chromedriver'
 #brew 'djview4'
 
@@ -89,6 +87,7 @@ brew 'zsh'
 
 cask_args appdir: '/Applications'
 
+cask 'macvim'
 cask 'karabiner-elements'
 cask 'iterm2'
 cask 'mucommander'
