@@ -77,6 +77,7 @@ brew 'zsh'
 #-------------------------------------------------------------------------------
 
 cask 'java'
+cask 'homebrew/cask-versions/adoptopenjdk8'
 
 cask_args appdir: '/Applications'
 
