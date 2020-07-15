@@ -17,10 +17,14 @@ tap 'puma/puma'
 # Homebrew
 #-------------------------------------------------------------------------------
 
+brew 'coreutils'
+brew 'curl'
+brew 'git'
+brew 'wget'
+
 brew 'overmind'
 brew 'tmux'
 
-brew 'git'
 brew 'gpg'
 brew 'htop'
 brew 'imagemagick'
@@ -56,7 +60,6 @@ brew 'rbenv'
 brew 'redis', restart_service: :changed
 brew 'ripgrep'
 
-brew 'wget'
 brew 'yarn'
 # - make it a login shell: `chsh -s /bin/zsh`
 #   (all available shells are listed in /etc/shells,
