@@ -292,7 +292,7 @@ if [[ -n "$ITERM_SESSION_ID" ]]; then
       tab-color 150 100 255
     elif [[ "$1" =~ "^(webpack|ww|./bin/webpack-dev-server)$" ]]; then
       tab-color 121 174 238
-    elif [[ "$1" =~ "^(rails|yarn)" ]]; then
+    elif [[ "$1" =~ "^(rails|yarn|bundle)" ]]; then
       tab-color 255 128 128
     elif [[ "$1" =~ "^(deploy|cap (production|staging )?deploy|mix deploy|git push && BRANCH=staging cap staging deploy)" ]]; then
       tab-color 255 0 0
