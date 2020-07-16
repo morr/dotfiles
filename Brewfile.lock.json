@@ -605,6 +605,12 @@
         "options": {
           "full_name": "java"
         }
+      },
+      "adoptopenjdk8": {
+        "version": "8,252:b09",
+        "options": {
+          "full_name": "homebrew/cask-versions/adoptopenjdk8"
+        }
       }
     },
     "mas": {
@@ -624,7 +630,7 @@
       "Telegram Desktop": null,
       "Xcode": {
         "id": "497799835",
-        "version": "11.5"
+        "version": "11.3.1"
       }
     }
   },
