@@ -59,7 +59,10 @@ brew 'puma/puma/puma-dev'
 # http://tap349.github.io/rbenv/ruby/chef/capistrano/2016/03/30/rbenv
 brew 'rbenv'
 brew 'redis', restart_service: :changed
+
 brew 'ripgrep'
+brew 'ctags'
+brew 'the_silver_searcher'
 
 brew 'yarn'
 # - make it a login shell: `chsh -s /bin/zsh`
