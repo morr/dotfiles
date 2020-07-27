@@ -296,7 +296,7 @@ if [[ -n "$ITERM_SESSION_ID" ]]; then
       tab-color 121 174 238
     elif [[ "$1" =~ "^(rails|yarn|bundle)" ]]; then
       tab-color 255 128 128
-    elif [[ "$1" =~ "^(deploy|cap (production|staging )?deploy|mix deploy|git push && BRANCH=staging cap staging deploy)" ]]; then
+    elif [[ "$1" =~ "^(deploy|cap (production|staging )?deploy|mix deploy|git push && BRANCH=staging cap staging deploy|./do_releas|yarn upgrade|bundle upgrade)" ]]; then
       tab-color 255 0 0
     elif [[ "$1" =~ "^(shikibackup)" ]]; then
       tab-color 255 174 174
