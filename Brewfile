@@ -61,7 +61,7 @@ brew 'rbenv'
 brew 'redis', restart_service: :changed
 
 brew 'ripgrep'
-brew 'ctags'
+# brew 'ctags'
 brew 'the_silver_searcher'
 
 brew 'yarn'
