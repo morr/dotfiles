@@ -37,14 +37,14 @@ function git_prompt_info () {
   fi
 }
 
-ZSH_THEME_GIT_COMMITS_AHEAD_PREFIX="$FG[200]"
+ZSH_THEME_GIT_COMMITS_AHEAD_PREFIX=" $FG[200]"
 ZSH_THEME_GIT_COMMITS_AHEAD_SYMBOL="ᛋ"
 ZSH_THEME_GIT_COMMITS_AHEAD_SUFFIX="%{$reset_color%}"
 
-ZSH_THEME_GIT_PROMPT_PREFIX="$FG[116] ("
+ZSH_THEME_GIT_PROMPT_PREFIX=" $fg[white]git:$FG[116]"
 ZSH_THEME_GIT_PROMPT_CLEAN=""
-ZSH_THEME_GIT_PROMPT_DIRTY="$FG[214]*%{$reset_color%}"
-ZSH_THEME_GIT_PROMPT_SUFFIX="$FG[116])%{$reset_color%}"
+ZSH_THEME_GIT_PROMPT_DIRTY=" $FG[214]*%{$reset_color%}"
+ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%}"
 
 # local shell_level=" %{$fg[white]%}L:%{$fg[magenta]%}%L"
 local shell_level=""
