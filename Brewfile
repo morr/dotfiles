@@ -88,6 +88,7 @@ cask 'macvim'
 cask 'karabiner-elements'
 cask 'iterm2'
 cask 'mucommander'
+cask 'krita'
 
 # cask 'google-chrome'
 # cask 'iterm2'
