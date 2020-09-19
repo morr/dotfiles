@@ -286,7 +286,7 @@ if [[ -n "$ITERM_SESSION_ID" ]]; then
   function iterm2_tab_preexec() {
     if [[ "$1" =~ "^(guard$|yarn test)" ]]; then
       tab-color 255 177 0
-    elif [[ "$1" =~ "^(rc|rails console|hc|hanami console|iex|command iex)$" ]]; then
+    elif [[ "$1" =~ "^(rc|rails console|hc|hanami console|iex|command iex|pry|irb)$" ]]; then
       tab-color 90 255 55
     elif [[ "$1" =~ "^(ys|yarn start)$" ]]; then
       tab-color 0 255 192
