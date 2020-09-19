@@ -22,6 +22,7 @@ brew 'curl'
 brew 'git'
 brew 'wget'
 brew 'asdf'
+brew 'gh' # github cli
 
 brew 'overmind'
 brew 'tmux'
