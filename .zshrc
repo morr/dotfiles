@@ -227,6 +227,13 @@ my_find_vim() {
 }
 
 #-------------------------------------------------------------------------------
+# shikimori aliases
+#-------------------------------------------------------------------------------
+shiki_exec() {
+  ssh devops@shiki_web "source /home/devops/.zshrc && cd /home/apps/shikimori/production/current && RAILS_ENV=production bundle exec rails runner \"ap($*)\""
+}
+
+#-------------------------------------------------------------------------------
 # zsh-completions
 #-------------------------------------------------------------------------------
 fpath=(path/to/zsh-completions/src $fpath)
