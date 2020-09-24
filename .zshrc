@@ -297,7 +297,7 @@ if [[ -n "$ITERM_SESSION_ID" ]]; then
   function iterm2_tab_preexec() {
     if [[ "$1" =~ "^(guard$|yarn test)" ]]; then
       tab-color 255 177 0
-    elif [[ "$1" =~ "^(rc|rails console|hc$|hanami console$|iex|command iex|pry|irb|shiki_exec)" ]]; then
+    elif [[ "$1" =~ "^(rc|rails console|hc$|hanami console$|iex|command iex|pry|irb)" ]]; then
       tab-color 90 255 55
     elif [[ "$1" =~ "^(ys|yarn start)$" ]]; then
       tab-color 0 255 192
@@ -308,7 +308,7 @@ if [[ -n "$ITERM_SESSION_ID" ]]; then
       tab-color 121 174 238
     elif [[ "$1" =~ "^(rails|yarn|bundle)" ]]; then
       tab-color 255 128 128
-    elif [[ "$1" =~ "^(deploy|cap (production|staging )?deploy|mix deploy|git push && BRANCH=staging cap staging deploy|./do_releas|yarn upgrade|bundle upgrade)" ]]; then
+    elif [[ "$1" =~ "^(deploy|cap (production|staging )?deploy|mix deploy|git push && BRANCH=staging cap staging deploy|./do_releas|yarn upgrade|bundle upgrade|shiki_exec)" ]]; then
       tab-color 255 0 0
     elif [[ "$1" =~ "^(shikibackup)" ]]; then
       tab-color 255 174 174
