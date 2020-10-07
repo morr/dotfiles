@@ -75,12 +75,13 @@ brew 'yarn'
 #   - https://github.com/zsh-users/zsh-autosuggestions#oh-my-zsh
 #   - https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/INSTALL.md#oh-my-zsh
 brew 'zsh'
+# brew 'java'
+brew 'openjdk'
 
 #-------------------------------------------------------------------------------
 # Homebrew-Cask
 #-------------------------------------------------------------------------------
 
-cask 'java'
 cask 'homebrew/cask-versions/adoptopenjdk8'
 
 cask_args appdir: '/Applications'
