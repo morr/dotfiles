@@ -90,8 +90,7 @@ alias chef-ms="cd ~/develop/work/chef-minisklad/"
 #-------------------------------------------------------------------------------
 alias chef-shiki="cd ~/develop/chef-shiki"
 alias shiki="cd ~/develop/shikimori"
-alias shiki-packages="cd ~/develop/shiki-packages"
-alias shiki-editor="cd ~/develop/shiki-packages/packages/shiki-editor"
+alias shiki-editor="cd ~/develop/shiki-editor"
 alias mal_parser="cd ~/develop/mal_parser"
 alias neko="cd ~/develop/neko-achievements"
 
