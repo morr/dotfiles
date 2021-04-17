@@ -237,6 +237,11 @@ shiki_exec_ap() {
 }
 
 #-------------------------------------------------------------------------------
+# other
+#-------------------------------------------------------------------------------
+alias fix-spotlight="cd $HOME; find . -type d -path './.*' -prune -o -path './Pictures*' -prune -o -path './Library*' -prune -o -path '*node_modules/*' -prune -o -type d -name 'node_modules' -exec touch '{}/.metadata_never_index' \; -print"
+
+#-------------------------------------------------------------------------------
 # zsh-completions
 #-------------------------------------------------------------------------------
 fpath=(path/to/zsh-completions/src $fpath)
