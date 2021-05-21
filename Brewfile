@@ -92,10 +92,13 @@ cask 'iterm2'
 cask 'mucommander'
 cask 'krita'
 
-# cask 'google-chrome'
-# cask 'iterm2'
-# cask 'skype'
+cask 'transmission'
+cask 'windscribe'
+cask 'discord'
+cask 'toptracker'
 
+# cask 'google-chrome'
+# cask 'skype'
 # cask 'steam'
 
 # - `open /usr/local/Caskroom/utorrent/latest/uTorrent.app`
@@ -165,4 +168,5 @@ mas 'Monosnap', id: 540348655
 #     - General -> Show Magnifier: <M-2>
 mas 'Sip', id: 507257563
 mas 'Telegram Desktop', id: 946399090
+mas 'Boxy SVG', id: 611658502
 mas 'Xcode', id: 497799835
