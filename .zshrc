@@ -88,6 +88,7 @@ alias chef-ms="cd ~/develop/work/chef-minisklad/"
 #-------------------------------------------------------------------------------
 # home projects
 #-------------------------------------------------------------------------------
+alias dev="cd ~/develop"
 alias chef-shiki="cd ~/develop/chef-shiki"
 alias shiki="cd ~/develop/shikimori"
 alias shiki-editor="cd ~/develop/shiki-editor"
