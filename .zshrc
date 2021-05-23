@@ -121,18 +121,18 @@ backup_shikimori_images() {
   local shiki_path_2=/mnt/store/system/
 
   unalias ssh
-  for dir in $(ssh shiki_web ls $shiki_path)
+  for dir in $(ssh shiki ls $shiki_path)
   do
     echo "processing $dir ..."
-    rsync -urv -e ssh shiki_web:$shiki_path$dir $local_path
+    rsync -urv -e ssh shiki:$shiki_path$dir $local_path
     # --exclude=keepall --delete
     # https://unix.stackexchange.com/questions/18564/asking-rsync-to-delete-files-on-the-receiving-side-that-dont-exist-on-the-sendic
   done
 
-  for dir in $(ssh shiki_web ls $shiki_path_2)
+  for dir in $(ssh shiki ls $shiki_path_2)
   do
     echo "processing $dir ..."
-    rsync -urv -e ssh shiki_web:$shiki_path_2$dir $local_path
+    rsync -urv -e ssh shiki:$shiki_path_2$dir $local_path
   done
 
   alias ssh="colorssh"
@@ -215,8 +215,9 @@ my_find() {
        -name "*.rb" -or -name "*.erb" -or -name "*.rss" -or -name "*.xml" \
        -or -name "*.slim" -or -name "*.haml" -or -name "*.html" \
        -or -name "*.js" -or -name "*.coffee" -or -name "*.ejs"  \
+       -or -name "*.vue" \
        -or -name "*.jsx" -or -name "*.jst" \
-       -or -name "*.jade"  -or -name "*.eco" \
+       -or -name "*.jade" -or -name "*.eco" \
        -or -name "*.css" -or -name "*.scss" \
        -or -name "*.sass" -or -name "*.yml" -or -name "*.vim" \
        -or -name "*.rabl" -or -name "*.builder"  -or -name "*.txt" \) \
