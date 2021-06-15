@@ -7772,6 +7772,8 @@
 	<false/>
 	<key>FsTabDelay</key>
 	<real>1</real>
+	<key>HTMLTabTitles</key>
+	<false/>
 	<key>HapticFeedbackForEsc</key>
 	<false/>
 	<key>HiddenAFRStrokeThickness</key>
@@ -9265,7 +9267,7 @@
 	<key>SoundForEsc</key>
 	<false/>
 	<key>SplitPaneDimmingAmount</key>
-	<real>0.31990184294871793</real>
+	<real>0.35442967675769088</real>
 	<key>StretchTabsToFillBar</key>
 	<false/>
 	<key>SwitchTabModifier</key>
@@ -9274,6 +9276,8 @@
 	<integer>6</integer>
 	<key>TabStyle</key>
 	<integer>0</integer>
+	<key>TabStyleWithAutomaticOption</key>
+	<integer>5</integer>
 	<key>TabViewType</key>
 	<integer>0</integer>
 	<key>ThreeFingerEmulates</key>
