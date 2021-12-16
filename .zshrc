@@ -364,3 +364,14 @@ export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 # ZSH
 #-------------------------------------------------------------------------------
 export PATH="/usr/local/sbin:$PATH"
+
+#-------------------------------------------------------------------------------
+# ASDF
+#-------------------------------------------------------------------------------
+export ASDF_DIR='/usr/local/opt/asdf/libexec'
+. /usr/local/opt/asdf/libexec/asdf.sh
+
+# append completions to fpath
+fpath=(${ASDF_DIR}/completions $fpath)
+# initialise completions with ZSH's compinit
+autoload -Uz compinit && compinit
