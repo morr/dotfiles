@@ -305,7 +305,7 @@ if [[ -n "$ITERM_SESSION_ID" ]]; then
       tab-color 255 177 0
     elif [[ "$1" =~ "^(rc|rails console|hc$|hanami console$|iex|command iex|pry|irb)" ]]; then
       tab-color 90 255 55
-    elif [[ "$1" =~ "^(ys|yarn start)$" ]]; then
+    elif [[ "$1" =~ "^(ys|yarn start|yarn dev)$" ]]; then
       tab-color 0 255 192
     elif [[ "$1" =~ "^(sidekiq|forman|docker-compose|^os$|^OVERMIND_PROCESSES=)" ]]; then
       # tab-color 128 51 170
