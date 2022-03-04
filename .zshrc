@@ -85,6 +85,9 @@ alias ms-app="cd ~/develop/work/minisklad-app//"
 alias franchise="cd ~/develop/work/franchise/"
 alias chef-ms="cd ~/develop/work/chef-minisklad/"
 
+alias cb="cd ~/develop/work/cardwiz-blog/"
+alias cs="cd ~/develop/work/cardwiz-shared/"
+
 #-------------------------------------------------------------------------------
 # home projects
 #-------------------------------------------------------------------------------
