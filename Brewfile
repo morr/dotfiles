@@ -93,7 +93,7 @@ cask 'mucommander'
 cask 'krita'
 
 cask 'transmission'
-cask 'windscribe'
+# cask 'windscribe'
 cask 'discord'
 cask 'toptracker'
 
@@ -135,7 +135,7 @@ cask 'toptracker'
 # - app preferences:
 #   - General:
 #     - [x] Start Dashlane at login
-mas 'Dashlane - Password Manager, Secure Digital Wallet', id: 552383089
+# mas 'Dashlane - Password Manager, Secure Digital Wallet', id: 552383089
 # mas 'Evernote', id: 406056744
 # - on first run agree to start Flexiglass every time systems starts
 #
@@ -167,6 +167,7 @@ mas 'Monosnap', id: 540348655
 #   - Shortcuts:
 #     - General -> Show Magnifier: <M-2>
 mas 'Sip', id: 507257563
-mas 'Telegram Desktop', id: 946399090
+mas 'Telegram', id: 747648890
+# mas 'Telegram Desktop', id: 946399090
 mas 'Boxy SVG', id: 611658502
 mas 'Xcode', id: 497799835
