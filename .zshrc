@@ -25,6 +25,7 @@ HISTSIZE=1000000
 HISTFILESIZE=2000000
 TERM="xterm-256color"
 
+export JAVA_HOME=/usr/local/Cellar/openjdk/18/bin/
 export EDITOR="mvim"
 # some shit to enable erlang history
 export ERL_AFLAGS="-kernel shell_history enabled"
