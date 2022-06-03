@@ -101,26 +101,8 @@ alias neko="cd ~/develop/neko-achievements"
 
 alias mount_hetzner='mkdir -p /Volumes/hetzner; sshfs shiki:/ /Volumes/hetzner'
 
-# shikimori sync commands
-sync_shikimori_images() {
-  local local_path=~/shikimori.org/images/
-  local shiki_path=/home/apps/shikimori/production/shared/public/system/
-
-  for dir in $(ssh shiki ls $shiki_path)
-  do
-    if [[ "$dir" == "image" || "$dir" == "user_image" || "$dir" == "screenshot" || "$dir" == "cosplay_image" || "$dir" == "webm_video" ]]; then
-      echo "skipping $dir"
-      continue
-    else
-      echo "processing $dir ..."
-      rsync -urv -e ssh shiki:$shiki_path$dir $local_path
-    fi
-  done
-}
-alias shikisync=sync_shikimori_images
-
 backup_shikimori_images() {
-  local local_path=/tmp/backup/shikimori_new/
+  local local_path=/Volumes/backup/shikimori_new/
   local shiki_path_1=/home/apps/shikimori/production/shared/public/system/
   local shiki_path_2=/mnt/store/system/
 
