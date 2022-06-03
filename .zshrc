@@ -106,7 +106,7 @@ backup_shikimori_images() {
   local shiki_path_1=/home/apps/shikimori/production/shared/public/system/
   local shiki_path_2=/mnt/store/system/
 
-  # unalias ssh
+  unalias ssh
   for shiki_path in $shiki_path_1 $shiki_path_2
   do
     echo "processing $shiki_path ..."
