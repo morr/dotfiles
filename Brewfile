@@ -41,6 +41,7 @@ brew 'mc'
 # brew 'mpv' # media player
 brew 'node'
 brew 'fzf'
+brew 'bat' # syntax highlight in fzf vim
 
 # https://github.com/Homebrew/brew/blob/master/docs/Versions.md
 # brew 'postgresql@9.5', restart_service: :changed
