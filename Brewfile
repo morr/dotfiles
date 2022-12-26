@@ -30,6 +30,7 @@ brew 'tmux'
 brew 'gpg'
 brew 'htop'
 brew 'imagemagick'
+brew 'vips'
 brew 'jq'
 # provides rsvg-convert utility to convert svg to png
 # brew 'librsvg'
@@ -63,7 +64,7 @@ brew 'redis', restart_service: :changed
 
 brew 'ripgrep'
 # brew 'ctags'
-brew 'the_silver_searcher'
+# brew 'the_silver_searcher'
 
 brew 'yarn'
 # - make it a login shell: `chsh -s /bin/zsh`
