@@ -25,7 +25,13 @@ HISTSIZE=1000000
 HISTFILESIZE=2000000
 TERM="xterm-256color"
 
-export JAVA_HOME=/usr/local/Cellar/openjdk/18/bin/
+if [[ $(uname -m) == 'arm64' ]]; then
+  export LOCAL_BREW=/opt/homebrew
+else
+  export LOCAL_BREW=/usr/local
+fi
+
+export JAVA_HOME="$LOCAL_BREW/Cellar/openjdk/18/bin/"
 export EDITOR="mvim"
 # some shit to enable erlang history
 export ERL_AFLAGS="-kernel shell_history enabled"
@@ -269,7 +275,7 @@ export LC_ALL="en_US.UTF-8"
 #-------------------------------------------------------------------------------
 # PATH for Bundler and NodeJS
 #-------------------------------------------------------------------------------
-export PATH=/usr/local/bin:/usr/local/share/npm/bin:$PATH
+export PATH="$LOCAL_BREW/bin:$LOCAL_BREW/share/npm/bin:$PATH"
 
 #-------------------------------------------------------------------------------
 # tab colors
@@ -352,13 +358,13 @@ export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 #-------------------------------------------------------------------------------
 # ZSH
 #-------------------------------------------------------------------------------
-export PATH="/usr/local/sbin:$PATH"
+export PATH="$LOCAL_BREW/sbin:$PATH"
 
 #-------------------------------------------------------------------------------
 # ASDF
 #-------------------------------------------------------------------------------
-export ASDF_DIR='/usr/local/opt/asdf/libexec'
-. /usr/local/opt/asdf/libexec/asdf.sh
+export ASDF_DIR=$LOCAL_BREW/opt/asdf/libexec
+. ${LOCAL_BREW}/opt/asdf/libexec/asdf.sh
 
 # append completions to fpath
 fpath=(${ASDF_DIR}/completions $fpath)
