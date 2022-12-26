@@ -40,6 +40,7 @@ brew 'memcached', restart_service: :changed
 brew 'mc'
 # brew 'mpv' # media player
 brew 'node'
+brew 'fzf'
 
 # https://github.com/Homebrew/brew/blob/master/docs/Versions.md
 # brew 'postgresql@9.5', restart_service: :changed
