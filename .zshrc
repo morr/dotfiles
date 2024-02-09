@@ -137,7 +137,7 @@ backup_shikimori_images() {
       for subdir in $(ssh shiki ls $shiki_path/$dir)
       do
         echo "processing $dir/$subdir ($shiki_path/$dir/$subdir) ..."
-        rsync -urv --exclude "*-*" -e ssh shiki:$shiki_path/$dir/$subdir $local_path/uploads/$dir
+        rsync -urv --delete --exclude "*-*" -e ssh shiki:$shiki_path/$dir/$subdir $local_path/uploads/$dir
       done
     done
   done
@@ -155,11 +155,59 @@ backup_shikimori_images() {
       fi
 
       echo "processing $dir/$subdir ($shiki_path/$dir/$subdir) ..."
-      rsync -urv --include "$dir/" --include "$dir/$subdir/***" --exclude "*" -e ssh shiki:$shiki_path/$dir $local_path/system/
+      rsync -urv --delete --include "$dir/" --include "$dir/$subdir/***" --exclude "*" -e ssh shiki:$shiki_path/$dir $local_path/system/
     done
   done
 }
 alias shikibackup=backup_shikimori_images
+
+backup_shikimori_images_v2() {
+  local local_path=/Volumes/backups_2tb/shikimori
+  local shiki_path_1=/mnt/store/uploads
+  local shiki_path_2=/home/apps/shikimori/production/shared/public/system
+  local shiki_path_3=/mnt/store/system
+
+  unalias ssh 
+
+  for shiki_path in $shiki_path_1
+  do
+    echo "starting process $shiki_path ..."
+    [ ! -d $local_path/uploads ] && mkdir $local_path/uploads
+    for dir in $(ssh shiki ls $shiki_path)
+    do
+      if [[ "$dir" == "cache" ]]; then
+        echo "skipping $dir ($shiki_path/$dir) ..."
+        continue
+      fi
+
+      echo "processing $dir ($shiki_path/$dir) ..."
+      [ ! -d $local_path/uploads/$dir ] && mkdir $local_path/uploads/$dir
+      for subdir in $(ssh shiki ls $shiki_path/$dir)
+      do
+        echo "processing $dir/$subdir ($shiki_path/$dir/$subdir) ..."
+        rsync -urv --delete --exclude "*-*" -e ssh shiki:$shiki_path/$dir/$subdir $local_path/uploads/$dir
+      done
+    done
+  done
+
+  for shiki_path in $shiki_path_2 $shiki_path_3
+  do
+    echo "starting process $shiki_path ..."
+    [ ! -d $local_path/system ] && mkdir $local_path/system
+    for dir in $(ssh shiki ls $shiki_path)
+    do
+      if [[ "$dir" == "list_imports" ]]; then
+        local subdir="lists"
+      else
+        local subdir="original"
+      fi
+
+      echo "processing $dir/$subdir ($shiki_path/$dir/$subdir) ..."
+      rsync -urv --delete --include "$dir/" --include "$dir/$subdir/***" --exclude "*" -e ssh shiki:$shiki_path/$dir $local_path/system/
+    done
+  done
+}
+alias shikibackup_v2=backup_shikimori_images_v2
 
 #-------------------------------------------------------------------------------
 # common aliases
