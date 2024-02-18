@@ -1,28 +1,36 @@
-local keymap = vim.api.nvim_set_keymap
-local default_opts = { noremap = true, silent = true }
-local expr_opts = { noremap = true, expr = true, silent = true }
+local function map(mode, lhs, rhs, opts)
+   if opts == nil then
+     opts = {}
+   end
+   -- set default value if not specify
+   if opts.noremap == nil then
+      opts.noremap = true
+   end
+   if opts.silent == nil then
+      opts.silent = true
+   end
+
+   vim.keymap.set(mode, lhs, rhs, opts)
+end
 
 vim.g.mapleader = "\\"
 vim.g.maplocalleader = "\\"
 
 -- open nvim config
-keymap("n", ",v", ":e ~/.config/nvim/init.lua<CR>", default_opts)
+map("n", ",v", ":e ~/.config/nvim/init.lua<CR>")
+
+-- insert newline after current line
+map("n", "<cr>", "o<Esc>")
+
+-- insert newline before current line
+map("n", "<s-cr>", "O<Esc>")
+
+-- turn off highlighting and clear messages
+map("n", "<space>", ":nohlsearch<Bar>:echo<cr>")
 
 -- sort selection
-keymap("v", "<c-s>", ":sor<cr>", default_opts)
+map("v", "<c-s>", ":sor<cr>")
 
-
---local function map(mode, lhs, rhs, opts)
---   -- set default value if not specify
---   if opts.noremap == nil then
---      opts.noremap = true
---   end
---   if opts.silent == nil then
---      opts.silent = true
---   end
---
---   vim.keymap.set(mode, lhs, rhs, opts)
---end
 
 --vim.g.mapleader = " "
 --vim.g.maplocalleader = " "
