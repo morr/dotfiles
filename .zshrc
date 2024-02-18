@@ -64,7 +64,8 @@ fi
 # configs projects
 #-------------------------------------------------------------------------------
 alias dotfiles="cd ~/dotfiles/"
-alias vimfiles="cd ~/.vim"
+alias vimfiles="cd ~/.vim/"
+alias nvimfiles="cd ~/.config/nvim/"
 
 #-------------------------------------------------------------------------------
 # work projects
