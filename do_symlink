@@ -13,10 +13,20 @@ files = %w[
   .ssh/config
 ]
 
+config_dirs = %w[
+]
+
 files.each do |file|
-  puts "symlinking #{file}"
+  puts "symlinking to ~/#{file}"
   `rm -f $HOME/#{file}`
   `ln ./#{file} $HOME/#{file}`
+end
+
+config_dirs.each do |dir|
+  puts "symlinking to ~/.config/#{dir}"
+  `rm -f $HOME/.config/#{dir}`
+  current_dir = `pwd`.strip
+  `cd ~/.config; ln -s #{current_dir}/#{dir}; cd #{current_dir}`
 end
 
 conf = '.gnupg/gpg.conf'
