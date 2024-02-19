@@ -80,6 +80,10 @@ map("n", "<M-s>", ":w<cr>")
 map("i", "<M-s>", "<esc>:w<cr>i")
 map("v", "<M-s>", "<esc>:w<cr>")
 
+-- close buffer
+map("n", "<leader>w", ":tabclose<cr>")
+map("n", "<leader>q", ":q<cr>")
+
 -- open nvim config
 map("n", ",v", ":e ~/.config/nvim/init.lua<CR>")
 

@@ -8,11 +8,12 @@ return {
       dependencies = {
          "nvim-lua/plenary.nvim", -- required
          "nvim-telescope/telescope.nvim", -- optional
-         "sindrets/diffview.nvim", -- optional
+         { "sindrets/diffview.nvim" } -- optional
       },
       config = true,
       keys = {
          { "<Leader>g", ":Neogit<CR>" },
+         { "<Leader>d", ":DiffviewOpen<CR><c-w><right>" },
       },
-   },
+   }
 }
