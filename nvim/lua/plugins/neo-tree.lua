@@ -7,8 +7,12 @@ return {
       "MunifTanjim/nui.nvim",
       -- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
    },
-   keys = {
-      { "<Leader>n", ":Neotree toggle<CR>" },
-      { "<Leader>N", ":Neotree reveal<CR>" },
-   },
+   -- keys = {
+   --    { "<Leader>n", ":Neotree toggle<CR>" },
+   --    { "<Leader>N", ":Neotree reveal<CR>" },
+   -- },
+   init = function()
+      vim.keymap.set("n", "<leader>n", "<cmd>Neotree toggle<CR>", { desc = "Neotree toggle" })
+      vim.keymap.set("n", "<leader>N", "<cmd>Neotree reveal<CR>", { desc = "Neotree reveal" })
+   end
 }

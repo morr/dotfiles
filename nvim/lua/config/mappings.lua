@@ -75,9 +75,18 @@ map("n", "<c-a>", "ggVG")
 map("v", "<c-s>", ":sor<cr>")
 
 -- save
-map("n", "<M-s>", ":w<cr>")
-map("i", "<M-s>", "<esc>:w<cr>a")
-map("v", "<M-s>", "<esc>:w<cr>")
+-- map("n", "<M-s>", ":w<cr>")
+-- map("i", "<M-s>", "<esc>:w<cr>a")
+-- map("v", "<M-s>", "<esc>:w<cr>")
+map({ "v", "n", "i" }, "<M-s>", function()
+	-- vim.notify(err, vim.log.levels.ERROR, {
+	-- 			title = 'error while saving file',
+	-- 		})
+   -- vim.cmd.save(true)
+   vim.api.nvim_command('write')
+   vim.notify("File saved succesfully")
+ end, { desc = "Save file" })
+-- vim.keymap.set({ "i", "x", "n", "s" }, "<m-s>", "<cmd>w<cr><esc>", { desc = "Save file" })
 
 -- close buffer
 map("n", "<leader>w", ":bd<cr>")

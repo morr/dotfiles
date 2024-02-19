@@ -11,9 +11,14 @@ return {
          { "sindrets/diffview.nvim" } -- optional
       },
       config = true,
-      keys = {
-         { "<Leader>g", ":Neogit<CR>" },
-         { "<Leader>d", ":DiffviewOpen<CR><c-w><right>" },
-      },
+      -- keys = {
+      --    { "<Leader>g", ":Neogit<CR>" },
+      --    { "<Leader>d", ":DiffviewOpen<CR><c-w><right>" },
+      -- },
+      init = function()
+         vim.keymap.set("n", "<leader>g", ":Neogit<CR>", { desc = "Neogit" })
+         vim.keymap.set("n", "<leader>d", ":DiffviewOpen<CR><c-w><right>", { desc = "Diffview" })
+      end
+
    }
 }
