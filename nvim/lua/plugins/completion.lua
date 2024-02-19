@@ -13,12 +13,12 @@ return {
       },
       config = function()
          local ls = require("luasnip")
-         vim.keymap.set({ "i", "s" }, "<C-L>", function()
-            ls.jump(1)
-         end, { silent = true })
-         vim.keymap.set({ "i", "s" }, "<C-J>", function()
-            ls.jump(-1)
-         end, { silent = true })
+         -- vim.keymap.set({ "i", "s" }, "<C-L>", function()
+         --    ls.jump(1)
+         -- end, { silent = true })
+         -- vim.keymap.set({ "i", "s" }, "<C-J>", function()
+         --    ls.jump(-1)
+         -- end, { silent = true })
 
          local lspkind = require("lspkind")
          local cmp = require("cmp")
@@ -33,8 +33,8 @@ return {
                documentation = cmp.config.window.bordered(),
             },
             mapping = cmp.mapping.preset.insert({
-               ["<C-b>"] = cmp.mapping.scroll_docs(-4),
-               ["<C-f>"] = cmp.mapping.scroll_docs(4),
+               -- ["<C-b>"] = cmp.mapping.scroll_docs(-4),
+               -- ["<C-f>"] = cmp.mapping.scroll_docs(4),
                ["<CR>"] = cmp.mapping.confirm({ select = true }),
                ["<Tab>"] = cmp.mapping.select_next_item(),
                ["<S-Tab>"] = cmp.mapping.select_prev_item(),
@@ -69,13 +69,13 @@ return {
                      luasnip = "[LuaSnip]",
                      latex_symbols = "[Latex]",
                   },
-                  before = function(entry, vim_item)
-                     vim_item = require("tailwindcss-colorizer-cmp").formatter(
-                        entry,
-                        vim_item
-                     )
-                     return vim_item
-                  end,
+                  -- before = function(entry, vim_item)
+                  --    vim_item = require("tailwindcss-colorizer-cmp").formatter(
+                  --       entry,
+                  --       vim_item
+                  --    )
+                  --    return vim_item
+                  -- end,
                }),
             },
          })

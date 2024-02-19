@@ -40,10 +40,6 @@ map({ "i", "c" }, "<c-h>", "<left>")
 map({ "v", "n" }, "l", "<right>")
 map({ "i", "c" }, "<c-l>", "<right>")
 
---
--- Buffer
---
-
 -- <M-c> is a keyboard shortcut in iterm2
 -- https://github.com/neovim/neovim/issues/5052#issuecomment-232083842
 -- Keyboard Shortcut: ⌘c
@@ -72,12 +68,15 @@ map("n", "<s-cr>", "O<Esc>")
 -- turn off highlighting and clear messages
 map("n", "<space>", ":nohlsearch<Bar>:echo<cr>")
 
+-- select all
+map("n", "<c-a>", "ggVG")
+
 -- sort selection
 map("v", "<c-s>", ":sor<cr>")
 
 -- save
 map("n", "<M-s>", ":w<cr>")
-map("i", "<M-s>", "<esc>:w<cr>i")
+map("i", "<M-s>", "<esc>:w<cr>a")
 map("v", "<M-s>", "<esc>:w<cr>")
 
 -- close buffer

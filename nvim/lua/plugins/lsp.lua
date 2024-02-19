@@ -31,15 +31,15 @@ vim.api.nvim_create_autocmd("LspAttach", {
 })
 
 local languages = {
-   "clangd",
-   "html",
+   -- "clangd",
+   -- "html",
    "cssls",
-   "tsserver",
-   "emmet_ls",
+   -- "tsserver",
+   -- "emmet_ls",
    "eslint",
-   "pyright",
-   "gopls",
-   "texlab",
+   -- "pyright",
+   -- "gopls",
+   -- "texlab",
 }
 
 return {
@@ -59,11 +59,11 @@ return {
             },
          })
 
-         require("lspconfig").tailwindcss.setup({
-            on_attach = function()
-               require("tailwindcss-colors").buf_attach(0)
-            end,
-         })
+         -- require("lspconfig").tailwindcss.setup({
+         --    on_attach = function()
+         --       require("tailwindcss-colors").buf_attach(0)
+         --    end,
+         -- })
 
          for _, language in pairs(languages) do
             require("lspconfig")[language].setup({
@@ -93,15 +93,16 @@ return {
       opts = {
          ensure_installed = {
             "lua_ls",
-            "clangd",
+            -- "clangd",
             "html",
             "cssls",
-            "tsserver",
-            "eslint",
-            "tailwindcss",
-            "pyright",
-            "gopls",
+            -- "tsserver",
+            -- "eslint",
+            -- "tailwindcss",
+            -- "pyright",
+            -- "gopls",
          },
       },
    },
 }
+
