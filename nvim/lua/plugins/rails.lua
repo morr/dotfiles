@@ -1,9 +1,9 @@
 return {
    {
-      'tpope/vim-rails',
+      "tpope/vim-rails",
       init = function()
-         vim.keymap.set("n", "<leader>s", '<cmd>AV<cr>', { desc = "Open spec in split view" })
-         vim.keymap.set("n", "<leader>S", '<cmd>A<cr>', { desc = "Open spec in current buffer" })
+         vim.keymap.set("n", "<leader>s", "<cmd>AV<cr>", { desc = "Open spec in split view" })
+         vim.keymap.set("n", "<leader>S", "<cmd>A<cr>", { desc = "Open spec in current buffer" })
          -- example projections https://gist.github.com/henrik/5676109
          vim.g.rails_projections = {
             ['app/*.rb'] = {
@@ -23,5 +23,6 @@ return {
             }
          }
       end
-   }
+   },
+   { "keithbsmiley/rspec.vim" }
 }
