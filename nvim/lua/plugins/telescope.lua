@@ -6,7 +6,7 @@ return {
       init = function()
          local builtin = require("telescope.builtin")
          vim.keymap.set("n", "<leader>t", builtin.find_files, {})
-         vim.keymap.set("n", "<leader>r", builtin.live_grep, {})
+         vim.keymap.set("n", "<leader>\\", builtin.live_grep, {})
          --vim.keymap.set("n", "<leader>fb", builtin.buffers, {})
          --vim.keymap.set("n", "<leader>fh", builtin.help_tags, {})
 
@@ -17,6 +17,10 @@ return {
                mappings = {
                   i = {
                      ["<esc>"] = actions.close,
+                     ["<c-q>"] = actions.move_selection_next,
+                     ["<c-w>"] = actions.move_selection_next,
+                     ["<c-n>"] = actions.move_selection_next,
+                     ["<c-p>"] = actions.move_selection_previous,
                   },
                },
             },

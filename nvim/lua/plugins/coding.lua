@@ -1,4 +1,5 @@
 return {
+   { "farmergreg/vim-lastplace", },
    {
       "sbdchd/neoformat",
       config = function()
@@ -34,5 +35,16 @@ return {
          require("ibl").setup()
       end,
    },
-   { "tpope/vim-speeddating", }
+   { "tpope/vim-speeddating", },
+   {
+      "kylechui/nvim-surround",
+      version = "*",
+      event = "VeryLazy",
+      opts = {
+         keymaps = {
+            normal = "gs",
+            normal_cur = "gss",
+         },
+      },
+   },
 }
