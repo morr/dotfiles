@@ -13,11 +13,56 @@ local function map(mode, lhs, rhs, opts)
    vim.keymap.set(mode, lhs, rhs, opts)
 end
 
+
 vim.g.mapleader = "\\"
 vim.g.maplocalleader = "\\"
 
--- open nvim config
-map("n", ",v", ":e ~/.config/nvim/init.lua<CR>")
+--
+-- Movement
+--
+
+map({ "v", "n" }, "<c-k>", "10k")
+map({ "v", "n" }, "<c-j>", "10j")
+
+-- up
+map({ "v", "n" }, "k", "gk")
+map({ "i", "c" }, "<c-k>", "<up>")
+
+-- down
+map({ "v", "n" }, "j", "gj")
+map({ "i", "c" }, "<c-j>", "<down>")
+
+-- left
+map({ "v", "n" }, "h", "<left>")
+map({ "i", "c" }, "<c-h>", "<left>")
+
+-- right
+map({ "v", "n" }, "l", "<right>")
+map({ "i", "c" }, "<c-l>", "<right>")
+
+--
+-- Buffer
+--
+
+-- <M-c> is a keyboard shortcut in iterm2
+-- https://github.com/neovim/neovim/issues/5052#issuecomment-232083842
+-- Keyboard Shortcut: ⌘c
+-- Action: Send Escape Sequence
+-- Esc+: c
+
+-- Cut
+map({ "v", "n" }, "<M-x>", '"+x')
+
+-- Copy
+map({ "v", "n" }, "<M-c>", '"+y')
+
+-- Paste
+--map({ "v", "n" }, "<M-v>", '"+gP')
+--map("i", "<M-v>", '<c-r>+')
+
+--
+-- Other
+--
 
 -- insert newline after current line
 map("n", "<cr>", "o<Esc>")
@@ -31,36 +76,12 @@ map("n", "<space>", ":nohlsearch<Bar>:echo<cr>")
 -- sort selection
 map("v", "<c-s>", ":sor<cr>")
 
+-- open nvim config
+map("n", ",v", ":e ~/.config/nvim/init.lua<CR>")
 
---vim.g.mapleader = " "
---vim.g.maplocalleader = " "
-
--- better up/down
-   --vim.keymap.set({ "n", "x" }, "j", function()
-   --   return vim.v.count > 0 and "j" or "gj"
---end, { noremap = true, expr = true })
---vim.keymap.set({ "n", "x" }, "k", function()
---   return vim.v.count > 0 and "k" or "gk"
---end, { noremap = true, expr = true })
-
---map("n", "<C-u>", "<C-u>zz", {})
---map("n", "<C-d>", "<C-d>zz", {})
---map("n", "<C-b>", "<C-b>zz", {})
---map("n", "<C-f>", "<C-f>zz", {})
-
--- leader movements
---map("n", "<Leader>w", ":write<CR>", {})
---map("n", "<Leader>s", ":source %<CR>", {})
---map("n", "<Leader>v", ":cd ~/.config/nvim/<CR>:Telescope find_files<CR>", {})
---map("n", "<Leader>m", ":make<CR>", {})
---map("n", "<Leader>b", ":!busted %<CR>", {})
-
--- system clipboard
---map({ "n", "v" }, "<Leader>y", '"+y', {})
---map({ "n" }, "<Leader>Y", '"+y$', {})
-
---map({ "n", "v" }, "<Leader>p", '"+p', {})
---map({ "n", "v" }, "<Leader>P", '"+P', {})
+-- save
+map("n", "<M-s>", ":w<cr>")
+map("i", "<M-s>", "<esc>:w<cr>i")
 
 -- window movements
 --map("n", "<C-k>", "<C-w>k", {})
