@@ -26,11 +26,10 @@ vim.opt.splitbelow = true
 vim.opt.cursorline = true
 vim.opt.cursorlineopt = "number"
 
+-- vim.opt.guicursor = 'n-v-c-sm:block,i-ci-ve:ver25,r-cr-o:hor20'
+
 vim.opt.updatetime = 250
 vim.opt.timeoutlen = 300
-
--- disable cursor-styling
-vim.opt.guicursor = ""
 
 vim.opt.termguicolors = true
 
