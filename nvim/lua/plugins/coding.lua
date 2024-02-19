@@ -47,4 +47,16 @@ return {
          },
       },
    },
+   {
+      "chrisgrieser/nvim-spider",
+      keys = {
+         { "e", "<cmd>lua require('spider').motion('e')<CR>", mode = { "n", "o", "x" }, },
+         { "w", "<cmd>lua require('spider').motion('w')<CR>", mode = { "n", "o", "x" }, },
+         { "b", "<cmd>lua require('spider').motion('b')<CR>", mode = { "n", "o", "x" }, },
+         -- russian
+         { "у", "<cmd>lua require('spider').motion('e')<CR>", mode = { "n", "o", "x" }, },
+         { "ц", "<cmd>lua require('spider').motion('w')<CR>", mode = { "n", "o", "x" }, },
+         { "и", "<cmd>lua require('spider').motion('b')<CR>", mode = { "n", "o", "x" }, },
+      }
+   }
 }
