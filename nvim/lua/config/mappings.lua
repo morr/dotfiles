@@ -60,9 +60,8 @@ map({ "v", "n" }, "<M-c>", '"+y')
 --map({ "v", "n" }, "<M-v>", '"+gP')
 --map("i", "<M-v>", '<c-r>+')
 
---
--- Other
---
+map("v", "<", "<gv")
+map("v", ">", ">gv")
 
 -- insert newline after current line
 map("n", "<cr>", "o<Esc>")
@@ -76,12 +75,13 @@ map("n", "<space>", ":nohlsearch<Bar>:echo<cr>")
 -- sort selection
 map("v", "<c-s>", ":sor<cr>")
 
--- open nvim config
-map("n", ",v", ":e ~/.config/nvim/init.lua<CR>")
-
 -- save
 map("n", "<M-s>", ":w<cr>")
 map("i", "<M-s>", "<esc>:w<cr>i")
+map("v", "<M-s>", "<esc>:w<cr>")
+
+-- open nvim config
+map("n", ",v", ":e ~/.config/nvim/init.lua<CR>")
 
 -- window movements
 --map("n", "<C-k>", "<C-w>k", {})
