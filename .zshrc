@@ -389,6 +389,8 @@ if [[ -n "$ITERM_SESSION_ID" ]]; then
       tab-color 255 0 0
     elif [[ "$1" =~ "^(shikibackup)" ]]; then
       tab-color 255 174 174
+    elif [[ "$1" =~ "^nvim" ]]; then
+      tab-color 110 110 190
     fi
   }
 
