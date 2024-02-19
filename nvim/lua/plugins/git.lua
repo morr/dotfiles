@@ -18,6 +18,37 @@ return {
       init = function()
          vim.keymap.set("n", "<leader>g", ":Neogit<CR>", { desc = "Neogit" })
          vim.keymap.set("n", "<leader>d", ":DiffviewOpen<CR><c-w><right>", { desc = "Diffview" })
+
+         local group = vim.api.nvim_create_augroup("MyCustomNeogitEvents", { clear = true })
+         vim.api.nvim_create_autocmd("User", {
+           pattern = {
+             -- "NeogitCherryPick",
+             -- "NeogitBranchCheckout",
+             -- "NeogitBranchCreated",
+             -- "NeogitBranchDelete",
+             -- "NeogitBranchReset",
+             -- "NeogitBranchRename",
+             -- "NeogitRebase",
+             -- "NeogitReset",
+             -- "NeogitTagCreate",
+             -- "NeogitTagDelete",
+             "NeogitCommitComplete",
+             -- "NeogitPushComplete",
+             -- "NeogitPullComplete",
+             -- "NeogitFetchComplete",
+           },
+           group = group,
+           callback = function(event)
+            require('neogit').close()
+             -- print("Event: " .. vim.inspect(event.file))
+             -- local buffername = vim.api.nvim_buf_get_name(event.buf)
+             -- if buffername:match("NeogitLogView$") then
+             --   vim.fn.feedkeys("q", "x") -- Close Log Graph
+             --   require("neogit").open({ "log" })
+             --   vim.fn.feedkeys("b", "x") -- Open log graph (branches) again    end
+             -- end
+           end,
+         })
       end
 
    }
