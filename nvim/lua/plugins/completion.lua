@@ -19,7 +19,7 @@ return {
          -- vim.keymap.set({ "i", "s" }, "<C-J>", function()
          --    ls.jump(-1)
          -- end, { silent = true })
-
+   
          local lspkind = require("lspkind")
          local cmp = require("cmp")
          cmp.setup({
@@ -48,7 +48,7 @@ return {
             enabled = function()
                -- disable completion in comments
                local context = require("cmp.config.context")
-
+   
                -- keep command mode completion enabled
                if vim.api.nvim_get_mode().mode == "c" then
                   return true
@@ -79,14 +79,14 @@ return {
                }),
             },
          })
-
+   
          cmp.setup.cmdline({ "/", "?" }, {
             mapping = cmp.mapping.preset.cmdline(),
             sources = {
                { name = "buffer" },
             },
          })
-
+   
          cmp.setup.cmdline(":", {
             mapping = cmp.mapping.preset.cmdline(),
             sources = cmp.config.sources(
