@@ -17,7 +17,7 @@ return {
    {
       "terrortylor/nvim-comment",
       init = function()
-         require('nvim_comment').setup({       
+         require('nvim_comment').setup({
             create_mappings = false
          })
          vim.keymap.set("n", ", ", ":CommentToggle<cr>", {})
@@ -30,13 +30,13 @@ return {
          require("colorizer").setup()
       end,
    },
-   {
-      "lukas-reineke/indent-blankline.nvim",
-      branch = "master",
-      config = function()
-         require("ibl").setup()
-      end,
-   },
+   -- {
+   --    "lukas-reineke/indent-blankline.nvim",
+   --    branch = "master",
+   --    config = function()
+   --       require("ibl").setup()
+   --    end,
+   -- },
    { "tpope/vim-speeddating", },
    {
       "tpope/vim-surround",
