@@ -1,18 +1,40 @@
 return {
    {
-      "m4xshen/catppuccinight.nvim",
+      -- "m4xshen/catppuccinight.nvim",
+      "catppuccin/nvim",
       name = "catppuccin",
       opts = {
-         flavour = "mocha",
-         custom_highlights = function(colors)
-            return {
-               VertSplit = { fg = colors.surface0 },
-            }
-         end,
+         -- flavour = "latte", -- latte, frappe, macchiato, mocha
+         flavour = "frappe", -- latte, frappe, macchiato, mocha
+         -- flavour = "macchiato", -- latte, frappe, macchiato, mocha
+         -- flavour = "mocha", -- latte, frappe, macchiato, mocha
+         -- custom_highlights = function(colors)
+         --    return {
+         --       VertSplit = { fg = colors.surface0 },
+         --    }
+         -- end,
+         integrations = {
+            notify = true,
+         },
       },
       init = function()
          vim.cmd.colorscheme("catppuccin")
       end,
+   },
+   {
+      "utilyre/barbecue.nvim",
+      name = "barbecue",
+      version = "*",
+      theme = "catppuccin",
+      -- theme = "dracula",
+      dependencies = {
+         "SmiteshP/nvim-navic",
+         "nvim-tree/nvim-web-devicons",
+      },
+      opts = {
+         show_dirname = false,
+         show_basename = false,
+      },
    },
    {
       "rcarriga/nvim-notify",
@@ -58,6 +80,7 @@ return {
       opts = {
          options = {
             theme = "catppuccin",
+            -- theme = "dracula",
             globalstatus = true,
          },
          sections = {
@@ -85,20 +108,6 @@ return {
                },
             },
          },
-      },
-   },
-   {
-      "utilyre/barbecue.nvim",
-      name = "barbecue",
-      version = "*",
-      theme = "catppuccin",
-      dependencies = {
-         "SmiteshP/nvim-navic",
-         "nvim-tree/nvim-web-devicons",
-      },
-      opts = {
-         show_dirname = false,
-         show_basename = false,
       },
    },
    {
