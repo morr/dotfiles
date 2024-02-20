@@ -12,8 +12,8 @@ return {
             }
          })
          -- vim.keymap.set("n", "<leader>r", nil, { desc = "rspec" })
-         vim.keymap.set("n", "<leader>rs", "<cmd>AV<cr>", { desc = "RSpec split view" })
-         vim.keymap.set("n", "<leader>rS", "<cmd>A<cr>", { desc = "jSpec current buffer" })
+         vim.keymap.set("n", "gs", "<cmd>AV<cr>", { desc = "RSpec split view" })
+         vim.keymap.set("n", "gS", "<cmd>A<cr>", { desc = "RSpec current buffer" })
 
          -- example projections https://gist.github.com/henrik/5676109
          vim.g.rails_projections = {
