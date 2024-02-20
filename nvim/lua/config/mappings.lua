@@ -47,14 +47,14 @@ map({ "i", "c" }, "<c-l>", "<right>")
 -- Esc+: c
 
 -- Cut
-map({ "v", "n" }, "<M-x>", '"+x')
+map({ "v", "n" }, "<M-x>", '"*x')
 
 -- Copy
-map({ "v", "n" }, "<M-c>", '"+y')
+map({ "v", "n" }, "<M-c>", '"*y')
 
 -- Paste
---map({ "v", "n" }, "<M-v>", '"+gP')
---map("i", "<M-v>", '<c-r>+')
+-- map({ "v", "n" }, "<M-v>", '"*gP')
+-- map("i", "<M-v>", '<c-r>+')
 
 map("v", "<", "<gv")
 map("v", ">", ">gv")
