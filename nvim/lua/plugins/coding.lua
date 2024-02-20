@@ -39,14 +39,8 @@ return {
    },
    { "tpope/vim-speeddating", },
    {
-      "kylechui/nvim-surround",
+      "tpope/vim-surround",
       event = "VeryLazy",
-      -- opts = {
-      --    keymaps = {
-      --       normal = "gs",
-      --       normal_cur = "gss",
-      --    },
-      -- },
    },
    {
       "chrisgrieser/nvim-spider",
