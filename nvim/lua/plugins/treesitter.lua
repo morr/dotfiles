@@ -6,17 +6,39 @@ return {
          require("nvim-treesitter.configs").setup({
             auto_install = true,
             ensure_installed = {
-               "c",
-               "cpp",
-               "python",
+               -- https://github.com/nvim-treesitter/nvim-treesitter?tab=readme-ov-file#supported-languages
+               -- vim basics
                "lua",
                "vim",
-               "javascript",
-               "html",
-               "css",
+               -- general
                "comment",
+               "diff",
                "vimdoc",
+               -- git
+               "git_rebase",
+               "gitattributes",
+               "gitcommit",
+               "gitignore",
+               -- web
+               "css",
+               "dockerfile",
+               "graphql",
+               "html",
+               "javascript",
+               "json",
+               "markdown",
+               "regex",
+               "ruby",
+               "scss",
                "tsx",
+               "vue",
+               "yaml",
+               -- other
+               "elixir",
+               -- "erlang",
+               "python",
+               "rust",
+               "sql",
             },
             highlight = { enable = true },
             indent = { enable = true },
