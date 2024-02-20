@@ -85,5 +85,5 @@ map({ "v", "n", "i" }, "<M-s>", function()
 map("n", "<leader>w", ":bd<cr>")
 map("n", "<leader>q", ":tabclose<cr>")
 
--- open nvim config
-map("n", ",v", ":e ~/.config/nvim/init.lua<CR>")
+map("n", ",v", ":e ~/.config/nvim/init.lua<CR>", { desc = "Open nvim config" })
+map("n", ",t", [[:%s/\s\+$//e<cr>]], { desc = "Remove trailing whitespaces" })

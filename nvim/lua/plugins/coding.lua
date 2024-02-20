@@ -15,16 +15,6 @@ return {
       opts = {},
    },
    {
-      "terrortylor/nvim-comment",
-      init = function()
-         require('nvim_comment').setup({
-            create_mappings = false
-         })
-         vim.keymap.set("n", ", ", ":CommentToggle<cr>", {})
-         vim.keymap.set("v", ", ", ":'<,'>CommentToggle<cr>", {})
-      end
-   },
-   {
       "norcalli/nvim-colorizer.lua",
       config = function()
          require("colorizer").setup()
