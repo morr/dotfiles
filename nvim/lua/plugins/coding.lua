@@ -40,12 +40,12 @@ return {
       "kylechui/nvim-surround",
       version = "*",
       event = "VeryLazy",
-      opts = {
-         keymaps = {
-            normal = "gs",
-            normal_cur = "gss",
-         },
-      },
+      -- opts = {
+      --    keymaps = {
+      --       normal = "gs",
+      --       normal_cur = "gss",
+      --    },
+      -- },
    },
    {
       "chrisgrieser/nvim-spider",
