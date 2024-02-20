@@ -17,7 +17,9 @@ return {
    {
       "terrortylor/nvim-comment",
       init = function()
-         require('nvim_comment').setup()
+         require('nvim_comment').setup({       
+            create_mappings = false
+         })
          vim.keymap.set("n", ", ", ":CommentToggle<cr>", {})
          vim.keymap.set("v", ", ", ":'<,'>CommentToggle<cr>", {})
       end
@@ -38,7 +40,6 @@ return {
    { "tpope/vim-speeddating", },
    {
       "kylechui/nvim-surround",
-      version = "*",
       event = "VeryLazy",
       -- opts = {
       --    keymaps = {
