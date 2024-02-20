@@ -19,6 +19,7 @@ return {
             -- completion = {
             --    completeopt = "menu,menuone,preview,noselect",
             -- },
+            -- do not use preset mappings since they conflict with <c-n>/<c-p> in telecope
             -- mapping = cmp.mapping.preset.insert({
             --    ["<C-k>"] = cmp.mapping.select_prev_item(), -- previous suggestion
             --    ["<C-j>"] = cmp.mapping.select_next_item(), -- next suggestion
@@ -34,12 +35,33 @@ return {
             --    -- ["<CR>"] = cmp.mapping.confirm({ select = true }),
             --    -- ["<Tab>"] = cmp.mapping.select_next_item(),
             --    -- ["<S-Tab>"] = cmp.mapping.select_prev_item(),
-            -- }),
-            -- snippet = {
-            --    expand = function(args)
-            --       require("luasnip").lsp_expand(args.body) -- For `luasnip` users.
-            --    end,
             -- },
+            mapping = {
+               ["<C-p>"] = cmp.mapping.select_prev_item(),
+               ["<C-n>"] = cmp.mapping.select_next_item(),
+               ["<C-d>"] = cmp.mapping.scroll_docs(-4),
+               ["<C-f>"] = cmp.mapping.scroll_docs(4),
+               -- ["<C-Space>"] = cmp.mapping.complete(),
+               ["<C-e>"] = cmp.mapping.close(),
+               -- ["<CR>"] = cmp.mapping.confirm {
+               --    behavior = cmp.ConfirmBehavior.Replace,
+               --    select = true,
+               -- },
+               ["<Tab>"] = cmp.mapping(function(fallback)
+                  if cmp.visible() then
+                     cmp.select_next_item()
+                  else
+                     fallback()
+                  end
+               end, { "i", "s" }),
+               ["<S-Tab>"] = cmp.mapping(function(fallback)
+                  if cmp.visible() then
+                     cmp.select_prev_item()
+                  else
+                     fallback()
+                  end
+               end, { "i", "s" }),
+            },
             window = {
                completion = cmp.config.window.bordered(),
                documentation = cmp.config.window.bordered(),
@@ -53,6 +75,11 @@ return {
                { name = "buffer" },
                { name = "path" },
             }),
+            -- snippet = {
+            --    expand = function(args)
+            --       require("luasnip").lsp_expand(args.body) -- For `luasnip` users.
+            --    end,
+            -- },
             enabled = function()
                -- disable completion in comments
                local context = require("cmp.config.context")
