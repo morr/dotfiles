@@ -3,7 +3,7 @@ return {
       "hrsh7th/nvim-cmp",
       event = "InsertEnter",
       dependencies = {
-         -- "hrsh7th/cmp-nvim-lsp",
+         "hrsh7th/cmp-nvim-lsp",
          "hrsh7th/cmp-nvim-lua",
          "hrsh7th/cmp-path",
          "hrsh7th/cmp-cmdline",
@@ -69,7 +69,7 @@ return {
             -- mapping = cmp.mapping.preset.insert({
             -- }),
             sources = cmp.config.sources({
-               -- { name = "nvim_lsp" },
+               { name = "nvim_lsp" },
                -- { name = "luasnip" },
                { name = "nvim_lua" },
                { name = "buffer" },
