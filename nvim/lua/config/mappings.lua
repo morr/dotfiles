@@ -54,8 +54,16 @@ map({ "v", "n" }, "<M-c>", '"*y')
 -- Paste
 -- map({ "v", "n" }, "<M-v>", '"*gP')
 -- map("i", "<M-v>", '<c-r>+')
-function vim.paste(lines, _) -- custom paste function to insert text before cursor
-	vim.api.nvim_put(lines, 'c', false, true)
+
+-- Custom paste implementation that pastes text BEFORE cursor
+local original_paste = vim.paste
+-- https://github.com/neovim/neovim/blob/master/runtime/lua/vim/_editor.lua#L236C29-L236C34
+vim.paste = function(lines, phase) -- custom paste function to insert text before cursor
+   if vim.fn.mode() == 'n' then
+      vim.api.nvim_put(lines, 'c', false, true)
+   else
+      original_paste(lines, phase)
+   end
 end
 
 -- prevent yanking into register empty line
