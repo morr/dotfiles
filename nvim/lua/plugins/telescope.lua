@@ -6,6 +6,10 @@ return {
       "nvim-lua/plenary.nvim",
       "nvim-lua/popup.nvim",
       "BurntSushi/ripgrep",
+      {
+        "nvim-telescope/telescope-fzf-native.nvim",
+        build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build",
+      },
     },
     init = function()
       local builtin = require("telescope.builtin")
@@ -36,8 +40,10 @@ return {
       -- vim.keymap.set("n", "<leader>fh", builtin.help_tags, {})
 
       local actions = require("telescope.actions")
+      local telescope = require("telescope")
 
-      require("telescope").setup({
+      telescope.load_extension("fzf")
+      telescope.setup({
         defaults = {
           mappings = {
             i = {
@@ -65,13 +71,14 @@ return {
                     vim.api.nvim_chan_send(term, d .. "\r\n")
                   end
                 end
-                vim.fn.jobstart(
-                  {
-                    "chafa",
-                    filepath, -- Terminal image viewer command
-                  },
-                  { on_stdout = send_output, stdout_buffered = true, pty = true }
-                )
+                vim.fn.jobstart({
+                  "chafa",
+                  filepath, -- Terminal image viewer command
+                }, {
+                  on_stdout = send_output,
+                  stdout_buffered = true,
+                  pty = true,
+                })
               else
                 require("telescope.previewers.utils").set_preview_message(
                   bufnr,
@@ -82,15 +89,21 @@ return {
             end,
           },
         },
-        -- extensions = {
-        --    media_files = {
-        --       -- filetypes whitelist
-        --       -- defaults to {"png", "jpg", "mp4", "webm", "pdf"}
-        --       filetypes = {"png", "webp", "jpg", "jpeg"},
-        --       -- find command (defaults to `fd`)
-        --       find_cmd = "rg"
-        --    }
-        -- },
+        extensions = {
+          fzf = {
+            fuzzy = true, -- false will only do exact matching
+            override_generic_sorter = true, -- override the generic sorter
+            override_file_sorter = true, -- override the file sorter
+            case_mode = "smart_case", -- or "ignore_case" or "respect_case"
+          },
+          --    media_files = {
+          --       -- filetypes whitelist
+          --       -- defaults to {"png", "jpg", "mp4", "webm", "pdf"}
+          --       filetypes = {"png", "webp", "jpg", "jpeg"},
+          --       -- find command (defaults to `fd`)
+          --       find_cmd = "rg"
+          --    }
+        },
       })
     end,
     --opts = {
