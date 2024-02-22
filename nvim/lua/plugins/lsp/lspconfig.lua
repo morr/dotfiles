@@ -4,7 +4,7 @@ return {
    dependencies = {
       "hrsh7th/cmp-nvim-lsp",
       { "antosha417/nvim-lsp-file-operations", config = true },
-      'mihyaeru21/nvim-lspconfig-bundler',
+      "mihyaeru21/nvim-lspconfig-bundler",
    },
    config = function()
       -- import lspconfig plugin
@@ -80,12 +80,15 @@ return {
          on_attach = on_attach,
       })
 
-      -- au BufNewFile,BufRead *.js nnoremap <silent> ,R :w<cr>:silent !yarn run eslint --fix %<cr>:edit!<cr>
-
-
       lspconfig["lua_ls"].setup({
          capabilities = capabilities,
-         on_attach = on_attach,
+         on_attach = function(client, bufnr)
+            on_attach(client, bufnr)
+            vim.api.nvim_create_autocmd("BufWritePost", {
+               buffer = bufnr,
+               command = "silent! !stylua %",
+            })
+         end,
          settings = { -- custom settings for lua
             Lua = {
                -- make the language server recognize "vim" global
@@ -112,11 +115,11 @@ return {
                buffer = bufnr,
                command = "EslintFixAll",
             })
-         end
+         end,
       })
 
       -- ruby server
-      require('lspconfig-bundler').setup()
+      require("lspconfig-bundler").setup()
       lspconfig["solargraph"].setup({
          capabilities = capabilities,
          on_attach = on_attach,
@@ -141,8 +144,8 @@ return {
                --    host = 'localhost',
                --    port = '7658',
                --}
-            }
-         }
+            },
+         },
       })
    end,
 }
