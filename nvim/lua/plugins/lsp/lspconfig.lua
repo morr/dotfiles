@@ -107,7 +107,7 @@ return {
       },
     })
 
-    lspconfig.eslint.setup({
+    lspconfig["eslint"].setup({
       capabilities = capabilities,
       on_attach = function(client, bufnr)
         on_attach(client, bufnr)
@@ -117,6 +117,11 @@ return {
           command = "EslintFixAll",
         })
       end,
+    })
+
+    lspconfig["rubocop"].setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
     })
 
     -- ruby server
@@ -147,11 +152,6 @@ return {
           --}
         },
       },
-    })
-
-    lspconfig["rubocop"].setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
     })
   end,
 }
