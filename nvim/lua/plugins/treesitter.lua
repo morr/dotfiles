@@ -14,6 +14,8 @@ return {
           "comment",
           "diff",
           "vimdoc",
+          "bash",
+          "markdown_inline",
           -- git
           "git_rebase",
           "gitattributes",

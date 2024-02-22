@@ -36,7 +36,7 @@ vim.opt.signcolumn = "yes" -- Always show sign column (otherwise it will shift t
 vim.opt.fillchars = "eob: " -- Don't show `~` outside of buffer
 
 vim.opt.list = true
-vim.listchars = "tab:>·,trail:·,precedes:#,extends:#,nbsp:·"
+vim.opt.listchars = "tab:>·,trail:·,precedes:#,extends:#,nbsp:·"
 
 -- Timings
 vim.opt.updatetime = 250
