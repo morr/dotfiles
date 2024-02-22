@@ -25,6 +25,7 @@ return {
          ensure_installed = {
             "html",
             "cssls",
+            "eslint",
             -- "solargraph", -- auto install does not work. each project needs own solargraph gem installed
          },
          -- auto-install configured servers (with lspconfig)
@@ -35,7 +36,7 @@ return {
       ensure_installed = {
         -- "prettier", -- prettier formatter
         "stylua", -- lua formatter
-        "eslint_d", -- js linter
+        -- "eslint_d", -- js linter
       },
     })
    end

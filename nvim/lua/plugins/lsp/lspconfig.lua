@@ -80,6 +80,9 @@ return {
          on_attach = on_attach,
       })
 
+      -- au BufNewFile,BufRead *.js nnoremap <silent> ,R :w<cr>:silent !yarn run eslint --fix %<cr>:edit!<cr>
+
+
       lspconfig["lua_ls"].setup({
          capabilities = capabilities,
          on_attach = on_attach,
@@ -98,6 +101,18 @@ return {
                },
             },
          },
+      })
+
+      lspconfig.eslint.setup({
+         capabilities = capabilities,
+         on_attach = function(client, bufnr)
+            on_attach(client, bufnr)
+            -- autofix all correctable problems on save
+            vim.api.nvim_create_autocmd("BufWritePre", {
+               buffer = bufnr,
+               command = "EslintFixAll",
+            })
+         end
       })
 
       -- ruby server
