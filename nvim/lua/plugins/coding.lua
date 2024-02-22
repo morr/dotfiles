@@ -20,13 +20,13 @@ return {
       require("colorizer").setup()
     end,
   },
-  -- {
-  --    "lukas-reineke/indent-blankline.nvim",
-  --    branch = "master",
-  --    config = function()
-  --       require("ibl").setup()
-  --    end,
-  -- },
+  {
+    "lukas-reineke/indent-blankline.nvim",
+    branch = "master",
+    config = function()
+      require("ibl").setup()
+    end,
+  },
   { "tpope/vim-speeddating" },
   {
     "tpope/vim-surround",
