@@ -15,12 +15,6 @@ return {
     opts = {},
   },
   {
-    "norcalli/nvim-colorizer.lua",
-    config = function()
-      require("colorizer").setup()
-    end,
-  },
-  {
     "lukas-reineke/indent-blankline.nvim",
     branch = "master",
     config = function()
