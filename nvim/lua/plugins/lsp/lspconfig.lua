@@ -121,7 +121,13 @@ return {
 
     lspconfig["rubocop"].setup({
       capabilities = capabilities,
-      on_attach = on_attach,
+      on_attach = function(client, bufnr)
+        on_attach(client, bufnr)
+        vim.api.nvim_create_autocmd("BufWritePost", {
+          buffer = bufnr,
+          command = "silent! !rubocop --auto-correct %",
+        })
+      end,
     })
 
     -- ruby server
