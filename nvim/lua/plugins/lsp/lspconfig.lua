@@ -121,11 +121,17 @@ return {
 
     lspconfig["rubocop"].setup({
       capabilities = capabilities,
+      -- on_attach = on_attach,
       on_attach = function(client, bufnr)
         on_attach(client, bufnr)
-        vim.api.nvim_create_autocmd("BufWritePost", {
+
+        -- this works nnoticeably faster that calling external rubocop script
+        -- this implementation completely does not lag on save
+        vim.api.nvim_create_autocmd({ "BufWritePre" }, {
           buffer = bufnr,
-          command = "silent! !rubocop --auto-correct %",
+          callback = function()
+            vim.lsp.buf.format({ async = true })
+          end,
         })
       end,
     })
@@ -150,12 +156,6 @@ return {
           highlights = true,
           diagnostics = true,
           rename = true,
-          -- Enable this when running with docker compose
-          --transport = 'external',
-          --externalServer = {
-          --    host = 'localhost',
-          --    port = '7658',
-          --}
         },
       },
     })
