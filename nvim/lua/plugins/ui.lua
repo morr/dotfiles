@@ -199,59 +199,59 @@ return {
         lualine_y = {},
         lualine_z = {},
       },
-      tabline = {
-        lualine_a = {
-
-          {
-            "tabs",
-            tab_max_length = 40, -- Maximum width of each tab. The content will be shorten dynamically (example: apple/orange -> a/orange)
-            max_length = vim.o.columns / 3, -- Maximum width of tabs component.
-            -- Note:
-            -- It can also be a function that returns
-            -- the value of `max_length` dynamically.
-            mode = 1, -- 0: Shows tab_nr
-            -- 1: Shows tab_name
-            -- 2: Shows tab_nr + tab_name
-
-            path = 1, -- 0: just shows the filename
-            -- 1: shows the relative path and shorten $HOME to ~
-            -- 2: shows the full path
-            -- 3: shows the full path and shorte $HOME to ~
-
-            -- Automatically updates active tab color to match color of other components (will be overidden if buffers_color is set)
-            use_mode_colors = true,
-
-            -- tabs_color = {
-            --   -- Same values as the general color option can be used here.
-            --   active = "lualine_{section}_normal", -- Color for active tab.
-            --   inactive = "lualine_{section}_inactive", -- Color for inactive tab.
-            -- },
-
-            show_modified_status = true, -- Shows a symbol next to the tab name if the file has been modified.
-            symbols = {
-              modified = "[+]", -- Text to show when the file is modified.
-            },
-
-            fmt = function(name, context)
-              -- Show + if buffer is modified in tab
-              local buflist = vim.fn.tabpagebuflist(context.tabnr)
-              local winnr = vim.fn.tabpagewinnr(context.tabnr)
-              local bufnr = buflist[winnr]
-              local mod = vim.fn.getbufvar(bufnr, "&mod")
-
-              return name .. (mod == 1 and " +" or "")
-            end,
-          },
-        },
-        -- lualine_a = {},
-        lualine_b = {},
-        lualine_c = {},
-        -- lualine_b = { "branch" },
-        -- lualine_c = { "filename" },
-        lualine_x = {},
-        lualine_y = {},
-        lualine_z = {},
-      },
+      -- tabline = {
+      --   lualine_a = {
+      --
+      --     {
+      --       "tabs",
+      --       tab_max_length = 40, -- Maximum width of each tab. The content will be shorten dynamically (example: apple/orange -> a/orange)
+      --       max_length = vim.o.columns / 3, -- Maximum width of tabs component.
+      --       -- Note:
+      --       -- It can also be a function that returns
+      --       -- the value of `max_length` dynamically.
+      --       mode = 1, -- 0: Shows tab_nr
+      --       -- 1: Shows tab_name
+      --       -- 2: Shows tab_nr + tab_name
+      --
+      --       path = 1, -- 0: just shows the filename
+      --       -- 1: shows the relative path and shorten $HOME to ~
+      --       -- 2: shows the full path
+      --       -- 3: shows the full path and shorte $HOME to ~
+      --
+      --       -- Automatically updates active tab color to match color of other components (will be overidden if buffers_color is set)
+      --       use_mode_colors = true,
+      --
+      --       -- tabs_color = {
+      --       --   -- Same values as the general color option can be used here.
+      --       --   active = "lualine_{section}_normal", -- Color for active tab.
+      --       --   inactive = "lualine_{section}_inactive", -- Color for inactive tab.
+      --       -- },
+      --
+      --       show_modified_status = true, -- Shows a symbol next to the tab name if the file has been modified.
+      --       symbols = {
+      --         modified = "[+]", -- Text to show when the file is modified.
+      --       },
+      --
+      --       fmt = function(name, context)
+      --         -- Show + if buffer is modified in tab
+      --         local buflist = vim.fn.tabpagebuflist(context.tabnr)
+      --         local winnr = vim.fn.tabpagewinnr(context.tabnr)
+      --         local bufnr = buflist[winnr]
+      --         local mod = vim.fn.getbufvar(bufnr, "&mod")
+      --
+      --         return name .. (mod == 1 and " +" or "")
+      --       end,
+      --     },
+      --   },
+      --   -- lualine_a = {},
+      --   lualine_b = {},
+      --   lualine_c = {},
+      --   -- lualine_b = { "branch" },
+      --   -- lualine_c = { "filename" },
+      --   lualine_x = {},
+      --   lualine_y = {},
+      --   lualine_z = {},
+      -- },
       winbar = {},
       inactive_winbar = {},
       extensions = {},
@@ -262,7 +262,6 @@ return {
   },
   {
     "akinsho/bufferline.nvim",
-    version = "v3.*",
     dependencies = "nvim-tree/nvim-web-devicons",
     opts = {
       options = {
@@ -273,9 +272,48 @@ return {
             filetype = "NvimTree",
             text = " File Explorer",
             highlight = "Directory",
-            separator = false,
+            asdseparator = false,
           },
         },
+        show_close_icon = false,
+        -- name_formatter = function(buf) -- buf contains:
+        --   -- name                | str        | the basename of the active file
+        --   -- path                | str        | the full path of the active file
+        --   -- bufnr (buffer only) | int        | the number of the active buffer
+        --   -- buffers (tabs only) | table(int) | the numbers of the buffers in the tab
+        --   -- tabnr (tabs only)   | int        | the "handle" of the tab, can be converted to its ordinal number using: `vim.api.nvim_tabpage_get_number(buf.tabnr)`
+        -- end,
+
+        diagnostics = "nvim_lsp",
+        diagnostics_indicator = function(
+          count,
+          level,
+          _diagnostics_dict,
+          context
+        )
+          -- vim.notify(vim.inspect(diagnostics_dict))
+          if context.buffer:current() then
+            local icon = level:match("error") and " " or " "
+            return " " .. icon .. count
+
+            -- local signs =
+            --   { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
+            -- local indicator = (
+            --   diagnostics_dict.error
+            --     and signs.Error .. diagnostics_dict.error .. " "
+            --   or ""
+            -- )
+            --   .. (diagnostics_dict.warning and signs.Warn .. diagnostics_dict.warning or "")
+            --   .. (
+            --     diagnostics_dict.hint and signs.Hint .. diagnostics_dict.hint
+            --     or ""
+            --   )
+            --
+            -- return vim.trim(indicator)
+          end
+
+          return ""
+        end,
       },
     },
   },
