@@ -27,6 +27,10 @@ return {
     event = "VeryLazy",
   },
   {
+    "tpope/vim-abolish",
+    event = "VeryLazy",
+  },
+  {
     "chrisgrieser/nvim-spider",
     lazy = true,
     keys = {
