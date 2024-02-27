@@ -15,9 +15,31 @@ return {
 
     local keymap = vim.keymap -- for conciseness
 
-    local opts = { noremap = true, silent = true }
+    -- local opts = { noremap = true, silent = true }
     local on_attach = function(client, bufnr)
-      opts.buffer = bufnr
+      -- opts.buffer = bufnr
+
+      -- https://github.com/neovim/nvim-lspconfig/wiki/UI-Customization#show-line-diagnostics-automatically-in-hover-window
+      vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+        buffer = bufnr,
+        callback = function()
+          local opts = {
+            focusable = false,
+            close_events = {
+              "BufLeave",
+              "CursorMoved",
+              "InsertEnter",
+              "FocusLost",
+            },
+            border = "rounded",
+            source = "always",
+            prefix = " ",
+            scope = "cursor",
+          }
+          vim.diagnostic.open_float(nil, opts)
+          -- vim.diagnostic.open_float(nil, { focus = false, scope = "cursor" })
+        end,
+      })
 
       -- set keybinds
       -- opts.desc = "Show LSP references"
