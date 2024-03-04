@@ -21,8 +21,9 @@ plugins=(asdf ruby bundler capistrano gem macos npm rbenv ssh-agent rake brew \
   command-not-found compleat cp history history-substring-search \
   git git-extras pow npm yarn docker)
 
-HISTSIZE=1000000
-HISTFILESIZE=2000000
+HISTSIZE=10000000
+HISTFILESIZE=10000000
+SAVEHIST=10000000
 setopt appendhistory
 setopt INC_APPEND_HISTORY
 setopt SHARE_HISTORY

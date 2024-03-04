@@ -17,7 +17,7 @@
 	<key>AutoHideTmuxClientSession</key>
 	<false/>
 	<key>CheckTestRelease</key>
-	<true/>
+	<false/>
 	<key>CloseBookmarksWindowAfterOpening</key>
 	<false/>
 	<key>ClosingHotkeySwitchesSpaces</key>
@@ -7955,7 +7955,7 @@
 	<key>HotkeyModifiers</key>
 	<integer>524288</integer>
 	<key>IRMemory</key>
-	<integer>4</integer>
+	<integer>40</integer>
 	<key>JobName</key>
 	<true/>
 	<key>LeftCommand</key>
