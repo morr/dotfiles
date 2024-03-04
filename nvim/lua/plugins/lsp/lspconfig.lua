@@ -143,19 +143,19 @@ return {
 
     lspconfig["rubocop"].setup({
       capabilities = capabilities,
-      -- on_attach = on_attach,
-      on_attach = function(client, bufnr)
-        on_attach(client, bufnr)
-
-        -- this works nnoticeably faster that calling external rubocop script
-        -- this implementation completely does not lag on save
-        -- vim.api.nvim_create_autocmd({ "BufWritePre" }, {
-        --   buffer = bufnr,
-        --   callback = function()
-        --     vim.lsp.buf.format({ async = true })
-        --   end,
-        -- })
-      end,
+      on_attach = on_attach,
+      -- on_attach = function(client, bufnr)
+      --   on_attach(client, bufnr)
+      --
+      --   this works nnoticeably faster that calling external rubocop script
+      --   this implementation completely does not lag on save
+      --   vim.api.nvim_create_autocmd({ "BufWritePre" }, {
+      --     buffer = bufnr,
+      --     callback = function()
+      --       vim.lsp.buf.format({ async = true })
+      --     end,
+      --   })
+      -- end,
     })
 
     -- ruby server
@@ -184,11 +184,26 @@ return {
 
     lspconfig["rust_analyzer"].setup({
       capabilities = capabilities,
-      on_attach = on_attach,
+      -- on_attach = on_attach,
+      on_attach = function(client, bufnr)
+        on_attach(client, bufnr)
+
+        vim.api.nvim_create_autocmd({ "BufWritePre" }, {
+          buffer = bufnr,
+          callback = function()
+            vim.lsp.buf.format({ async = true })
+          end,
+        })
+      end,
+
+      root_dit = lspconfig.util.root_pattern("Cargo.toml"),
       settings = {
-        ["rust_analyzer"] = {
+        rust_analyzer = {
           diagnostics = {
             enable = false,
+          },
+          cargo = {
+            allFeatures = true,
           },
         },
       },
