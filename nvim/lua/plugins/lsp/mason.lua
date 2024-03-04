@@ -26,6 +26,7 @@ return {
         "html",
         "cssls",
         "eslint",
+        "rust_analyzer",
         -- "solargraph", -- auto install does not work. each project needs own solargraph gem installed
       },
       -- auto-install configured servers (with lspconfig)
