@@ -7,41 +7,53 @@ return {
     "mihyaeru21/nvim-lspconfig-bundler",
   },
   config = function()
-    -- import lspconfig plugin
     local lspconfig = require("lspconfig")
-
-    -- import cmp-nvim-lsp plugin
     local cmp_nvim_lsp = require("cmp_nvim_lsp")
 
     local keymap = vim.keymap -- for conciseness
-
     local opts = { noremap = true, silent = true }
+
     local on_attach = function(client, bufnr)
       opts.buffer = bufnr
 
+      vim.diagnostic.config({
+        virtual_text = true,
+        signs = true,
+        underline = false,
+        update_in_insert = false,
+        severity_sort = false,
+      })
+
       -- https://github.com/neovim/nvim-lspconfig/wiki/UI-Customization#show-line-diagnostics-automatically-in-hover-window
-      -- vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+      vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+        buffer = bufnr,
+        callback = function()
+          local opts = {
+            focusable = false,
+            close_events = {
+              "BufLeave",
+              "CursorMoved",
+              "InsertEnter",
+              "FocusLost",
+            },
+            border = "rounded",
+            source = "always",
+            prefix = " ",
+            scope = "cursor",
+          }
+          vim.diagnostic.open_float(nil, opts)
+          -- vim.diagnostic.open_float(nil, { focus = false, scope = "cursor" })
+        end,
+      })
+
+      -- -- show diagnostics since its update_in_insert is disabled
+      -- vim.api.nvim_create_autocmd({ "InsertLeave" }, {
       --   buffer = bufnr,
       --   callback = function()
-      --     local opts = {
-      --       focusable = false,
-      --       close_events = {
-      --         "BufLeave",
-      --         "CursorMoved",
-      --         "InsertEnter",
-      --         "FocusLost",
-      --       },
-      --       border = "rounded",
-      --       source = "always",
-      --       prefix = " ",
-      --       scope = "cursor",
-      --     }
-      --     vim.diagnostic.open_float(nil, opts)
-      --     -- vim.diagnostic.open_float(nil, { focus = false, scope = "cursor" })
+      --     vim.diagnostic.show()
       --   end,
       -- })
 
-      -- set keybinds
       -- opts.desc = "Show LSP references"
       -- keymap.set("n", "<leader>lR", "<cmd>Telescope lsp_references<CR>", opts) -- show definition, references
       --
@@ -143,19 +155,19 @@ return {
 
     lspconfig["rubocop"].setup({
       capabilities = capabilities,
-      on_attach = on_attach,
-      -- on_attach = function(client, bufnr)
-      --   on_attach(client, bufnr)
-      --
-      --   this works nnoticeably faster that calling external rubocop script
-      --   this implementation completely does not lag on save
-      --   vim.api.nvim_create_autocmd({ "BufWritePre" }, {
-      --     buffer = bufnr,
-      --     callback = function()
-      --       vim.lsp.buf.format({ async = true })
-      --     end,
-      --   })
-      -- end,
+      -- on_attach = on_attach,
+      on_attach = function(client, bufnr)
+        on_attach(client, bufnr)
+
+        -- this works nnoticeably faster that calling external rubocop script
+        -- this implementation completely does not lag on save
+        vim.api.nvim_create_autocmd({ "BufWritePre" }, {
+          buffer = bufnr,
+          callback = function()
+            vim.lsp.buf.format({ async = true })
+          end,
+        })
+      end,
     })
 
     -- ruby server
@@ -168,7 +180,7 @@ return {
       -- cmd = { 'bundle', 'exec', 'solargraph' },
       settings = {
         solargraph = {
-          completion = true,
+          completion = false,
           autoformat = false,
           formatting = true,
           symbols = true,
@@ -200,7 +212,7 @@ return {
       settings = {
         rust_analyzer = {
           diagnostics = {
-            enable = false,
+            enable = true,
           },
           cargo = {
             allFeatures = true,
