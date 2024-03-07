@@ -1,16 +1,16 @@
 local function map(mode, lhs, rhs, opts)
-  if opts == nil then
-    opts = {}
-  end
-  -- set default value if not specify
-  if opts.noremap == nil then
-    opts.noremap = true
-  end
-  if opts.silent == nil then
-    opts.silent = true
-  end
+	if opts == nil then
+		opts = {}
+	end
+	-- set default value if not specify
+	if opts.noremap == nil then
+		opts.noremap = true
+	end
+	if opts.silent == nil then
+		opts.silent = true
+	end
 
-  vim.keymap.set(mode, lhs, rhs, opts)
+	vim.keymap.set(mode, lhs, rhs, opts)
 end
 
 vim.g.mapleader = "\\"
@@ -63,23 +63,22 @@ map({ "v", "n" }, "<M-c>", '"*y')
 local original_paste = vim.paste
 -- https://github.com/neovim/neovim/blob/master/runtime/lua/vim/_editor.lua#L236C29-L236C34
 vim.paste = function(lines, phase) -- custom paste function to insert text before cursor
-  if vim.fn.mode() == "n" then
-    vim.api.nvim_put(lines, "c", false, true)
-  else
-    original_paste(lines, phase)
-  end
+	if vim.fn.mode() == "n" then
+		vim.api.nvim_put(lines, "c", false, true)
+	else
+		original_paste(lines, phase)
+	end
 end
 
 -- prevent yanking into register empty line
 local function delete_special()
-  local line_data = vim.api.nvim_win_get_cursor(0) -- returns {row, col}
-  local current_line =
-    vim.api.nvim_buf_get_lines(0, line_data[1] - 1, line_data[1], false)
-  if current_line[1] == "" then
-    return '"_dd'
-  else
-    return "dd"
-  end
+	local line_data = vim.api.nvim_win_get_cursor(0) -- returns {row, col}
+	local current_line = vim.api.nvim_buf_get_lines(0, line_data[1] - 1, line_data[1], false)
+	if current_line[1] == "" then
+		return '"_dd'
+	else
+		return "dd"
+	end
 end
 map("n", "dd", delete_special, { noremap = true, expr = true })
 
@@ -96,16 +95,16 @@ map("n", "<s-cr>", "O<Esc>")
 map("n", "<space>", ":nohlsearch<Bar>:echo<cr>")
 
 -- select all
-map("n", "<c-a>", "ggVG")
+map("n", "<m-a>", "ggVG")
 
 -- sort selection
 map("v", "<c-s>", ":sor<cr>")
 
 -- save
 map({ "v", "n", "i" }, "<M-s>", function()
-  vim.api.nvim_command("write")
-  print("Saved " .. vim.api.nvim_buf_get_name(0))
-  -- vim.notify("Saved")
+	vim.api.nvim_command("write")
+	print("Saved " .. vim.api.nvim_buf_get_name(0))
+	-- vim.notify("Saved")
 end, { desc = "Save file" })
 
 -- close buffer
