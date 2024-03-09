@@ -9630,6 +9630,17 @@
 					<key>Version</key>
 					<integer>1</integer>
 				</dict>
+				<key>0xd-0x20000-0x24</key>
+				<dict>
+					<key>Action</key>
+					<integer>10</integer>
+					<key>Label</key>
+					<string></string>
+					<key>Text</key>
+					<string>\</string>
+					<key>Version</key>
+					<integer>1</integer>
+				</dict>
 			</dict>
 			<key>Link Color</key>
 			<dict>
