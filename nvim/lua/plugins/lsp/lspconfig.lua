@@ -210,7 +210,7 @@ return {
         keymap.set(
           { "n", "i" },
           "<c-r>",
-          "<cmd>TermExec cmd='cargo run'<cr>",
+          "<cmd>TermExec cmd='cargo run; exit'<cr>",
           { buffer = bufnr }
         )
       end,
