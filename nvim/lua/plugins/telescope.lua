@@ -48,8 +48,8 @@ return {
           mappings = {
             i = {
               ["<esc>"] = actions.close,
-              ["<c-q>"] = actions.move_selection_next,
-              ["<c-w>"] = actions.move_selection_next,
+              ["<c-q>"] = actions.add_to_qflist,
+              -- ["<c-w>"] = actions.move_selection_next,
               ["<c-n>"] = actions.move_selection_next,
               ["<c-p>"] = actions.move_selection_previous,
             },

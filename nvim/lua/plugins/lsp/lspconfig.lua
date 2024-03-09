@@ -70,7 +70,7 @@ return {
       -- keymap.set("n", "gt", "<cmd>Telescope lsp_type_definitions<CR>", opts) -- show lsp type definitions
       --
       opts.desc = "See available code actions"
-      keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts) -- see available code actions, in visual mode will apply to selection
+      keymap.set({ "n", "v" }, ",r", vim.lsp.buf.code_action, opts) -- see available code actions, in visual mode will apply to selection
       --
       -- opts.desc = "Smart rename"
       -- keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts) -- smart rename
@@ -206,6 +206,13 @@ return {
             vim.lsp.buf.format({ async = true })
           end,
         })
+
+        keymap.set(
+          { "n", "i" },
+          "<c-r>",
+          "<cmd>TermExec cmd='cargo run'<cr>",
+          { buffer = bufnr }
+        )
       end,
 
       root_dit = lspconfig.util.root_pattern("Cargo.toml"),

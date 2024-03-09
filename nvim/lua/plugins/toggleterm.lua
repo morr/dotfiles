@@ -93,7 +93,7 @@ return {
         persist_size = false,
         direction = "float",
         close_on_exit = true, -- close the terminal window when the process exits
-        shell = nil, -- change the default shell
+        shell = "zsh", -- change the default shell
         float_opts = {
           border = "rounded",
           winblend = 0,
@@ -104,11 +104,11 @@ return {
         },
       })
       vim.cmd([[
-  augroup terminal_setup | au!
-  autocmd TermOpen * nnoremap <buffer><LeftRelease> <LeftRelease>i
-  autocmd TermEnter * startinsert!
-  augroup end
-  ]])
+        augroup terminal_setup | au!
+        autocmd TermOpen * nnoremap <buffer><LeftRelease> <LeftRelease>i
+        autocmd TermEnter * startinsert!
+        augroup end
+      ]])
 
       vim.api.nvim_create_autocmd({ "TermEnter" }, {
         pattern = { "*" },
