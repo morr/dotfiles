@@ -50,14 +50,6 @@ return {
         end,
       })
 
-      -- -- show diagnostics since its update_in_insert is disabled
-      -- vim.api.nvim_create_autocmd({ "InsertLeave" }, {
-      --   buffer = bufnr,
-      --   callback = function()
-      --     vim.diagnostic.show()
-      --   end,
-      -- })
-
       -- opts.desc = "Show LSP references"
       -- keymap.set("n", "<leader>lR", "<cmd>Telescope lsp_references<CR>", opts) -- show definition, references
       --
@@ -213,7 +205,13 @@ return {
 
         keymap.set(
           { "n", "i" },
-          "<c-r>",
+          "<leader>rr",
+          "<cmd>TermExec cmd='cargo run'<cr>",
+          { buffer = bufnr }
+        )
+        keymap.set(
+          { "n", "i" },
+          "<leader>re",
           "<cmd>TermExec cmd='cargo run; exit'<cr>",
           { buffer = bufnr }
         )
