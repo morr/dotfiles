@@ -28,6 +28,10 @@ return {
       vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
         buffer = bufnr,
         callback = function()
+          if vim.fn.mode() == "i" then
+            return
+          end
+
           local opts = {
             focusable = false,
             close_events = {
