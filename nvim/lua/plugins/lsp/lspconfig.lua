@@ -32,7 +32,7 @@ return {
             return
           end
 
-          local opts = {
+          local diagnostic_opts = {
             focusable = false,
             close_events = {
               "BufLeave",
@@ -45,8 +45,7 @@ return {
             prefix = " ",
             scope = "cursor",
           }
-          vim.diagnostic.open_float(nil, opts)
-          -- vim.diagnostic.open_float(nil, { focus = false, scope = "cursor" })
+          vim.diagnostic.open_float(nil, diagnostic_opts)
         end,
       })
 
@@ -206,13 +205,13 @@ return {
 
         keymap.set(
           { "n", "i" },
-          "<leader>rr",
+          "<leader>R",
           "<cmd>TermExec cmd='cargo run'<cr>",
           { buffer = bufnr }
         )
         keymap.set(
           { "n", "i" },
-          "<leader>re",
+          "<leader>r",
           "<cmd>TermExec cmd='cargo run; exit'<cr>",
           { buffer = bufnr }
         )
