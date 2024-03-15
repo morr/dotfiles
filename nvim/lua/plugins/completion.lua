@@ -8,6 +8,7 @@ return {
       "hrsh7th/cmp-path",
       "hrsh7th/cmp-cmdline",
       "hrsh7th/cmp-buffer",
+      "hrsh7th/cmp-omni",
       "onsails/lspkind.nvim",
     },
     config = function()
@@ -68,6 +69,7 @@ return {
           { name = "nvim_lsp" },
           { name = "nvim_lua" },
           { name = "buffer" },
+          { name = "omni" },
           { name = "path" },
         }),
         enabled = function()
