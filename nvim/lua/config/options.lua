@@ -60,6 +60,17 @@ vim.opt.softtabstop = 2
 vim.opt.langmap =
   "ё`,йq,цw,уe,кr,еt,нy,гu,шi,щo,зp,фa,ыs,вd,аf,пg,рh,оj,лk,дl,э',яz,чx,сc,мv,иb,тn,ьm,б\\,,ю.,Ё~,ЙQ,ЦW,УE,КR,ЕT,НY,ГU,ШI,ЩO,ЗP,ФA,ЫS,ВD,АF,ПG,РH,ОJ,ЛK,ДL,Ж:,Э\",ЯZ,ЧX,СC,МV,ИB,ТN,ЬM,Б<,Ю>"
 
--- Other
--- vim.opt.termguicolors = true
--- vim.opt.cmdheight = 0
+-- set terminal title to the name of current folder
+local set_title = function()
+  vim.opt.title = true
+  -- vim.opt.titlestring = vim.fn.getcwd()
+  vim.opt.titlestring = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+end
+
+vim.api.nvim_create_autocmd("DirChanged", {
+  -- buffer = bufnr,
+  -- command = "let &titlestring=v:event['cwd']",
+  callback = set_title,
+})
+
+set_title()
