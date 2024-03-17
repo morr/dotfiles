@@ -19,7 +19,7 @@ COMPLETION_WAITING_DOTS="true"
 
 plugins=(asdf ruby bundler capistrano gem macos npm rbenv ssh-agent rake brew \
   command-not-found compleat cp history history-substring-search \
-  git git-extras pow npm yarn docker)
+  git git-extras pow npm yarn docker rust)
 
 HISTSIZE=10000000
 HISTFILESIZE=10000000
