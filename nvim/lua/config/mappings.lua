@@ -101,6 +101,11 @@ map("n", "<m-a>", "ggVG")
 -- sort selection
 map("v", "<c-s>", ":sor<cr>")
 
+-- quickfix
+map("n", "q]", "<cmd>cn<cr>")
+map("n", "q[", "<cmd>cp<cr>")
+map("n", "q<backspace>", "<cmd>call setqflist([])<cr>")
+
 -- save
 map({ "v", "n", "i" }, "<M-s>", function()
   vim.api.nvim_command("write")
