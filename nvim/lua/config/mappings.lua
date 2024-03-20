@@ -104,7 +104,7 @@ map("v", "<c-s>", ":sor<cr>")
 -- save
 map({ "v", "n", "i" }, "<M-s>", function()
   vim.api.nvim_command("write")
-  print("Saved " .. vim.api.nvim_buf_get_name(0))
+  -- print("Saved " .. vim.api.nvim_buf_get_name(0))
   -- vim.notify("Saved")
 end, { desc = "Save file" })
 
