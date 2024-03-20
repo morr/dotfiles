@@ -6,6 +6,7 @@ return {
       "nvim-lua/plenary.nvim",
       "nvim-lua/popup.nvim",
       "BurntSushi/ripgrep",
+      "nvim-telescope/telescope-live-grep-args.nvim",
       {
         "nvim-telescope/telescope-fzf-native.nvim",
         build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build",
@@ -23,7 +24,13 @@ return {
         "n",
         "<leader>\\",
         builtin.live_grep,
-        { desc = "Telescope grep" }
+        { desc = "Telescope live grep" }
+      )
+      vim.keymap.set(
+        "n",
+        "<leader>|",
+        require("telescope").extensions.live_grep_args.live_grep_args,
+        { desc = "Telescope live grep args" }
       )
       vim.keymap.set(
         "n",
@@ -41,6 +48,7 @@ return {
 
       local actions = require("telescope.actions")
       local telescope = require("telescope")
+      local lga_actions = require("telescope-live-grep-args.actions")
 
       telescope.load_extension("fzf")
       telescope.setup({
@@ -95,6 +103,21 @@ return {
             override_generic_sorter = true, -- override the generic sorter
             override_file_sorter = true, -- override the file sorter
             case_mode = "smart_case", -- or "ignore_case" or "respect_case"
+          },
+          live_grep_args = {
+            auto_quoting = true, -- enable/disable auto-quoting
+            -- define mappings, e.g.
+            -- mappings = { -- extend mappings
+            --   i = {
+            --     ["<C-k>"] = lga_actions.quote_prompt(),
+            --     ["<C-i>"] = lga_actions.quote_prompt({ postfix = " --iglob " }),
+            --     ["<C-f"] = lga_actions.quote_prompt({ postfix = " -t" }),
+            --   },
+            -- },
+            -- ... also accepts theme settings, for example:
+            -- theme = "dropdown", -- use dropdown theme
+            -- theme = { }, -- use own theme spec
+            -- layout_config = { mirror=true }, -- mirror preview pane
           },
           --    media_files = {
           --       -- filetypes whitelist
