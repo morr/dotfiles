@@ -31,6 +31,7 @@ return {
         "html",
         "cssls",
         "eslint",
+        "lua_ls",
         "rust_analyzer",
         "somesass_ls",
         -- "solargraph", -- auto install does not work. each project needs own solargraph gem installed
