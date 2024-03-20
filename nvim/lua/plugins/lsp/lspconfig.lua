@@ -159,6 +159,11 @@ return {
       end,
     })
 
+    lspconfig["somesass_ls"].setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+    })
+
     lspconfig["rubocop"].setup({
       capabilities = capabilities,
       -- on_attach = on_attach,

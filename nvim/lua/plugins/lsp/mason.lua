@@ -1,7 +1,12 @@
 return {
   "williamboman/mason.nvim",
   dependencies = {
-    "williamboman/mason-lspconfig.nvim",
+    {
+      "williamboman/mason-lspconfig.nvim",
+      -- using this fork until PR is merged https://github.com/williamboman/mason-lspconfig.nvim/pull/372
+      url = "https://github.com/simeonoff/mason-lspconfig.nvim.git",
+      branch = "somesass_ls",
+    },
     "WhoIsSethDaniel/mason-tool-installer.nvim",
   },
   config = function()
@@ -27,6 +32,7 @@ return {
         "cssls",
         "eslint",
         "rust_analyzer",
+        "somesass_ls",
         -- "solargraph", -- auto install does not work. each project needs own solargraph gem installed
       },
       -- auto-install configured servers (with lspconfig)
