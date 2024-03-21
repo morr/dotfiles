@@ -71,22 +71,6 @@ alias nvimfiles="cd ~/.config/nvim/"
 #-------------------------------------------------------------------------------
 # work projects
 #-------------------------------------------------------------------------------
-alias erebor="cd ~/develop/work/erebor"
-alias e="erebor"
-alias chef-erebor="cd ~/develop/work/chef-erebor"
-
-alias bidon="cd ~/develop/work/bidon"
-alias b="bidon"
-alias chef-bidon="cd ~/develop/work/chef-bidon"
-
-alias as="cd ~/develop/work/amazing-supplies/"
-alias chef-as="cd ~/develop/work/chef-as"
-
-alias grin="cd ~/develop/work/grin/"
-alias chef-grin="cd ~/develop/work/chef-grin"
-
-alias grin-landing="cd ~/develop/work/grin-landing/"
-
 alias cwd="cd ~/develop/work/cardwiz-data/"
 alias chef-cwd="cd ~/develop/work/chef-cardwiz-data/"
 
