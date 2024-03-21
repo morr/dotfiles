@@ -5,6 +5,10 @@ return {
     "hrsh7th/cmp-nvim-lsp",
     { "antosha417/nvim-lsp-file-operations", config = true },
     "mihyaeru21/nvim-lspconfig-bundler",
+    {
+      "whynothugo/lsp_lines.nvim",
+      url = "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
+    },
   },
   config = function()
     local lspconfig = require("lspconfig")
@@ -16,13 +20,19 @@ return {
     local on_attach = function(client, bufnr)
       opts.buffer = bufnr
 
+      require("lsp_lines").setup()
       vim.diagnostic.config({
-        virtual_text = true,
-        signs = true,
-        underline = false,
-        update_in_insert = false,
-        severity_sort = false,
+        virtual_text = false,
+        virtual_lines = true,
       })
+
+      -- vim.diagnostic.config({
+      --   virtual_text = true,
+      --   signs = true,
+      --   underline = false,
+      --   update_in_insert = false,
+      --   severity_sort = false,
+      -- })
 
       -- https://github.com/neovim/nvim-lspconfig/wiki/UI-Customization#show-line-diagnostics-automatically-in-hover-window
       vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
