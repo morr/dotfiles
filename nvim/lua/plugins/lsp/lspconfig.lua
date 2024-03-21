@@ -10,10 +10,13 @@ return {
       url = "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
     },
     "ray-x/lsp_signature.nvim",
+    "simrat39/inlay-hints.nvim",
+    "nvim-lua/lsp-status.nvim",
   },
   config = function()
     local lspconfig = require("lspconfig")
     local cmp_nvim_lsp = require("cmp_nvim_lsp")
+    -- local inlay_hints = require("inlay-hints")
 
     local keymap = vim.keymap -- for conciseness
     local opts = { noremap = true, silent = true }
@@ -33,6 +36,8 @@ return {
 
     local on_attach = function(client, bufnr)
       opts.buffer = bufnr
+
+      -- inlay_hints.on_attach(client, bufnr)
 
       require("lsp_lines").setup()
       toggle_lsp_lines()
