@@ -323,6 +323,13 @@ return {
     init = function()
       vim.o.timeout = true
       vim.o.timeoutlen = 300
+
+      -- require("which-key").register({
+      --   ["<leader>"] = {
+      --     l = { name = "LSP" },
+      --     r = { name = "Rails" },
+      --   },
+      -- })
     end,
     opts = {
       presets = {

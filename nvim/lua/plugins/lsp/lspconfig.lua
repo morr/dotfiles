@@ -17,22 +17,24 @@ return {
     local keymap = vim.keymap -- for conciseness
     local opts = { noremap = true, silent = true }
 
+    local toggle_lsp_lines = function()
+      local new_virtual_text = not vim.diagnostic.config().virtual_text
+
+      vim.diagnostic.config({
+        virtual_text = new_virtual_text,
+        signs = true,
+        underline = false,
+        update_in_insert = false,
+        severity_sort = false,
+        virtual_lines = not new_virtual_text,
+      })
+    end
+
     local on_attach = function(client, bufnr)
       opts.buffer = bufnr
 
       require("lsp_lines").setup()
-      vim.diagnostic.config({
-        virtual_text = false,
-        virtual_lines = true,
-      })
-
-      -- vim.diagnostic.config({
-      --   virtual_text = true,
-      --   signs = true,
-      --   underline = false,
-      --   update_in_insert = false,
-      --   severity_sort = false,
-      -- })
+      toggle_lsp_lines()
 
       -- https://github.com/neovim/nvim-lspconfig/wiki/UI-Customization#show-line-diagnostics-automatically-in-hover-window
       vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
@@ -58,6 +60,14 @@ return {
           vim.diagnostic.open_float(nil, diagnostic_opts)
         end,
       })
+
+      -- require("which-key").register({
+      --   ["<leader>"] = {
+      --     l = {
+      --       name = "LSP",
+      --     },
+      --   },
+      -- })
 
       opts.desc = "Show LSP references"
       keymap.set("n", "<leader>lr", "<cmd>Telescope lsp_references<CR>", opts) -- show definition, references
@@ -108,6 +118,13 @@ return {
 
       -- opts.desc = "Restart LSP"
       -- keymap.set("n", "<leader>rs", ":LspRestart<CR>", opts) -- mapping to restart lsp if necessary
+
+      keymap.set(
+        "n",
+        "<Leader>ll",
+        toggle_lsp_lines,
+        { desc = "Toggle lsp_lines" }
+      )
     end
 
     -- used to enable autocompletion (assign to every lsp server config)
