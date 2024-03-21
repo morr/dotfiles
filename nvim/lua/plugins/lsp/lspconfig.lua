@@ -10,13 +10,10 @@ return {
       url = "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
     },
     "ray-x/lsp_signature.nvim",
-    "simrat39/inlay-hints.nvim",
-    "nvim-lua/lsp-status.nvim",
   },
   config = function()
     local lspconfig = require("lspconfig")
     local cmp_nvim_lsp = require("cmp_nvim_lsp")
-    -- local inlay_hints = require("inlay-hints")
 
     local keymap = vim.keymap -- for conciseness
     local opts = { noremap = true, silent = true }
@@ -34,10 +31,10 @@ return {
       })
     end
 
-    local on_attach = function(client, bufnr)
+    local on_attach = function(_client, bufnr)
       opts.buffer = bufnr
 
-      -- inlay_hints.on_attach(client, bufnr)
+      vim.lsp.inlay_hint.enable(bufnr)
 
       require("lsp_lines").setup()
       toggle_lsp_lines()
@@ -130,7 +127,7 @@ return {
       keymap.set("n", "K", vim.lsp.buf.hover, opts) -- show documentation for what is under cursor
 
       -- opts.desc = "Restart LSP"
-      -- keymap.set("n", "<leader>rs", ":LspRestart<CR>", opts) -- mapping to restart lsp if necessary
+      -- keymap.set("n", "<leader>rs", ":LspRestart<CR>", dotfiles-unix/opts) -- mapping to restart lsp if necessary
 
       keymap.set(
         "n",
@@ -246,6 +243,18 @@ return {
     })
 
     lspconfig["rust_analyzer"].setup({
+      settings = {
+        rust_analyzer = {
+          diagnostics = {
+            enable = true,
+          },
+          cargo = {
+            allFeatures = true,
+          },
+        },
+      },
+      root_dit = lspconfig.util.root_pattern("Cargo.toml"),
+
       capabilities = capabilities,
       -- on_attach = on_attach,
       on_attach = function(client, bufnr)
@@ -272,18 +281,6 @@ return {
           { buffer = bufnr }
         )
       end,
-
-      root_dit = lspconfig.util.root_pattern("Cargo.toml"),
-      settings = {
-        rust_analyzer = {
-          diagnostics = {
-            enable = true,
-          },
-          cargo = {
-            allFeatures = true,
-          },
-        },
-      },
     })
   end,
 }
