@@ -9,6 +9,7 @@ return {
       "whynothugo/lsp_lines.nvim",
       url = "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
     },
+    "ray-x/lsp_signature.nvim",
   },
   config = function()
     local lspconfig = require("lspconfig")
@@ -22,10 +23,10 @@ return {
 
       vim.diagnostic.config({
         virtual_text = new_virtual_text,
-        signs = true,
-        underline = false,
+        -- signs = true,
+        -- underline = false,
         update_in_insert = false,
-        severity_sort = false,
+        severity_sort = true,
         virtual_lines = not new_virtual_text,
       })
     end
@@ -35,6 +36,13 @@ return {
 
       require("lsp_lines").setup()
       toggle_lsp_lines()
+
+      require("lsp_signature").on_attach({
+        bind = true, -- This is mandatory, otherwise border config won't get registered.
+        handler_opts = {
+          border = "rounded",
+        },
+      }, bufnr)
 
       -- https://github.com/neovim/nvim-lspconfig/wiki/UI-Customization#show-line-diagnostics-automatically-in-hover-window
       vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
