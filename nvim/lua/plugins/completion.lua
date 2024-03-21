@@ -98,6 +98,12 @@ return {
           -- disable completion in comments
           local context = require("cmp.config.context")
 
+          -- disable completion in telescope
+          local buftype = vim.api.nvim_buf_get_option(0, "buftype")
+          if buftype == "prompt" then
+            return false
+          end
+
           -- keep command mode completion enabled
           if vim.api.nvim_get_mode().mode == "c" then
             return true
