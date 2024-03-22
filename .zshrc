@@ -92,6 +92,7 @@ alias cs="cd ~/develop/work/cardwiz-shared/"
 #-------------------------------------------------------------------------------
 alias dev="cd ~/develop"
 alias zxc="cd ~/develop/zxc"
+alias bevy="cd ~/develop/bevy"
 alias chef-shiki="cd ~/develop/chef-shiki"
 alias shiki="cd ~/develop/shikimori"
 alias shiki-editor="cd ~/develop/shiki-editor"
