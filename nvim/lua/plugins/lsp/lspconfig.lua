@@ -34,7 +34,11 @@ return {
     local on_attach = function(_client, bufnr)
       opts.buffer = bufnr
 
-      vim.lsp.inlay_hint.enable(bufnr)
+      if vim.fn.has("nvim-0.10") then
+        vim.lsp.inlay_hint.enable(bufnr)
+      else
+        vim.notify("neovim >=0.10 is required for inlay_hint feature")
+      end
 
       require("lsp_lines").setup()
       toggle_lsp_lines()
