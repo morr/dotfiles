@@ -31,7 +31,8 @@ return {
       })
     end
 
-    local on_attach = function(_client, bufnr)
+    ---@diagnostic disable-next-line: unused-local
+    local on_attach = function(client, bufnr)
       opts.buffer = bufnr
 
       if vim.fn.has("nvim-0.10") then
@@ -55,6 +56,11 @@ return {
         buffer = bufnr,
         callback = function()
           if vim.fn.mode() == "i" then
+            return
+          end
+
+          ---@diagnostic disable-next-line: undefined-field
+          if vim.diagnostic.config().virtual_lines then
             return
           end
 
