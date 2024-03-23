@@ -1,6 +1,10 @@
 return {
-  { "farmergreg/vim-lastplace" },
   {
+    -- A vim / nvim plugin that intelligently reopens files at your last edit position.
+    "farmergreg/vim-lastplace",
+  },
+  {
+    -- A (Neo)vim plugin for formatting code.
     "sbdchd/neoformat",
     config = function()
       vim.g.neoformat_try_node_exe = 1
@@ -10,10 +14,6 @@ return {
     },
   },
   { "tpope/vim-sleuth" },
-  {
-    "nacro90/numb.nvim",
-    opts = {},
-  },
   {
     "lukas-reineke/indent-blankline.nvim",
     branch = "master",
