@@ -1,5 +1,14 @@
 return {
   {
+    -- renders identation lines
+    "lukas-reineke/indent-blankline.nvim",
+    main = "ibl",
+    opts = {},
+    init = function()
+      require("ibl").setup()
+    end,
+  },
+  {
     -- A vim / nvim plugin that intelligently reopens files at your last edit position.
     "farmergreg/vim-lastplace",
   },
@@ -15,13 +24,9 @@ return {
   },
   { "tpope/vim-sleuth" },
   {
-    "lukas-reineke/indent-blankline.nvim",
-    branch = "master",
-    config = function()
-      require("ibl").setup()
-    end,
+    -- allows <c-a> / <c-x> to properly increment dates
+    "tpope/vim-speeddating",
   },
-  { "tpope/vim-speeddating" },
   {
     "tpope/vim-surround",
     event = "VeryLazy",
