@@ -254,45 +254,45 @@ return {
       },
     })
 
-    lspconfig["rust_analyzer"].setup({
-      settings = {
-        rust_analyzer = {
-          diagnostics = {
-            enable = true,
-          },
-          cargo = {
-            allFeatures = true,
-          },
-        },
-      },
-      root_dit = lspconfig.util.root_pattern("Cargo.toml"),
-
-      capabilities = capabilities,
-      -- on_attach = on_attach,
-      on_attach = function(client, bufnr)
-        on_attach(client, bufnr)
-
-        -- `brew install rustfmt`
-        vim.api.nvim_create_autocmd({ "BufWritePre" }, {
-          buffer = bufnr,
-          callback = function()
-            vim.lsp.buf.format({ async = true })
-          end,
-        })
-
-        keymap.set(
-          { "n", "i" },
-          "<leader>R",
-          "<cmd>TermExec cmd='MTL_HUD_ENABLED=1 cargo run'<cr>",
-          { buffer = bufnr }
-        )
-        keymap.set(
-          { "n", "i" },
-          "<leader>r",
-          "<cmd>TermExec cmd='MTL_HUD_ENABLED=1 cargo run; exit'<cr>",
-          { buffer = bufnr }
-        )
-      end,
-    })
+    -- lspconfig["rust_analyzer"].setup({
+    --   settings = {
+    --     rust_analyzer = {
+    --       diagnostics = {
+    --         enable = true,
+    --       },
+    --       cargo = {
+    --         allFeatures = true,
+    --       },
+    --     },
+    --   },
+    --   root_dit = lspconfig.util.root_pattern("Cargo.toml"),
+    --
+    --   capabilities = capabilities,
+    --   -- on_attach = on_attach,
+    --   on_attach = function(client, bufnr)
+    --     on_attach(client, bufnr)
+    --
+    --     -- `brew install rustfmt`
+    --     vim.api.nvim_create_autocmd({ "BufWritePre" }, {
+    --       buffer = bufnr,
+    --       callback = function()
+    --         vim.lsp.buf.format({ async = true })
+    --       end,
+    --     })
+    --
+    --     keymap.set(
+    --       { "n", "i" },
+    --       "<leader>R",
+    --       "<cmd>TermExec cmd='MTL_HUD_ENABLED=1 cargo run'<cr>",
+    --       { buffer = bufnr }
+    --     )
+    --     keymap.set(
+    --       { "n", "i" },
+    --       "<leader>r",
+    --       "<cmd>TermExec cmd='MTL_HUD_ENABLED=1 cargo run; exit'<cr>",
+    --       { buffer = bufnr }
+    --     )
+    --   end,
+    -- })
   end,
 }
