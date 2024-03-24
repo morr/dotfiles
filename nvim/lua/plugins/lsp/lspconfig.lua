@@ -1,3 +1,13 @@
+local toggle_lsp_lines = function()
+  local new_virtual_text = not vim.diagnostic.config().virtual_text
+
+  vim.diagnostic.config({
+    virtual_text = new_virtual_text,
+    update_in_insert = false,
+    virtual_lines = not new_virtual_text,
+  })
+end
+
 return {
   "neovim/nvim-lspconfig",
   event = { "BufReadPre", "BufNewFile" },
@@ -18,19 +28,6 @@ return {
     local keymap = vim.keymap -- for conciseness
     local opts = { noremap = true, silent = true }
 
-    local toggle_lsp_lines = function()
-      local new_virtual_text = not vim.diagnostic.config().virtual_text
-
-      vim.diagnostic.config({
-        virtual_text = new_virtual_text,
-        -- signs = true,
-        -- underline = false,
-        update_in_insert = false,
-        severity_sort = true,
-        virtual_lines = not new_virtual_text,
-      })
-    end
-
     ---@diagnostic disable-next-line: unused-local
     local on_attach = function(client, bufnr)
       opts.buffer = bufnr
@@ -42,7 +39,12 @@ return {
       end
 
       require("lsp_lines").setup()
-      toggle_lsp_lines()
+
+      vim.diagnostic.config({
+        virtual_text = true,
+        update_in_insert = false,
+        virtual_lines = false,
+      })
 
       require("lsp_signature").on_attach({
         bind = true, -- This is mandatory, otherwise border config won't get registered.
