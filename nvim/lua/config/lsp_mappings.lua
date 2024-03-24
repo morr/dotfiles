@@ -1,4 +1,6 @@
 local function show_lsp_diagnostics()
+  vim.v.hlsearch = "" -- because I have default behaviour to clear search on <space>
+
   -- If we find a floating window, close it.
   local found_float = false
   for _, win in ipairs(vim.api.nvim_list_wins()) do
@@ -117,4 +119,9 @@ config_lsp_mappings = function(bufnr)
 
   -- opts.desc = "Restart LSP"
   -- vim.keymap.set("n", "<leader>rs", ":LspRestart<CR>", dotfiles-unix/opts) -- mapping to restart lsp if necessary
+
+  opts.desc = "LSP Format"
+  vim.keymap.set("n", "<leader>lf", function()
+    vim.lsp.buf.format({ async = true })
+  end, opts)
 end
