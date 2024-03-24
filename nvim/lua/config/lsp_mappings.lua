@@ -1,4 +1,18 @@
 local function show_lsp_diagnostics()
+  -- If we find a floating window, close it.
+  local found_float = false
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    -- if vim.api.nvim_win_get_config(win).relative ~= "" then
+    if win == vim.diagnostic.remember_win then
+      vim.api.nvim_win_close(win, true)
+      found_float = true
+    end
+  end
+
+  if found_float then
+    return
+  end
+
   local diagnostic_opts = {
     focusable = true,
     close_events = {
@@ -13,7 +27,7 @@ local function show_lsp_diagnostics()
     scope = "cursor",
     zxc = true,
   }
-  vim.diagnostic.open_float(nil, diagnostic_opts)
+  vim.diagnostic.remember_win = vim.diagnostic.open_float(nil, diagnostic_opts)
 end
 
 local toggle_lsp_lines = function()
