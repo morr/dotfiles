@@ -1,13 +1,3 @@
-local toggle_lsp_lines = function()
-  local new_virtual_text = not vim.diagnostic.config().virtual_text
-
-  vim.diagnostic.config({
-    virtual_text = new_virtual_text,
-    update_in_insert = false,
-    virtual_lines = not new_virtual_text,
-  })
-end
-
 return {
   "neovim/nvim-lspconfig",
   event = { "BufReadPre", "BufNewFile" },
@@ -25,20 +15,11 @@ return {
     local lspconfig = require("lspconfig")
     local cmp_nvim_lsp = require("cmp_nvim_lsp")
 
-    local keymap = vim.keymap -- for conciseness
-    local opts = { noremap = true, silent = true }
-
     ---@diagnostic disable-next-line: unused-local
     local on_attach = function(client, bufnr)
-      opts.buffer = bufnr
+      config_lsp_mappings(bufnr)
 
-      if vim.fn.has("nvim-0.10") then
-        vim.lsp.inlay_hint.enable(bufnr)
-      else
-        vim.notify("neovim >=0.10 is required for inlay_hint feature")
-      end
-
-      require("lsp_lines").setup()
+      -- local opts = { noremap = true, silent = true, buffer = bufnr }
 
       vim.diagnostic.config({
         virtual_text = true,
@@ -46,107 +27,35 @@ return {
         virtual_lines = false,
       })
 
-      require("lsp_signature").on_attach({
-        bind = true, -- This is mandatory, otherwise border config won't get registered.
-        handler_opts = {
-          border = "rounded",
-        },
-      }, bufnr)
-
       -- https://github.com/neovim/nvim-lspconfig/wiki/UI-Customization#show-line-diagnostics-automatically-in-hover-window
-      vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
-        buffer = bufnr,
-        callback = function()
-          if vim.fn.mode() == "i" then
-            return
-          end
-
-          ---@diagnostic disable-next-line: undefined-field
-          if vim.diagnostic.config().virtual_lines then
-            return
-          end
-
-          local diagnostic_opts = {
-            focusable = false,
-            close_events = {
-              "BufLeave",
-              "CursorMoved",
-              "InsertEnter",
-              "FocusLost",
-            },
-            border = "rounded",
-            source = "always",
-            prefix = " ",
-            scope = "cursor",
-          }
-          vim.diagnostic.open_float(nil, diagnostic_opts)
-        end,
-      })
-
-      -- require("which-key").register({
-      --   ["<leader>"] = {
-      --     l = {
-      --       name = "LSP",
-      --     },
-      --   },
+      -- vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+      --   buffer = bufnr,
+      --   callback = function()
+      --     if vim.fn.mode() == "i" then
+      --       return
+      --     end
+      --
+      --     ---@diagnostic disable-next-line: undefined-field
+      --     if vim.diagnostic.config().virtual_lines then
+      --       return
+      --     end
+      --
+      --     local diagnostic_opts = {
+      --       focusable = false,
+      --       close_events = {
+      --         "BufLeave",
+      --         "CursorMoved",
+      --         "InsertEnter",
+      --         "FocusLost",
+      --       },
+      --       border = "rounded",
+      --       source = "always",
+      --       prefix = " ",
+      --       scope = "cursor",
+      --     }
+      --     vim.diagnostic.open_float(nil, diagnostic_opts)
+      --   end,
       -- })
-
-      opts.desc = "Show LSP references"
-      keymap.set("n", "<leader>lr", "<cmd>Telescope lsp_references<CR>", opts) -- show definition, references
-
-      opts.desc = "Go to declaration"
-      keymap.set("n", "gD", vim.lsp.buf.declaration, opts) -- go to declaration
-
-      opts.desc = "Show LSP definitions"
-      keymap.set("n", "<leader>ld", "<cmd>Telescope lsp_definitions<CR>", opts) -- show lsp definitions
-
-      opts.desc = "Show LSP implementations"
-      keymap.set(
-        "n",
-        "<leader>li",
-        "<cmd>Telescope lsp_implementations<CR>",
-        opts
-      ) -- show lsp implementations
-
-      opts.desc = "Show LSP type definitions"
-      keymap.set(
-        "n",
-        "<leader>lt",
-        "<cmd>Telescope lsp_type_definitions<CR>",
-        opts
-      ) -- show lsp type definitions
-
-      opts.desc = "See available code actions"
-      keymap.set({ "n", "v" }, "<leader>la", vim.lsp.buf.code_action, opts) -- see available code actions, in visual mode will apply to selection
-      keymap.set({ "n", "v" }, ",r", vim.lsp.buf.code_action, opts) -- see available code actions, in visual mode will apply to selection
-
-      opts.desc = "Smart rename"
-      keymap.set("n", "<leader>lR", vim.lsp.buf.rename, opts) -- smart rename
-      --
-      -- opts.desc = "Show buffer diagnostics"
-      -- keymap.set("n", "<leader>D", "<cmd>Telescope diagnostics bufnr=0<CR>", opts) -- show  diagnostics for file
-      --
-      -- opts.desc = "Show line diagnostics"
-      -- keymap.set("n", "<leader>d", vim.diagnostic.open_float, opts) -- show diagnostics for line
-      --
-      -- opts.desc = "Go to previous diagnostic"
-      -- keymap.set("n", "[d", vim.diagnostic.goto_prev, opts) -- jump to previous diagnostic in buffer
-      --
-      -- opts.desc = "Go to next diagnostic"
-      -- keymap.set("n", "]d", vim.diagnostic.goto_next, opts) -- jump to next diagnostic in buffer
-
-      opts.desc = "Show documentation for what is under cursor"
-      keymap.set("n", "K", vim.lsp.buf.hover, opts) -- show documentation for what is under cursor
-
-      -- opts.desc = "Restart LSP"
-      -- keymap.set("n", "<leader>rs", ":LspRestart<CR>", dotfiles-unix/opts) -- mapping to restart lsp if necessary
-
-      keymap.set(
-        "n",
-        "<Leader>ll",
-        toggle_lsp_lines,
-        { desc = "Toggle lsp_lines" }
-      )
     end
 
     -- used to enable autocompletion (assign to every lsp server config)
