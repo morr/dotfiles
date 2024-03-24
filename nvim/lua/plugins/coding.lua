@@ -17,10 +17,17 @@ return {
     "sbdchd/neoformat",
     config = function()
       vim.g.neoformat_try_node_exe = 1
+
+      vim.keymap.set(
+        "n",
+        ",f",
+        "<cmd>Neoformat<cr>",
+        { noremap = true, silent = true, desc = "Neoformat" }
+      )
     end,
-    keys = {
-      { "<Leader>fm", ":Neoformat<CR>" },
-    },
+    -- keys = {
+    --   { "<leader>fm", ":Neoformat<CR>" },
+    -- },
   },
   { "tpope/vim-sleuth" },
   {
