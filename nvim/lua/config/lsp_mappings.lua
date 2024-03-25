@@ -104,6 +104,7 @@ config_lsp_mappings = function(bufnr)
   opts.desc = "See available code actions"
   vim.keymap.set({ "n", "v" }, "<leader>la", vim.lsp.buf.code_action, opts) -- see available code actions, in visual mode will apply to selection
   vim.keymap.set({ "n", "v" }, ",r", vim.lsp.buf.code_action, opts) -- see available code actions, in visual mode will apply to selection
+  -- vim.keymap.set({ "n", "v" }, "<M-r>", vim.lsp.buf.code_action, opts) -- see available code actions, in visual mode will apply to selection
 
   opts.desc = "Smart rename"
   vim.keymap.set("n", "<leader>lR", vim.lsp.buf.rename, opts) -- smart rename

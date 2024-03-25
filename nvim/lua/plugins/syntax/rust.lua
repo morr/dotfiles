@@ -30,6 +30,12 @@ return {
               "<cmd>RustLsp codeAction<cr>",
               opts
             )
+            vim.keymap.set(
+              { "n", "v" },
+              "<M-r>",
+              "<cmd>RustLsp codeAction<cr>",
+              opts
+            )
 
             vim.keymap.set("n", "J", "<cmd>RustLsp joinLines<cr>", opts)
 
