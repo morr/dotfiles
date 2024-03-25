@@ -52,6 +52,12 @@ config_lsp_mappings = function(bufnr)
     vim.notify("neovim >=0.10 is required for inlay_hint feature")
   end
 
+  vim.diagnostic.config({
+    virtual_text = true,
+    update_in_insert = false,
+    virtual_lines = false,
+  })
+
   require("lsp_signature").on_attach({
     bind = true, -- This is mandatory, otherwise border config won't get registered.
     handler_opts = {
