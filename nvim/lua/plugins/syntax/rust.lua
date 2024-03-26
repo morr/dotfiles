@@ -46,10 +46,22 @@ return {
               "<cmd>TermExec cmd='MTL_HUD_ENABLED=1 cargo run'<cr>",
               opts
             )
+            vim.keymap.set(
+              { "n", "i" },
+              ",cR",
+              "<cmd>TermExec cmd='MTL_HUD_ENABLED=1 cargo run'<cr>",
+              opts
+            )
             opts.desc = "cargo run and exit"
             vim.keymap.set(
               { "n", "i" },
               "<leader>cr",
+              "<cmd>TermExec cmd='MTL_HUD_ENABLED=1 cargo run; exit'<cr>",
+              opts
+            )
+            vim.keymap.set(
+              { "n", "i" },
+              ",cr",
               "<cmd>TermExec cmd='MTL_HUD_ENABLED=1 cargo run; exit'<cr>",
               opts
             )
@@ -61,10 +73,22 @@ return {
               "<cmd>TermExec cmd='cargo test'<cr>",
               opts
             )
+            vim.keymap.set(
+              { "n", "i" },
+              ",ct",
+              "<cmd>TermExec cmd='cargo test'<cr>",
+              opts
+            )
             opts.desc = "cargo test and exit"
             vim.keymap.set(
               { "n", "i" },
               "<leader>cT",
+              "<cmd>TermExec cmd='cargo test; exit'<cr>",
+              opts
+            )
+            vim.keymap.set(
+              { "n", "i" },
+              ",cT",
               "<cmd>TermExec cmd='cargo test; exit'<cr>",
               opts
             )
