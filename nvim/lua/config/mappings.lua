@@ -106,6 +106,9 @@ map("n", "q]", "<cmd>cn<cr>")
 map("n", "q[", "<cmd>cp<cr>")
 map("n", "q<backspace>", "<cmd>call setqflist([])<cr>")
 
+-- compensates for insert mode <shift-space> => <m-r> mapping in iterm2
+map("i", "<m-r>", "<space>")
+
 -- save
 map({ "v", "n", "i" }, "<M-s>", function()
   vim.api.nvim_command("write")
