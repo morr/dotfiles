@@ -33,6 +33,7 @@ return {
         "eslint",
         "lua_ls",
         "rust_analyzer",
+        "wgsl_analyzer",
         "somesass_ls",
         -- "solargraph", -- auto install does not work. each project needs own solargraph gem installed
       },
