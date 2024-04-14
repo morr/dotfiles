@@ -7826,6 +7826,10 @@
 	<false/>
 	<key>NeverBlockSystemShutdown</key>
 	<true/>
+	<key>NeverWarnAboutShortLivedSessions_39B45161-29F1-4BBD-9C7B-04B3C1A45F07</key>
+	<true/>
+	<key>NeverWarnAboutShortLivedSessions_39B45161-29F1-4BBD-9C7B-04B3C1A45F07_selection</key>
+	<integer>0</integer>
 	<key>NeverWarnAboutShortLivedSessions_A81F92DA-4CAD-4F04-92FD-751E252CFDFE</key>
 	<true/>
 	<key>NeverWarnAboutShortLivedSessions_A81F92DA-4CAD-4F04-92FD-751E252CFDFE_selection</key>
