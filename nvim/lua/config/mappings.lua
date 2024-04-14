@@ -59,6 +59,9 @@ map({ "v", "n" }, "<M-c>", '"*y')
 -- map({ "v", "n" }, "<M-v>", '"*gP')
 -- map("i", "<M-v>", '<c-r>+')
 
+-- map({ "v", "n" }, "<c-v>", '"*p')  -- Paste from clipboard
+-- map("i", "<c-v>", '<c-r>*')  -- Paste from clipboard in insert mode
+
 -- Custom paste implementation that pastes text BEFORE cursor
 local original_paste = vim.paste
 -- https://github.com/neovim/neovim/blob/master/runtime/lua/vim/_editor.lua#L236C29-L236C34
