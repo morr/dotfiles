@@ -4,6 +4,17 @@ return {
     opts = {},
   },
   {
+    "tpope/vim-fugitive",
+    init = function()
+      vim.keymap.set(
+        "n",
+        "<leader>gd",
+        "<cmd>Gvdiffsplit<CR>",
+        { desc = "Diff" }
+      )
+    end,
+  },
+  {
     "NeogitOrg/neogit",
     dependencies = {
       "nvim-lua/plenary.nvim", -- required
@@ -19,7 +30,7 @@ return {
       vim.keymap.set("n", "<leader>gg", "<cmd>Neogit<CR>", { desc = "Neogit" })
       vim.keymap.set(
         "n",
-        "<leader>gd",
+        "<leader>gD",
         "<cmd>DiffviewOpen<CR><c-w><right>",
         { desc = "Diffview" }
       )
