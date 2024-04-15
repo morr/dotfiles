@@ -122,46 +122,81 @@ return {
       on_attach = on_attach,
     })
 
-    lspconfig["rubocop"].setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      -- on_attach = function(client, bufnr)
-      --   on_attach(client, bufnr)
-      --
-      --   -- this works noticeably faster that calling external rubocop script
-      --   -- this implementation completely does not lag on save
-      --   vim.api.nvim_create_autocmd({ "BufWritePre" }, {
-      --     buffer = bufnr,
-      --     callback = function()
-      --       vim.lsp.buf.format({ async = true })
-      --     end,
-      --   })
-      -- end,
-    })
+    -- Check if solargraph is available in the project context
+    local handle = io.popen("bundle exec which rubocop")
+    local result = handle:read("*a")
+    handle:close()
+
+    if result ~= "" then
+      lspconfig["rubocop"].setup({
+        capabilities = capabilities,
+        on_attach = on_attach,
+        -- on_attach = function(client, bufnr)
+        --   on_attach(client, bufnr)
+        --
+        --   -- this works noticeably faster that calling external rubocop script
+        --   -- this implementation completely does not lag on save
+        --   vim.api.nvim_create_autocmd({ "BufWritePre" }, {
+        --     buffer = bufnr,
+        --     callback = function()
+        --       vim.lsp.buf.format({ async = true })
+        --     end,
+        --   })
+        -- end,
+      })
+    end
 
     -- ruby server
-    require("lspconfig-bundler").setup()
-    lspconfig["solargraph"].setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      -- cmd = { os.getenv( "HOME" ) .. "/.rbenv/shims/solargraph", 'stdio' },
-      root_dir = lspconfig.util.root_pattern("Gemfile", ".git", "."),
-      -- cmd = { 'bundle', 'exec', 'solargraph' },
-      settings = {
-        solargraph = {
-          completion = false,
-          autoformat = false,
-          formatting = true,
-          symbols = true,
-          definitions = true,
-          references = true,
-          folding = true,
-          highlights = true,
-          diagnostics = true,
-          rename = true,
+
+    -- Check if solargraph is available in the project context
+    local handle = io.popen("bundle exec which solargraph")
+    local result = handle:read("*a")
+    handle:close()
+
+    if result ~= "" then
+      require("lspconfig-bundler").setup()
+      lspconfig["solargraph"].setup({
+        capabilities = capabilities,
+        on_attach = on_attach,
+        root_dir = lspconfig.util.root_pattern("Gemfile", ".git", "."),
+        settings = {
+          solargraph = {
+            completion = false,
+            autoformat = false,
+            formatting = true,
+            symbols = true,
+            definitions = true,
+            references = true,
+            folding = true,
+            highlights = true,
+            diagnostics = true,
+            rename = true,
+          },
         },
-      },
-    })
+      })
+    end
+
+    -- lspconfig["solargraph"].setup({
+    --   capabilities = capabilities,
+    --   on_attach = on_attach,
+    --   -- cmd = { os.getenv( "HOME" ) .. "/.rbenv/shims/solargraph", 'stdio' },
+    --   root_dir = lspconfig.util.root_pattern("Gemfile", ".git", "."),
+    --   -- cmd = { 'bundle', 'exec', 'solargraph' },
+    --   settings = {
+    --     solargraph = {
+    --       completion = false,
+    --       autoformat = false,
+    --       formatting = true,
+    --       symbols = true,
+    --       definitions = true,
+    --       references = true,
+    --       folding = true,
+    --       highlights = true,
+    --       diagnostics = true,
+    --       rename = true,
+    --     },
+    --   },
+    -- })
 
     -- lspconfig["rust_analyzer"].setup({
     --   settings = {
