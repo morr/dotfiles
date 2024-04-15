@@ -148,12 +148,16 @@ return {
 
     -- ruby server
 
-    -- Check if solargraph is available in the project context
-    local handle = io.popen("bundle exec which solargraph")
+    -- Attempt to get help from solargraph, which should be harmless
+    local handle = io.popen("bundle exec solargraph help 2>&1")
     local result = handle:read("*a")
     handle:close()
 
-    if result ~= "" then
+    -- Check for success indicator, typically the absence of a specific error message
+    if
+      not string.match(result, "command not found")
+      and not string.match(result, "No such command")
+    then
       require("lspconfig-bundler").setup()
       lspconfig["solargraph"].setup({
         capabilities = capabilities,
