@@ -212,7 +212,7 @@ alias log='tail -f log/development.log'
 alias foreman='honcho'
 alias os='overmind start'
 alias ys='yarn start'
-alias ww='if [ -f ./bin/webpacker-dev-server ]; then; ./bin/webpacker-dev-server; else; ./bin/webpack-dev-server; fi;'
+alias ww='if [ -f ./bin/shakapacker-dev-server ]; then ./bin/shakapacker-dev-server; elif [ -f ./bin/webpacker-dev-server ]; then ./bin/webpacker-dev-server; else ./bin/webpack-dev-server; fi'
 
 #-------------------------------------------------------------------------------
 # elixir aliases
