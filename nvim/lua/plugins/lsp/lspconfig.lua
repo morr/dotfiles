@@ -122,63 +122,43 @@ return {
       on_attach = on_attach,
     })
 
-    -- Check if solargraph is available in the project context
-    local handle = io.popen("bundle exec which rubocop")
-    local result = handle:read("*a")
-    handle:close()
+    lspconfig["rubocop"].setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+      -- on_attach = function(client, bufnr)
+      --   on_attach(client, bufnr)
+      --
+      --   -- this works noticeably faster that calling external rubocop script
+      --   -- this implementation completely does not lag on save
+      --   vim.api.nvim_create_autocmd({ "BufWritePre" }, {
+      --     buffer = bufnr,
+      --     callback = function()
+      --       vim.lsp.buf.format({ async = true })
+      --     end,
+      --   })
+      -- end,
+    })
 
-    if result ~= "" then
-      lspconfig["rubocop"].setup({
-        capabilities = capabilities,
-        on_attach = on_attach,
-        -- on_attach = function(client, bufnr)
-        --   on_attach(client, bufnr)
-        --
-        --   -- this works noticeably faster that calling external rubocop script
-        --   -- this implementation completely does not lag on save
-        --   vim.api.nvim_create_autocmd({ "BufWritePre" }, {
-        --     buffer = bufnr,
-        --     callback = function()
-        --       vim.lsp.buf.format({ async = true })
-        --     end,
-        --   })
-        -- end,
-      })
-    end
-
-    -- ruby server
-
-    -- Attempt to get help from solargraph, which should be harmless
-    local handle = io.popen("bundle exec solargraph help 2>&1")
-    local result = handle:read("*a")
-    handle:close()
-
-    -- Check for success indicator, typically the absence of a specific error message
-    if
-      not string.match(result, "command not found")
-      and not string.match(result, "No such command")
-    then
-      require("lspconfig-bundler").setup()
-      lspconfig["solargraph"].setup({
-        capabilities = capabilities,
-        on_attach = on_attach,
-        root_dir = lspconfig.util.root_pattern("Gemfile", ".git", "."),
-        settings = {
-          solargraph = {
-            completion = false,
-            autoformat = false,
-            formatting = true,
-            symbols = true,
-            definitions = true,
-            references = true,
-            folding = true,
-            highlights = true,
-            diagnostics = true,
-            rename = true,
-          },
+    require("lspconfig-bundler").setup()
+    lspconfig["solargraph"].setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+      root_dir = lspconfig.util.root_pattern("Gemfile", ".git", "."),
+      settings = {
+        solargraph = {
+          completion = false,
+          autoformat = false,
+          formatting = true,
+          symbols = true,
+          definitions = true,
+          references = true,
+          folding = true,
+          highlights = true,
+          diagnostics = true,
+          rename = true,
         },
-      })
-    end
+      },
+    })
 
     -- lspconfig["solargraph"].setup({
     --   capabilities = capabilities,
