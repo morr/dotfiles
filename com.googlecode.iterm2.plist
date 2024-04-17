@@ -9647,6 +9647,17 @@
 					<key>Version</key>
 					<integer>1</integer>
 				</dict>
+				<key>0x6b-0x100000-0x28</key>
+				<dict>
+					<key>Action</key>
+					<integer>10</integer>
+					<key>Label</key>
+					<string></string>
+					<key>Text</key>
+					<string>k</string>
+					<key>Version</key>
+					<integer>1</integer>
+				</dict>
 				<key>0x73-0x100000-0x1</key>
 				<dict>
 					<key>Action</key>
