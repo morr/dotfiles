@@ -4,7 +4,7 @@ return {
   dependencies = {
     "hrsh7th/cmp-nvim-lsp",
     { "antosha417/nvim-lsp-file-operations", config = true },
-    "mihyaeru21/nvim-lspconfig-bundler",
+    -- "mihyaeru21/nvim-lspconfig-bundler",
     {
       "whynothugo/lsp_lines.nvim",
       url = "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
@@ -139,7 +139,7 @@ return {
       -- end,
     })
 
-    require("lspconfig-bundler").setup()
+    -- require("lspconfig-bundler").setup()
     lspconfig["solargraph"].setup({
       capabilities = capabilities,
       on_attach = on_attach,
