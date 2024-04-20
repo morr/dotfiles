@@ -62,13 +62,22 @@ map({ "v", "n" }, "<M-c>", '"*y')
 -- map({ "v", "n" }, "<c-v>", '"*p')  -- Paste from clipboard
 -- map("i", "<c-v>", '<c-r>*')  -- Paste from clipboard in insert mode
 
--- Custom paste implementation that pastes text BEFORE cursor
+-- Custom paste implementation that pastes text AFTER cursor in normal mode
 local original_paste = vim.paste
--- https://github.com/neovim/neovim/blob/master/runtime/lua/vim/_editor.lua#L236C29-L236C34
-vim.paste = function(lines, phase) -- custom paste function to insert text before cursor
-  if vim.fn.mode() == "n" then
+-- Explanation
+-- Mode Check: The function now explicitly checks for being in normal mode (vim.fn.mode() == "n") to apply the custom behavior.
+-- Phase Check: Ensures that the custom pasting logic only applies during the first phase of pasting (phase == 1). Pasting can be a multi-phase operation especially with clipboard managers or when triggered by external scripts, so this ensures we only modify the initial insertion behavior.
+-- Using vim.api.nvim_put: This function is used to put the lines into the buffer. The parameters are adjusted to not advance the cursor unnecessarily:
+-- The second parameter 'c' tells Neovim to treat the lines as if they were yanked into a register, keeping the block structure if it's a block-wise visual mode yank.
+-- The third parameter false ensures we are not advancing the cursor after the paste.
+-- The fourth parameter true sets the paste as a normal command, which, in normal mode, means it follows the normal mode cursor behavior (i.e., paste after the cursor).
+vim.paste = function(lines, phase)
+  -- Check if we are in normal mode (`n`), and phase is the first phase of pasting (`1`)
+  if vim.fn.mode() == "n" and phase == 1 then
+    -- Use `p` for normal mode to paste after the cursor
     vim.api.nvim_put(lines, "c", false, true)
   else
+    -- Call original paste function for other modes or subsequent phases
     original_paste(lines, phase)
   end
 end
