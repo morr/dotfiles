@@ -62,7 +62,7 @@ map({ "v", "n" }, "<M-c>", '"*y')
 -- map({ "v", "n" }, "<c-v>", '"*p')  -- Paste from clipboard
 -- map("i", "<c-v>", '<c-r>*')  -- Paste from clipboard in insert mode
 
--- Custom paste implementation that pastes text AFTER cursor in normal mode
+-- Custom paste implementation that pastes text BEFORE cursor in normal mode
 local original_paste = vim.paste
 -- Explanation
 -- Mode Check: The function now explicitly checks for being in normal mode (vim.fn.mode() == "n") to apply the custom behavior.
@@ -72,8 +72,9 @@ local original_paste = vim.paste
 -- The third parameter false ensures we are not advancing the cursor after the paste.
 -- The fourth parameter true sets the paste as a normal command, which, in normal mode, means it follows the normal mode cursor behavior (i.e., paste after the cursor).
 vim.paste = function(lines, phase)
+  P(phase)
   -- Check if we are in normal mode (`n`), and phase is the first phase of pasting (`1`)
-  if vim.fn.mode() == "n" and phase == 1 then
+  if vim.fn.mode() == "n" and (phase == 1 or phase == -1) then
     -- Use `p` for normal mode to paste after the cursor
     vim.api.nvim_put(lines, "c", false, true)
   else
