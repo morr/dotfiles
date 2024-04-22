@@ -146,7 +146,9 @@ local function process_files(files)
 end
 
 local function get_project_files()
-  local output = vim.fn.systemlist("git ls-files --exclude-standard")
+  local output =
+    -- vim.fn.systemlist("git ls-files --exclude-standard '*.js' '*.vue'")
+    vim.fn.systemlist("git ls-files --exclude-standard")
   if vim.v.shell_error ~= 0 then
     print("Error listing files using git")
     return {}
