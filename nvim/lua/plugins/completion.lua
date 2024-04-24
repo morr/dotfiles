@@ -64,9 +64,25 @@ return {
             behavior = cmp.ConfirmBehavior.Replace,
             select = true,
           }),
+          -- <tab> traverses through autocompletion suggesions but does not
+          -- apply them. only when toy select the only available option,
+          -- <tab> applies autocompletion
           ["<Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then
-              cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+              local selected_entry = cmp.get_selected_entry()
+              if not selected_entry then
+                cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+              else
+                local entries = cmp.get_entries()
+                if #entries == 1 then
+                  cmp.confirm({
+                    behavior = cmp.ConfirmBehavior.Replace,
+                    select = true,
+                  })
+                else
+                  cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+                end
+              end
             else
               fallback()
             end
@@ -74,8 +90,8 @@ return {
           ["<S-Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then
               cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
-            elseif has_words_before() then
-              cmp.complete()
+            -- elseif has_words_before() then
+            --   cmp.complete()
             else
               fallback()
             end
