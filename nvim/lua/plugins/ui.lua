@@ -263,6 +263,7 @@ return {
   },
   {
     "akinsho/bufferline.nvim",
+    tag = "v4.5.3",
     dependencies = "nvim-tree/nvim-web-devicons",
     opts = {
       options = {
