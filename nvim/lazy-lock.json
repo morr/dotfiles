@@ -53,6 +53,7 @@
   "telescope.nvim": { "branch": "master", "commit": "d90956833d7c27e73c621a61f20b29fdb7122709" },
   "toggleterm.nvim": { "branch": "main", "commit": "066cccf48a43553a80a210eb3be89a15d789d6e6" },
   "vim-abolish": { "branch": "master", "commit": "dcbfe065297d31823561ba787f51056c147aa682" },
+  "vim-coffee-script": { "branch": "master", "commit": "28421258a8dde5a50deafbfc19cd9873cacfaa79" },
   "vim-fugitive": { "branch": "master", "commit": "dac8e5c2d85926df92672bf2afb4fc48656d96c7" },
   "vim-graphql": { "branch": "master", "commit": "c1d6af3b93ec135e7e2fc182d4cae6cd0d9e20b1" },
   "vim-lastplace": { "branch": "master", "commit": "cf0abc5f89c88f0c5219abe89334a8a3ef91fefd" },
