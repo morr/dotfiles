@@ -130,7 +130,7 @@ map({ "v", "n", "i" }, "<M-s>", function()
 end, { desc = "Save file" })
 
 -- close buffer
-map("n", "<leader>w", ":bd<cr>")
+map("n", "<leader>w", ":bd!<cr>")
 map("n", "<leader>q", ":tabclose<cr>")
 
 map("n", ",v", ":e ~/.config/nvim/init.lua<CR>", { desc = "Open nvim config" })
