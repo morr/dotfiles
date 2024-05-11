@@ -26,7 +26,7 @@ return {
             )
             vim.keymap.set(
               { "n", "v" },
-              ",r",
+              ",a",
               "<cmd>RustLsp codeAction<cr>",
               opts
             )
@@ -42,13 +42,6 @@ return {
             opts.desc = "cargo run"
             vim.keymap.set(
               { "n", "i" },
-              "<leader>cR",
-              "<cmd>TermExec cmd='cargo run'<cr>",
-              -- "<cmd>TermExec cmd='MTL_HUD_ENABLED=1 cargo run'<cr>",
-              opts
-            )
-            vim.keymap.set(
-              { "n", "i" },
               ",cR",
               "<cmd>TermExec cmd='cargo run'<cr>",
               -- "<cmd>TermExec cmd='MTL_HUD_ENABLED=1 cargo run'<cr>",
@@ -57,43 +50,25 @@ return {
             opts.desc = "cargo run and exit"
             vim.keymap.set(
               { "n", "i" },
-              "<leader>cr",
-              "<cmd>TermExec cmd='cargo run; exit'<cr>",
-              -- "<cmd>TermExec cmd='MTL_HUD_ENABLED=1 cargo run; exit'<cr>",
-              opts
-            )
-            vim.keymap.set(
-              { "n", "i" },
               ",cr",
               "<cmd>TermExec cmd='cargo run; exit'<cr>",
               -- "<cmd>TermExec cmd='MTL_HUD_ENABLED=1 cargo run; exit'<cr>",
               opts
             )
 
+            opts.desc = "cargo build"
+            vim.keymap.set(
+              { "n", "i" },
+              ",cb",
+              "<cmd>TermExec cmd='cargo build'<cr>",
+              opts
+            )
+
             opts.desc = "cargo test"
             vim.keymap.set(
               { "n", "i" },
-              "<leader>ct",
-              "<cmd>TermExec cmd='cargo test'<cr>",
-              opts
-            )
-            vim.keymap.set(
-              { "n", "i" },
-              ",ct",
-              "<cmd>TermExec cmd='cargo test'<cr>",
-              opts
-            )
-            opts.desc = "cargo test and exit"
-            vim.keymap.set(
-              { "n", "i" },
-              "<leader>cT",
-              "<cmd>TermExec cmd='cargo test; exit'<cr>",
-              opts
-            )
-            vim.keymap.set(
-              { "n", "i" },
               ",cT",
-              "<cmd>TermExec cmd='cargo test; exit'<cr>",
+              "<cmd>TermExec cmd='cargo test'<cr>",
               opts
             )
           end,

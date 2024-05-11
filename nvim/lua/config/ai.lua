@@ -168,13 +168,13 @@ end
 
 vim.api.nvim_set_keymap(
   "n",
-  "<leader>a",
+  ",a",
   "<cmd>lua _G.process_current_file()<CR>",
-  { noremap = true, silent = true }
+  { noremap = true, silent = true, desc = "Generate file code for AI" }
 )
 vim.api.nvim_set_keymap(
   "n",
-  "<leader>A",
+  ",A",
   "<cmd>lua _G.process_project_files()<CR>",
-  { noremap = true, silent = true }
+  { noremap = true, silent = true, desc = "Generate project code for AI" }
 )
