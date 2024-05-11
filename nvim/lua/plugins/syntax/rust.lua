@@ -32,7 +32,7 @@ return {
             )
             vim.keymap.set(
               { "n", "v" },
-              "<M-r>",
+              "<M-R>",
               "<cmd>RustLsp codeAction<cr>",
               opts
             )
