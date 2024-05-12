@@ -265,7 +265,8 @@ return {
   },
   {
     "akinsho/bufferline.nvim",
-    tag = "v4.5.3",
+    -- tag = "v4.5.3",
+    branch = "main",
     dependencies = "nvim-tree/nvim-web-devicons",
     opts = {
       options = {
