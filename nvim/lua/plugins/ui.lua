@@ -21,54 +21,63 @@ return {
       vim.cmd.colorscheme("catppuccin")
     end,
   },
-  {
-    "folke/noice.nvim",
-    dependencies = {
-      "MunifTanjim/nui.nvim",
-      "rcarriga/nvim-notify",
-    },
-    event = "VeryLazy",
-    opts = {
-      lsp = {
-        signature = { enabled = false },
-        override = {
-          ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
-          ["vim.lsp.util.stylize_markdown"] = true,
-          ["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
-        },
-      },
-      presets = {
-        -- bottom_search = true, -- use a classic bottom cmdline for search
-        -- command_palette = true, -- position the cmdline and popupmenu together
-        long_message_to_split = true, -- long messages will be sent to a split
-        -- inc_rename = true, -- enables an input dialog for inc-rename.nvim
-        -- lsp_doc_border = false, -- add a border to hover docs and signature help
-      },
-      -- disable messages display via nvim-notify
-      messages = {
-        enabled = false,
-      },
-      routes = {
-        -- hide search vitual text
-        {
-          filter = {
-            event = "msg_show",
-            kind = "search_count",
-          },
-          opts = { skip = true },
-        },
-        -- hide "written" messages
-        {
-          filter = {
-            event = "msg_show",
-            kind = "",
-            find = "written",
-          },
-          opts = { skip = true },
-        },
-      },
-    },
-  },
+  -- broken in nvim 10 nightly
+  -- {
+  --   "rcarriga/nvim-notify",
+  --   opts = {},
+  --   config = function()
+  --     vim.notify = require("notify")
+  --   end,
+  -- },
+  -- broken in nvim 10 nightly
+  -- {
+  --   "folke/noice.nvim",
+  --   dependencies = {
+  --     "MunifTanjim/nui.nvim",
+  --     "rcarriga/nvim-notify",
+  --   },
+  --   event = "VeryLazy",
+  --   opts = {
+  --     lsp = {
+  --       signature = { enabled = false },
+  --       override = {
+  --         ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+  --         ["vim.lsp.util.stylize_markdown"] = true,
+  --         ["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
+  --       },
+  --     },
+  --     presets = {
+  --       -- bottom_search = true, -- use a classic bottom cmdline for search
+  --       -- command_palette = true, -- position the cmdline and popupmenu together
+  --       long_message_to_split = true, -- long messages will be sent to a split
+  --       -- inc_rename = true, -- enables an input dialog for inc-rename.nvim
+  --       -- lsp_doc_border = false, -- add a border to hover docs and signature help
+  --     },
+  --     -- disable messages display via nvim-notify
+  --     messages = {
+  --       enabled = false,
+  --     },
+  --     routes = {
+  --       -- hide search vitual text
+  --       {
+  --         filter = {
+  --           event = "msg_show",
+  --           kind = "search_count",
+  --         },
+  --         opts = { skip = true },
+  --       },
+  --       -- hide "written" messages
+  --       {
+  --         filter = {
+  --           event = "msg_show",
+  --           kind = "",
+  --           find = "written",
+  --         },
+  --         opts = { skip = true },
+  --       },
+  --     },
+  --   },
+  -- },
   {
     "utilyre/barbecue.nvim",
     name = "barbecue",
@@ -83,13 +92,6 @@ return {
       show_dirname = false,
       show_basename = false,
     },
-  },
-  {
-    "rcarriga/nvim-notify",
-    opts = {},
-    config = function()
-      vim.notify = require("notify")
-    end,
   },
   -- {
   --   "aznhe21/actions-preview.nvim",
