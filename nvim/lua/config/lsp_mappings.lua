@@ -47,7 +47,7 @@ config_lsp_mappings = function(bufnr)
   local opts = { noremap = true, silent = true, buffer = bufnr }
 
   if vim.fn.has("nvim-0.10") then
-    vim.lsp.inlay_hint.enable(bufnr)
+    vim.lsp.inlay_hint.enable(true)
   else
     vim.notify("neovim >=0.10 is required for inlay_hint feature")
   end
