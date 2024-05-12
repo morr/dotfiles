@@ -5,6 +5,13 @@ return {
     ft = { "rust" },
     dependencies = { "mfussenegger/nvim-dap" },
     config = function()
+      -- neotest intergration
+      require("neotest").setup({
+        adapters = {
+          require("rustaceanvim.neotest"),
+        },
+      })
+
       vim.g.rustaceanvim = {
         -- Plugin configuration
         -- tools = {
@@ -77,6 +84,11 @@ return {
               "<cmd>TermExec cmd='cargo test'<cr>",
               opts
             )
+
+            opts.desc = "Neotest: run nearest test"
+            vim.keymap.set({ "n", "i" }, "<m-T>", function()
+              require("neotest").run.run()
+            end, opts)
           end,
           -- default_settings = {
           --   -- rust-analyzer language server configuration
