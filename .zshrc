@@ -408,6 +408,22 @@ fi
 # fi
 
 #-------------------------------------------------------------------------------
+# neovim with its profile
+#-------------------------------------------------------------------------------
+function iterm2_nvim() {
+    # Change to the nvim profile
+    echo -e "\033]50;SetProfile=nvim\a"
+
+    # Execute the original Neovim command with all passed parameters
+    nvim "$@"
+
+    # Revert to the default profile after exiting nvim
+    echo -e "\033]50;SetProfile=Default\a"
+}
+
+alias nvim='iterm2_nvim'
+
+#-------------------------------------------------------------------------------
 # rust
 #-------------------------------------------------------------------------------
 test -e "$HOME/.cargo/env" && . "$HOME/.cargo/env"
