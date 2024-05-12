@@ -102,13 +102,14 @@ config_lsp_mappings = function(bufnr)
   ) -- show lsp type definitions
 
   opts.desc = "See available code actions"
-  vim.keymap.set({ "n", "v" }, "<leader>la", vim.lsp.buf.code_action, opts) -- see available code actions, in visual mode will apply to selection
-  vim.keymap.set({ "n", "v" }, ",r", vim.lsp.buf.code_action, opts) -- see available code actions, in visual mode will apply to selection
-  -- vim.keymap.set({ "n", "v" }, "<M-r>", vim.lsp.buf.code_action, opts) -- see available code actions, in visual mode will apply to selection
+  vim.keymap.set({ "n", "v" }, "<leader>la", vim.lsp.buf.code_action, opts)
+  vim.keymap.set({ "n", "v" }, ",r", vim.lsp.buf.code_action, opts)
+  vim.keymap.set({ "n", "v" }, "<m-A>", vim.lsp.buf.code_action, opts)
+  -- vim.keymap.set({ "n", "v" }, "<M-r>", vim.lsp.buf.code_action, opts)
 
   opts.desc = "Smart rename"
   vim.keymap.set("n", "<leader>lR", vim.lsp.buf.rename, opts) -- smart rename
-  vim.keymap.set("n", "<m-r>", vim.lsp.buf.rename, opts) -- smart rename
+  vim.keymap.set("n", "<m-R>", vim.lsp.buf.rename, opts) -- smart rename
   --
   -- opts.desc = "Show buffer diagnostics"
   -- vim.keymap.set("n", "<leader>D", "<cmd>Telescope diagnostics bufnr=0<CR>", opts) -- show  diagnostics for file
