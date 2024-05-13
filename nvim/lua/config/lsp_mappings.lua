@@ -133,4 +133,7 @@ config_lsp_mappings = function(bufnr)
   vim.keymap.set("n", "<leader>lf", function()
     vim.lsp.buf.format({ async = true })
   end, opts)
+  vim.keymap.set("n", "<m-F>", function()
+    vim.lsp.buf.format({ async = true })
+  end, opts)
 end
