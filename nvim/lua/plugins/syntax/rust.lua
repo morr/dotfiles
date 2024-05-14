@@ -31,12 +31,12 @@ return {
               "<cmd>RustLsp codeAction<cr>",
               opts
             )
-            vim.keymap.set(
-              { "n", "v" },
-              ",a",
-              "<cmd>RustLsp codeAction<cr>",
-              opts
-            )
+            -- vim.keymap.set(
+            --   { "n", "v" },
+            --   ",a",
+            --   "<cmd>RustLsp codeAction<cr>",
+            --   opts
+            -- )
             -- vim.keymap.set(
             --   { "n", "v" },
             --   "<M-R>",
