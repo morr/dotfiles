@@ -224,7 +224,8 @@ alias iex='iex -S mix'
 #-------------------------------------------------------------------------------
 alias g='git status'
 alias gl="git log --graph --pretty=format:'%Cred%h%Creset %C(yellow)%d%Creset %s - %C(bold blue)%an%Creset, %Cgreen%cr' --abbrev-commit"
-alias gp='git push'
+alias gP='git push'
+alias gp='git pull'
 alias finalize='git rebase --interactive --autosquash master'
 
 alias update='git add -A && git commit -m "updates"'
