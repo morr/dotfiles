@@ -50,10 +50,16 @@ return {
           stopOnEntry = false,
           args = {},
           env = function()
+            -- $ rustup toolchain list
+            -- $ rustup show active-toolchain
+            -- $ rustc --print sysroot
+
+            local rustc_sysroot = vim.fn.system("rustc --print sysroot"):gsub("%s+", "") -- Trim any whitespace
             local variables = {
-              -- Example environment variables for Bevy
-              -- ["RUST_LOG"] = "debug",
-              -- Add any additional environment variables your Bevy project might need
+              -- Adding Rust library path for dynamic linker
+              ["DYLD_LIBRARY_PATH"] = rustc_sysroot .. "/lib",
+              -- ["DYLD_LIBRARY_PATH"] = home_dir .. "/.rustup/toolchains/nightly-aarch64-apple-darwin/lib",
+              -- ["RUST_LOG"] = "debug", -- Example environment variable for Bevy
             }
             return variables
           end,
