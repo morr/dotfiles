@@ -12,7 +12,7 @@ return {
 
       dap.set_log_level("DEBUG")
 
-      dap.adapters.lldb = {
+      dap.adapters.codelldb = {
         type = "server",
         port = "${port}",
         executable = {
@@ -24,16 +24,21 @@ return {
       dap.configurations.rust = {
         {
           name = "Launch",
-          type = "lldb",
+          type = "codelldb",
           request = "launch",
           program = function()
-            local cargo_build_cmd = "cargo build --message-format=json"
+            local cargo_build_cmd =
+              "cargo build --message-format=json | grep -v crates.io-index  | grep executable | grep -v '\"executable\":null'"
             local cargo_output = vim.fn.systemlist(cargo_build_cmd)
+
+            -- Add debug print for cargo output
+            -- vim.notify("Cargo build output: " .. vim.inspect(cargo_output), vim.log.levels.INFO)
+
             local executable = nil
 
             for _, line in ipairs(cargo_output) do
-              local decoded = vim.fn.json_decode(line)
-              if decoded and decoded.executable then
+              local success, decoded = pcall(vim.fn.json_decode, line)
+              if success and decoded and decoded.executable then
                 executable = decoded.executable
                 break
               end
@@ -44,16 +49,13 @@ return {
               return nil
             end
 
+            -- vim.notify("Executable found: " .. tostring(executable), vim.log.levels.INFO)
             return executable
           end,
           cwd = "${workspaceFolder}",
           stopOnEntry = false,
           args = {},
           env = function()
-            -- $ rustup toolchain list
-            -- $ rustup show active-toolchain
-            -- $ rustc --print sysroot
-
             local rustc_sysroot = vim.fn.system("rustc --print sysroot"):gsub("%s+", "") -- Trim any whitespace
             local variables = {
               -- Adding Rust library path for dynamic linker
