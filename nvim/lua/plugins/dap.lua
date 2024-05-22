@@ -66,6 +66,10 @@ return {
             return variables
           end,
           runInTerminal = false,
+          -- Set the working directory explicitly
+          -- cwd = function()
+          --   return vim.fn.getcwd()
+          -- end,
         },
       }
 
