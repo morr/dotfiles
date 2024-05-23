@@ -80,7 +80,7 @@ alias nvimfiles="cd ~/.config/nvim/"
 alias cwd="cd ~/develop/work/cardwiz-data/"
 alias chef-cwd="cd ~/develop/work/chef-cardwiz-data/"
 
-alias cw="cd ~/develop/work/cardwiz/"
+# alias cw="cd ~/develop/work/cardwiz/"
 alias chef-cw="cd ~/develop/work/chef-cardwiz/"
 
 alias cwb="cd ~/develop/work/cardwiz-blog/"
@@ -90,7 +90,7 @@ alias ms-app="cd ~/develop/work/minisklad-app//"
 alias franchise="cd ~/develop/work/franchise/"
 alias chef-ms="cd ~/develop/work/chef-minisklad/"
 
-alias cb="cd ~/develop/work/cardwiz-blog/"
+alias cw="cd ~/develop/work/cardwiz-blog/"
 alias cs="cd ~/develop/work/cardwiz-shared/"
 
 #-------------------------------------------------------------------------------
@@ -229,6 +229,7 @@ alias iex='iex -S mix'
 # rust aliases
 #-------------------------------------------------------------------------------
 alias cr='cargo run'
+alias cb='cargo build'
 alias ct='cargo test'
 
 #-------------------------------------------------------------------------------
