@@ -62,8 +62,7 @@ return {
     local capabilities = cmp_nvim_lsp.default_capabilities()
 
     -- Change the Diagnostic symbols in the sign column (gutter)
-    local signs =
-      { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
+    local signs = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
     for type, icon in pairs(signs) do
       local hl = "DiagnosticSign" .. type
       vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
@@ -140,25 +139,25 @@ return {
     })
 
     -- require("lspconfig-bundler").setup()
-    lspconfig["solargraph"].setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      root_dir = lspconfig.util.root_pattern("Gemfile", ".git", "."),
-      settings = {
-        solargraph = {
-          completion = false,
-          autoformat = false,
-          formatting = true,
-          symbols = true,
-          definitions = true,
-          references = true,
-          folding = true,
-          highlights = true,
-          diagnostics = true,
-          rename = true,
-        },
-      },
-    })
+    -- lspconfig["solargraph"].setup({
+    --   capabilities = capabilities,
+    --   on_attach = on_attach,
+    --   root_dir = lspconfig.util.root_pattern("Gemfile", ".git", "."),
+    --   settings = {
+    --     solargraph = {
+    --       completion = false,
+    --       autoformat = false,
+    --       formatting = true,
+    --       symbols = true,
+    --       definitions = true,
+    --       references = true,
+    --       folding = true,
+    --       highlights = true,
+    --       diagnostics = true,
+    --       rename = true,
+    --     },
+    --   },
+    -- })
 
     -- lspconfig["solargraph"].setup({
     --   capabilities = capabilities,
