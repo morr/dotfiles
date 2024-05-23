@@ -24,9 +24,15 @@ plugins=(asdf ruby bundler capistrano gem macos npm rbenv ssh-agent rake brew \
 HISTSIZE=10000000
 HISTFILESIZE=10000000
 SAVEHIST=10000000
-setopt appendhistory
+setopt APPEND_HISTORY
 setopt INC_APPEND_HISTORY
 setopt SHARE_HISTORY
+setopt HIST_IGNORE_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt EXTENDED_HISTORY
+setopt HIST_SAVE_NO_DUPS
+
 TERM="xterm-256color"
 
 if [[ $(uname -m) == 'arm64' ]]; then
