@@ -432,7 +432,7 @@ function iterm2_nvim() {
     nvim "$@"
 
     # Revert to the default profile after exiting nvim
-    echo -e "\033]50;SetProfile=Default\a"
+    # echo -e "\033]50;SetProfile=Default\a"
 }
 
 alias nvim='iterm2_nvim'
