@@ -304,11 +304,11 @@ my_find_vim() {
 # shikimori aliases
 #-------------------------------------------------------------------------------
 shiki_exec() {
-  ssh devops@shiki_web "source /home/devops/.zshrc && cd /home/apps/shikimori/production/current && RAILS_ENV=production bundle exec rails runner \"$*\""
+  ssh devops@shiki "source /home/devops/.zshrc && cd /home/apps/shikimori/production/current && RAILS_ENV=production bundle exec rails runner \"$*\""
 }
 
 shiki_exec_ap() {
-  ssh devops@shiki_web "source /home/devops/.zshrc && cd /home/apps/shikimori/production/current && RAILS_ENV=production bundle exec rails runner \"ap($*)\""
+  ssh devops@shiki "source /home/devops/.zshrc && cd /home/apps/shikimori/production/current && RAILS_ENV=production bundle exec rails runner \"ap($*)\""
 }
 
 #-------------------------------------------------------------------------------
@@ -432,7 +432,7 @@ function iterm2_nvim() {
     nvim "$@"
 
     # Revert to the default profile after exiting nvim
-    # echo -e "\033]50;SetProfile=Default\a"
+    echo -e "\033]50;SetProfile=Default\a"
 }
 
 alias nvim='iterm2_nvim'
