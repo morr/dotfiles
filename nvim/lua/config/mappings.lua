@@ -72,9 +72,13 @@ local original_paste = vim.paste
 -- The third parameter false ensures we are not advancing the cursor after the paste.
 -- The fourth parameter true sets the paste as a normal command, which, in normal mode, means it follows the normal mode cursor behavior (i.e., paste after the cursor).
 vim.paste = function(lines, phase)
-  P(phase)
   -- Check if we are in normal mode (`n`), and phase is the first phase of pasting (`1`)
   if vim.fn.mode() == "n" and (phase == 1 or phase == -1) then
+    -- If the content has more than one line, paste at the beginning of the current line
+    if #lines > 1 then
+      vim.api.nvim_command("normal! 0")
+    end
+
     -- Use `p` for normal mode to paste after the cursor
     vim.api.nvim_put(lines, "c", false, true)
   else
@@ -86,8 +90,7 @@ end
 -- prevent yanking into register empty line
 local function delete_special()
   local line_data = vim.api.nvim_win_get_cursor(0) -- returns {row, col}
-  local current_line =
-    vim.api.nvim_buf_get_lines(0, line_data[1] - 1, line_data[1], false)
+  local current_line = vim.api.nvim_buf_get_lines(0, line_data[1] - 1, line_data[1], false)
   if current_line[1] == "" then
     return '"_dd'
   else
