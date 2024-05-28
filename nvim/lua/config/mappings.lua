@@ -78,7 +78,6 @@ vim.paste = function(lines, phase)
     if #lines > 1 then
       vim.api.nvim_command("normal! 0")
     end
-
     -- Use `p` for normal mode to paste after the cursor
     vim.api.nvim_put(lines, "c", false, true)
   else
@@ -135,7 +134,16 @@ end, { desc = "Save file" })
 -- close buffer
 map("n", "<leader>w", ":bd!<cr>")
 map("n", "<leader>q", ":tabclose<cr>")
-map("n", "<m-w>", ":bd!<cr>")
+-- map("n", "<m-w>", ":bd!<cr>")
+map("n", "<m-w>", function()
+  local bufs = vim.fn.getbufinfo({ buflisted = 1 })
+
+  if #bufs == 1 and bufs[1].name == "" then
+    vim.cmd("qa!")
+  else
+    vim.cmd("bd!")
+  end
+end)
 
 map("n", ",v", ":e ~/.config/nvim/init.lua<CR>", { desc = "Open nvim config" })
 map("n", ",t", [[:%s/\s\+$//e<cr>]], { desc = "Remove trailing whitespaces" })
