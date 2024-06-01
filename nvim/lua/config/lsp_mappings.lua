@@ -44,7 +44,6 @@ end
 
 ---@diagnostic disable-next-line: lowercase-global
 config_lsp_mappings = function(bufnr)
-  vim.notify("config_lsp_mappings")
   local opts = { noremap = true, silent = true, buffer = bufnr }
 
   if vim.fn.has("nvim-0.10") then
@@ -67,7 +66,12 @@ config_lsp_mappings = function(bufnr)
   }, bufnr)
   require("lsp_lines").setup()
 
-  vim.keymap.set("n", "<Leader>ll", toggle_lsp_lines, { desc = "Toggle lsp_lines" })
+  vim.keymap.set(
+    "n",
+    "<Leader>ll",
+    toggle_lsp_lines,
+    { desc = "Toggle lsp_lines" }
+  )
 
   opts.desc = "Show LSP diagnostic"
   vim.keymap.set("n", "<space>", show_lsp_diagnostics, opts) -- show definition, references
@@ -82,10 +86,20 @@ config_lsp_mappings = function(bufnr)
   vim.keymap.set("n", "<leader>ld", "<cmd>Telescope lsp_definitions<CR>", opts) -- show lsp definitions
 
   opts.desc = "Show LSP implementations"
-  vim.keymap.set("n", "<leader>li", "<cmd>Telescope lsp_implementations<CR>", opts) -- show lsp implementations
+  vim.keymap.set(
+    "n",
+    "<leader>li",
+    "<cmd>Telescope lsp_implementations<CR>",
+    opts
+  ) -- show lsp implementations
 
   opts.desc = "Show LSP type definitions"
-  vim.keymap.set("n", "<leader>lt", "<cmd>Telescope lsp_ype_definitions<CR>", opts) -- show lsp type definitions
+  vim.keymap.set(
+    "n",
+    "<leader>lt",
+    "<cmd>Telescope lsp_ype_definitions<CR>",
+    opts
+  ) -- show lsp type definitions
 
   opts.desc = "See available code actions"
   vim.keymap.set({ "n", "v" }, "<leader>la", vim.lsp.buf.code_action, opts)

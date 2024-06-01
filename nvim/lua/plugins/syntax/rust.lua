@@ -5,8 +5,6 @@ return {
     ft = { "rust" },
     dependencies = { "mfussenegger/nvim-dap" },
     config = function()
-      vim.notify("rustaceanvim config")
-
       -- neotest intergration
       require("neotest").setup({
         adapters = {
@@ -22,7 +20,6 @@ return {
         server = {
           ---@diagnostic disable-next-line: unused-local
           on_attach = function(client, bufnr)
-            vim.notify("rustaceanvim on_attach")
             config_lsp_mappings(bufnr)
 
             local opts = { noremap = true, silent = true, buffer = bufnr }

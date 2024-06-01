@@ -147,7 +147,3 @@ end)
 
 map("n", ",v", ":e ~/.config/nvim/init.lua<CR>", { desc = "Open nvim config" })
 map("n", ",t", [[:%s/\s\+$//e<cr>]], { desc = "Remove trailing whitespaces" })
-
--- map("n", "<m-F>", function()
---   vim.notify("<m-F>")
--- end)
