@@ -33,12 +33,19 @@ local function show_lsp_diagnostics()
 end
 
 local toggle_lsp_lines = function()
-  local new_virtual_text = not vim.diagnostic.config().virtual_text
+  local new_value = not vim.diagnostic.config().virtual_text
 
   vim.diagnostic.config({
-    virtual_text = new_virtual_text,
-    update_in_insert = false,
-    virtual_lines = not new_virtual_text,
+    virtual_text = new_value,
+    virtual_lines = not new_value,
+  })
+end
+
+local toggle_update_in_insert = function()
+  local new_value = not vim.diagnostic.config().update_in_insert
+
+  vim.diagnostic.config({
+    update_in_insert = new_value,
   })
 end
 
@@ -52,11 +59,41 @@ config_lsp_mappings = function(bufnr)
     vim.notify("neovim >=0.10 is required for inlay_hint feature")
   end
 
-  vim.diagnostic.config({
+  local signs = {
+    { name = "DiagnosticSignError", text = "" },
+    { name = "DiagnosticSignWarn", text = "" },
+    { name = "DiagnosticSignHint", text = "" },
+    { name = "DiagnosticSignInfo", text = "" },
+  }
+
+  for _, sign in ipairs(signs) do
+    vim.fn.sign_define(sign.name, { texthl = sign.name, text = sign.text, numhl = "" })
+  end
+
+  local config = {
     virtual_text = true,
-    update_in_insert = false,
-    virtual_lines = false,
-  })
+    signs = {
+      active = signs,
+    },
+    update_in_insert = true,
+    underline = true,
+    float = {
+      focusable = false,
+      style = "minimal",
+      border = "rounded",
+      source = "always",
+      header = "",
+      prefix = "",
+    },
+  }
+
+  vim.diagnostic.config(config)
+
+  -- vim.diagnostic.config({
+  --   virtual_text = true,
+  --   update_in_insert = false,
+  --   virtual_lines = false,
+  -- })
 
   require("lsp_signature").on_attach({
     bind = true, -- This is mandatory, otherwise border config won't get registered.
@@ -67,6 +104,7 @@ config_lsp_mappings = function(bufnr)
   require("lsp_lines").setup()
 
   vim.keymap.set("n", "<Leader>ll", toggle_lsp_lines, { desc = "Toggle lsp_lines" })
+  vim.keymap.set("n", "<Leader>lu", toggle_update_in_insert, { desc = "Toggle diagnostics update_in_insert" })
 
   opts.desc = "Show LSP diagnostic"
   vim.keymap.set("n", "<space>", show_lsp_diagnostics, opts) -- show definition, references
