@@ -122,7 +122,7 @@ config_lsp_mappings = function(bufnr)
   vim.keymap.set("n", "<leader>li", "<cmd>Telescope lsp_implementations<CR>", opts) -- show lsp implementations
 
   opts.desc = "Show LSP type definitions"
-  vim.keymap.set("n", "<leader>lt", "<cmd>Telescope lsp_ype_definitions<CR>", opts) -- show lsp type definitions
+  vim.keymap.set("n", "<leader>lt", "<cmd>Telescope lsp_type_definitions<CR>", opts) -- show lsp type definitions
 
   opts.desc = "See available code actions"
   vim.keymap.set({ "n", "v" }, "<leader>la", vim.lsp.buf.code_action, opts)
