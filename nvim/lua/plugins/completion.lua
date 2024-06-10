@@ -19,12 +19,7 @@ return {
       local has_words_before = function()
         unpack = unpack or table.unpack
         local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-        return col ~= 0
-          and vim.api
-              .nvim_buf_get_lines(0, line - 1, line, true)[1]
-              :sub(col, col)
-              :match("%s")
-            == nil
+        return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
       end
 
       cmp.setup({
@@ -60,10 +55,13 @@ return {
           ["<C-f>"] = cmp.mapping.scroll_docs(4),
           -- ["<C-Space>"] = cmp.mapping.complete(),
           ["<C-e>"] = cmp.mapping.close(),
-          ["<CR>"] = cmp.mapping.confirm({
-            behavior = cmp.ConfirmBehavior.Replace,
-            select = true,
-          }),
+          ["<CR>"] = cmp.mapping(function(fallback)
+            if cmp.visible() and cmp.get_selected_entry() then
+              cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false })
+            else
+              fallback()
+            end
+          end, { "i", "s" }),
           -- <tab> traverses through autocompletion suggesions but does not
           -- apply them. only when toy select the only available option,
           -- <tab> applies autocompletion
@@ -130,8 +128,7 @@ return {
           if vim.api.nvim_get_mode().mode == "c" then
             return true
           else
-            return not context.in_treesitter_capture("comment")
-              and not context.in_syntax_group("Comment")
+            return not context.in_treesitter_capture("comment") and not context.in_syntax_group("Comment")
           end
         end,
         formatting = {
@@ -157,10 +154,7 @@ return {
 
       cmp.setup.cmdline(":", {
         mapping = cmp.mapping.preset.cmdline(),
-        sources = cmp.config.sources(
-          { { name = "path" } },
-          { { name = "cmdline" } }
-        ),
+        sources = cmp.config.sources({ { name = "path" } }, { { name = "cmdline" } }),
       })
     end,
   },
