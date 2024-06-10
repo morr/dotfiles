@@ -42,7 +42,7 @@ Fix the problems of the script
 ]]
 
 -- Define ignored directories and file types
-local ignored_dirs = { ".git", "tmp", "node_modules", "assets" }
+local ignored_dirs = { ".git", "tmp", "node_modules", "assets", ".cache", ".vscode" }
 local ignored_files = {
   "Berksfile.lock",
   "Gemfile.lock",
@@ -52,6 +52,8 @@ local ignored_files = {
   ".eslintrc.yml",
   ".gitignore",
   ".rubocop.yml",
+  "package-lock.json",
+  "pnpm-lock.yaml",
 }
 
 -- Helper to determine if the file should be ignored based on the directory or extension
@@ -94,6 +96,8 @@ local function prepare_syntax_type(extension)
     scss = "scss",
     toml = "toml",
     rs = "rust",
+    py = "python",
+    ts = "typescript",
   }
   return known_types[extension] or extension
 end
