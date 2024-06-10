@@ -72,6 +72,7 @@ config_lsp_mappings = function(bufnr)
 
   local config = {
     virtual_text = true,
+    virtual_lines = false,
     signs = {
       active = signs,
     },
