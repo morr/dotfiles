@@ -83,10 +83,16 @@ vim.paste = function(lines, phase)
     vim.api.nvim_put(lines, "c", false, true)
   elseif mode == "v" or mode == "V" then
     -- Visual mode paste logic
-    -- vim.api.nvim_command("normal! gv")
-    -- vim.api.nvim_put(lines, "l", false, true)
-    vim.api.nvim_command("normal! 0")
-    original_paste(lines, phase)
+    -- For visual line-wise mode, move cursor to the start of the line
+    local is_linewise = vim.fn.visualmode() == "V"
+    if is_linewise then
+      vim.api.nvim_command("normal! 0")
+    end
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
+    vim.api.nvim_put(lines, "c", false, true)
+
+    -- vim.api.nvim_command("normal! 0")
+    -- original_paste(lines, phase)
   else
     -- Call original paste function for other modes or subsequent phases
     original_paste(lines, phase)
