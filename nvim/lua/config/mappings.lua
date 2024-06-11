@@ -88,11 +88,11 @@ vim.paste = function(lines, phase)
     if is_linewise then
       vim.api.nvim_command("normal! 0")
     end
-    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
-    vim.api.nvim_put(lines, "c", false, true)
+    -- vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
+    -- vim.api.nvim_put(lines, "c", false, true)
 
     -- vim.api.nvim_command("normal! 0")
-    -- original_paste(lines, phase)
+    original_paste(lines, phase)
   else
     -- Call original paste function for other modes or subsequent phases
     original_paste(lines, phase)
