@@ -64,9 +64,9 @@ vim.opt.softtabstop = 2
 
 -- set terminal title to the name of current folder
 local set_title = function()
-  vim.opt.title = true
   -- vim.opt.titlestring = vim.fn.getcwd()
   vim.opt.titlestring = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+  vim.opt.title = true
 end
 
 vim.api.nvim_create_autocmd("DirChanged", {
@@ -75,4 +75,4 @@ vim.api.nvim_create_autocmd("DirChanged", {
   callback = set_title,
 })
 
-set_title()
+vim.defer_fn(set_title, 1000)
