@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source ~/.bash_profile
+
 # Ensure the API key is set
 if [ -z "$NEWRELIC_API_KEY" ]; then
     echo "NEWRELIC_API_KEY is not set"
