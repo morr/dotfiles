@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 files = %w[
-  .bash_profile
   .gemrc
   .gitconfig
   .pryrc
