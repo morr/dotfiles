@@ -20,36 +20,17 @@ return {
     },
     init = function()
       local builtin = require("telescope.builtin")
-      vim.keymap.set(
-        "n",
-        "<leader>t",
-        builtin.find_files,
-        { desc = "Telescope files" }
-      )
-      vim.keymap.set(
-        "n",
-        "<leader>\\",
-        builtin.live_grep,
-        { desc = "Telescope live grep" }
-      )
+      vim.keymap.set("n", "<leader>t", builtin.find_files, { desc = "Telescope files" })
+      vim.keymap.set("n", "<leader>\\", builtin.live_grep, { desc = "Telescope live grep" })
       vim.keymap.set(
         "n",
         "<leader>|",
         require("telescope").extensions.live_grep_args.live_grep_args,
         { desc = "Telescope live grep args" }
       )
-      vim.keymap.set(
-        "n",
-        "<leader>b",
-        builtin.buffers,
-        { desc = "Telescope buffers" }
-      )
-      vim.keymap.set(
-        "n",
-        "<leader>q",
-        builtin.quickfix,
-        { desc = "Telescope quickfix" }
-      )
+      vim.keymap.set("n", "<leader>b", builtin.buffers, { desc = "Telescope buffers" })
+      vim.keymap.set("n", "<leader>q", builtin.quickfix, { desc = "Telescope quickfix" })
+      vim.keymap.set("n", "<leader>D", builtin.quickfix, { desc = "Telescope diagnostics" })
       -- vim.keymap.set("n", "<leader>fh", builtin.help_tags, {})
 
       local actions = require("telescope.actions")
@@ -76,8 +57,7 @@ return {
             mime_hook = function(filepath, bufnr, opts)
               local is_image = function(image_filepath)
                 local image_extensions = { "png", "jpg", "mp4", "webm", "pdf" } -- Supported image formats
-                local split_path =
-                  vim.split(image_filepath:lower(), ".", { plain = true })
+                local split_path = vim.split(image_filepath:lower(), ".", { plain = true })
                 local extension = split_path[#split_path]
                 return vim.tbl_contains(image_extensions, extension)
               end
