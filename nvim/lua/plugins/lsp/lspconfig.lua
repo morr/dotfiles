@@ -235,6 +235,11 @@ return {
           end, opts)
         end,
       },
+      tools = {
+        float_win_config = {
+          border = "rounded",
+        },
+      },
     }
 
     -- lspconfig["rust_analyzer"].setup({

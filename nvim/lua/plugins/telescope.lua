@@ -30,7 +30,7 @@ return {
       )
       vim.keymap.set("n", "<leader>b", builtin.buffers, { desc = "Telescope buffers" })
       vim.keymap.set("n", "<leader>q", builtin.quickfix, { desc = "Telescope quickfix" })
-      vim.keymap.set("n", "<leader>D", builtin.quickfix, { desc = "Telescope diagnostics" })
+      vim.keymap.set("n", "<leader>D", builtin.diagnostics, { desc = "Telescope diagnostics" })
       -- vim.keymap.set("n", "<leader>fh", builtin.help_tags, {})
 
       local actions = require("telescope.actions")
