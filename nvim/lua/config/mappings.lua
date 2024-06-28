@@ -74,6 +74,8 @@ local original_paste = vim.paste
 vim.paste = function(lines, phase)
   local mode = vim.fn.mode()
   -- Check if we are in normal mode (`n`), and phase is the first phase of pasting (`1`)
+  vim.notify("Paste mode: " .. mode .. ", lines: " .. vim.inspect(lines) .. ", phase: " .. phase)
+
   if mode == "n" and (phase == 1 or phase == -1) then
     -- If the content has more than one line, paste at the beginning of the current line
     if #lines > 1 then
@@ -82,19 +84,18 @@ vim.paste = function(lines, phase)
     -- Use `p` for normal mode to paste after the cursor
     vim.api.nvim_put(lines, "c", false, true)
   elseif mode == "v" or mode == "V" then
-    -- Visual mode paste logic
-    -- For visual line-wise mode, move cursor to the start of the line
-    local is_linewise = vim.fn.visualmode() == "V"
-    if is_linewise then
+    -- add newline if content has no \n
+    if mode == "V" then
+      if #lines == 1 and not lines[1]:find("\n") then
+        table.insert(lines, "")
+      end
+
+      -- For visual line-wise mode, move cursor to the start of the line
       vim.api.nvim_command("normal! 0")
     end
-    -- vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
-    -- vim.api.nvim_put(lines, "c", false, true)
 
-    -- vim.api.nvim_command("normal! 0")
     original_paste(lines, phase)
   else
-    -- Call original paste function for other modes or subsequent phases
     original_paste(lines, phase)
   end
 end
