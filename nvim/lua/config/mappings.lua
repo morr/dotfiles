@@ -86,9 +86,9 @@ vim.paste = function(lines, phase)
   elseif mode == "v" or mode == "V" then
     -- add newline if content has no \n
     if mode == "V" then
-      -- if #lines == 1 and not lines[1]:find("\n") then
-      table.insert(lines, "")
-      -- end
+      if phase == -1 and ((#lines == 1 and not lines[1]:find("\n")) or #lines > 1) then
+        table.insert(lines, "")
+      end
 
       -- For visual line-wise mode, move cursor to the start of the line
       vim.api.nvim_command("normal! 0")
