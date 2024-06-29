@@ -420,14 +420,16 @@ fi
 # neovim with its profile
 #-------------------------------------------------------------------------------
 function iterm2_nvim() {
-    # Change to the nvim profile
-    echo -e "\033]50;SetProfile=nvim\a"
-
-    # Execute the original Neovim command with all passed parameters
-    nvim "$@"
-
-    # Revert to the default profile after exiting nvim
-    echo -e "\033]50;SetProfile=Default\a"
+  # # Change to the nvim profile
+  # echo -e "\033]50;SetProfile=nvim\a"
+  #
+  # # Execute the original Neovim command with all passed parameters
+  # nvim "$@"
+  #
+  # # Revert to the default profile after exiting nvim
+  # echo -e "\033]50;SetProfile=Default\a"
+  # Activate the virtual environment
+  ~/dotfiles/nvim_wrapper.sh "$@"
 }
 
 alias nvim='iterm2_nvim'
