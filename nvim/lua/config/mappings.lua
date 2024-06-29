@@ -74,7 +74,8 @@ local original_paste = vim.paste
 vim.paste = function(lines, phase)
   local mode = vim.fn.mode()
   -- Check if we are in normal mode (`n`), and phase is the first phase of pasting (`1`)
-  vim.notify("Paste mode: " .. mode .. ", lines: " .. vim.inspect(lines) .. ", phase: " .. phase)
+  -- vim.notify("Paste mode: " .. mode .. ", lines: " .. vim.inspect(lines) .. ", phase: " .. phase)
+  -- vim.notify("Paste mode: " .. mode .. ", phase: " .. phase)
 
   if mode == "n" and (phase == 1 or phase == -1) then
     -- If the content has more than one line, paste at the beginning of the current line
