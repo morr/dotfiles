@@ -4,13 +4,9 @@ return {
   {
     "tpope/vim-rails",
     init = function()
-      require("which-key").register({
-        ["<leader>"] = {
-          r = {
-            name = "Rails",
-          },
-        },
-      })
+      -- require("which-key").register({
+      --   { "<leader>r", group = "Rails" },
+      -- })
       -- vim.keymap.set("n", "<leader>r", nil, { desc = "rspec" })
       vim.keymap.set("n", "gs", "<cmd>AV<cr>", { desc = "RSpec split view" })
       vim.keymap.set("n", "gS", "<cmd>A<cr>", { desc = "RSpec current buffer" })

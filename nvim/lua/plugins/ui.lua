@@ -288,12 +288,7 @@ return {
         -- end,
 
         diagnostics = "nvim_lsp",
-        diagnostics_indicator = function(
-          count,
-          level,
-          _diagnostics_dict,
-          context
-        )
+        diagnostics_indicator = function(count, level, _diagnostics_dict, context)
           -- vim.notify(vim.inspect(diagnostics_dict))
           if context.buffer:current() then
             local icon = level:match("error") and " " or " "
@@ -322,6 +317,9 @@ return {
   },
   {
     "folke/which-key.nvim",
+    dependencies = {
+      "echasnovski/mini.icons",
+    },
     event = "VeryLazy",
     init = function()
       vim.o.timeout = true
