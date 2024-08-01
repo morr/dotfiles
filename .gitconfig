@@ -6,20 +6,15 @@
 [merge]
   summary = true
   verbosity = 1
-  tool = gvimdiff ;mvimdiff
+  tool = nvimdiff
   conflictstyle = diff3
   prompt = false
   keepBackup = false
 
-[mergetool "gvimdiff"]
-  ; cmd = "mvim -f --nomru -c 'Gdiff' $MERGED" # use fugitive.vim for 3-way merge
+[mergetool "nvimdiff"]
+  cmd = "nvim -f -c 'Gdiff' $MERGED" # use fugitive.vim for 3-way merge
   prompt = false
   keepBackup = false
-
-;[mergetool "mvimdiff"]
-  ;cmd = "mvim -f --nomru -c 'Gdiff' $MERGED" # use fugitive.vim for 3-way merge
-  ;prompt = false
-  ;keepBackup = false
 
 [alias]
   d = difftool
@@ -33,11 +28,11 @@
   prompt = false
 
 [difftool "default-difftool"]
-  cmd = mvim -d -f --nomru $LOCAL $REMOTE
+  cmd = nvim -d -f $LOCAL $REMOTE
 
 [core]
   autocrlf = input
-  editor = mvim -f --nomru
+  editor = nvim -f
 
 [push]
   default = current
@@ -52,4 +47,4 @@
   required = true
 
 [commit]
-	gpgsign = true
+   gpgsign = true
