@@ -161,7 +161,7 @@ backup_shikimori_images_v2() {
   local shiki_path_2=/home/apps/shikimori/production/shared/public/system
   local shiki_path_3=/mnt/store/system
 
-  unalias ssh 
+  # unalias ssh 
 
   for shiki_path in $shiki_path_1
   do
@@ -179,7 +179,8 @@ backup_shikimori_images_v2() {
       for subdir in $(ssh shiki ls $shiki_path/$dir)
       do
         echo "processing $dir/$subdir ($shiki_path/$dir/$subdir) ..."
-        rsync -urv --delete --exclude "*-*" -e ssh shiki:$shiki_path/$dir/$subdir $local_path/uploads/$dir
+        rsync -urv --exclude "*-*" -e ssh shiki:$shiki_path/$dir/$subdir $local_path/uploads/$dir
+        # rsync -urv --delete --exclude "*-*" -e ssh shiki:$shiki_path/$dir/$subdir $local_path/uploads/$dir
       done
     done
   done
@@ -197,7 +198,8 @@ backup_shikimori_images_v2() {
       fi
 
       echo "processing $dir/$subdir ($shiki_path/$dir/$subdir) ..."
-      rsync -urv --delete --include "$dir/" --include "$dir/$subdir/***" --exclude "*" -e ssh shiki:$shiki_path/$dir $local_path/system/
+      rsync -urv --include "$dir/" --include "$dir/$subdir/***" --exclude "*" -e ssh shiki:$shiki_path/$dir $local_path/system/
+      # rsync -urv --delete --include "$dir/" --include "$dir/$subdir/***" --exclude "*" -e ssh shiki:$shiki_path/$dir $local_path/system/
     done
   done
 }
