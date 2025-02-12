@@ -21,7 +21,7 @@ set langmap=ё`,йq,цw,уe,кr,еt,нy,гu,шi,щo,зp,фa,ыs,вd,аf,пg,рh,
 
 -- Appearance
 vim.opt.cursorline = true -- Highlight current line
-vim.opt.cursorlineopt = "number"
+vim.opt.cursorlineopt = "both"
 vim.opt.linebreak = true -- Wrap long lines at 'breakat' (if 'wrap' is set)
 vim.opt.number = true -- Show line numbers
 vim.opt.relativenumber = true
@@ -64,15 +64,15 @@ vim.opt.softtabstop = 2
 
 -- set terminal title to the name of current folder
 local set_title = function()
-  -- vim.opt.titlestring = vim.fn.getcwd()
-  vim.opt.titlestring = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
-  vim.opt.title = true
+	-- vim.opt.titlestring = vim.fn.getcwd()
+	vim.opt.titlestring = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+	vim.opt.title = true
 end
 
 vim.api.nvim_create_autocmd("DirChanged", {
-  -- buffer = bufnr,
-  -- command = "let &titlestring=v:event['cwd']",
-  callback = set_title,
+	-- buffer = bufnr,
+	-- command = "let &titlestring=v:event['cwd']",
+	callback = set_title,
 })
 
 vim.defer_fn(set_title, 1000)
