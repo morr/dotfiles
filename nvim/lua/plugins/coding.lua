@@ -18,12 +18,7 @@ return {
     config = function()
       vim.g.neoformat_try_node_exe = 1
 
-      vim.keymap.set(
-        "n",
-        ",f",
-        "<cmd>Neoformat<cr>",
-        { noremap = true, silent = true, desc = "Neoformat" }
-      )
+      vim.keymap.set("n", ",f", "<cmd>Neoformat<cr>", { noremap = true, silent = true, desc = "Neoformat" })
     end,
     -- keys = {
     --   { "<leader>fm", ":Neoformat<CR>" },
@@ -85,4 +80,12 @@ return {
       })
     end,
   },
+  -- {
+  --   "cordx56/rustowl",
+  --   dependencies = { "neovim/nvim-lspconfig" },
+  --   config = function()
+  --     local lspconfig = require("lspconfig")
+  --     lspconfig.rustowlsp.setup({})
+  --   end,
+  -- },
 }
