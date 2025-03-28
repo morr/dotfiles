@@ -4,6 +4,9 @@ local config = wezterm.config_builder()
 config.font = wezterm.font("MonacoLigaturized Nerd Font Mono")
 config.font_size = 14.0
 
+config.initial_cols = 194
+config.initial_rows = 50
+
 -- config.color_scheme = "Catppuccin Frappe"
 config.color_schemes = {
   ["Catppuccin_Frappe_Custom"] = {
@@ -45,7 +48,7 @@ end
 
 local function create_neovim_keybind(key)
   return {
-    key,
+    key = key,
     mods = "CMD",
     action = wezterm.action_callback(function(window, pane)
       if is_neovim_process(pane) then
@@ -59,26 +62,45 @@ local function create_neovim_keybind(key)
 
         window:perform_action({ SendKey = { key = key_to_send, mods = mods } }, pane)
       else
-        window:perform_action({ SendKey = { key, mods = "CMD" } }, pane)
+        window:perform_action({ SendKey = { key = key, mods = "CMD" } }, pane)
       end
     end),
   }
 end
 
-config.keys = {}
-for _, key in ipairs({
-  "a",
-  "A",
-  "c",
-  "f",
-  "r",
-  "s",
-  "t",
-  "w",
-  "x",
-  "\\",
-}) do
-  table.insert(config.keys, create_neovim_keybind(key))
-end
+config.keys = {
+  create_neovim_keybind("a"),
+  create_neovim_keybind("A"),
+  create_neovim_keybind("c"),
+  create_neovim_keybind("f"),
+  create_neovim_keybind("r"),
+  create_neovim_keybind("s"),
+  -- create_neovim_keybind("w"),
+  create_neovim_keybind("x"),
+  create_neovim_keybind("\\"),
+  {
+    key = "w",
+    mods = "CMD",
+    action = wezterm.action_callback(function(window, pane)
+      if is_neovim_process(pane) then
+        window:perform_action({ SendKey = { key = "w", mods = "CTRL" } }, pane)
+      else
+        window:perform_action(wezterm.action.CloseCurrentTab({ confirm = false }), pane)
+      end
+    end),
+  },
+  {
+    key = "t",
+    mods = "CMD",
+    action = wezterm.action_callback(function(window, pane)
+      window:perform_action(wezterm.action.SpawnTab("CurrentPaneDomain"), pane)
+    end),
+  },
+  {
+    key = "n",
+    mods = "CMD",
+    action = wezterm.action.SpawnWindow,
+  },
+}
 
 return config
