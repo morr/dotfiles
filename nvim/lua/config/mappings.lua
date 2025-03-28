@@ -51,9 +51,11 @@ map({ "i" }, "<c-c>", "<esc>")
 
 -- Cut
 map({ "v", "n" }, "<M-x>", '"*x')
+map({ "v", "n" }, "<c-x>", '"*x')
 
 -- Copy
 map({ "v", "n" }, "<M-c>", '"*y')
+map({ "v", "n" }, "<c-c>", '"*y')
 
 -- Paste
 -- map({ "v", "n" }, "<M-v>", '"*gP')
@@ -127,6 +129,7 @@ map("n", "<space>", ":nohlsearch<Bar>:echo<cr>")
 
 -- select all
 map("n", "<m-a>", "ggVG")
+map("n", "<c-a>", "ggVG")
 
 -- sort selection
 map("v", "<c-s>", ":sor<cr>")
@@ -140,17 +143,22 @@ map("n", "q<backspace>", "<cmd>call setqflist([])<cr>")
 map("i", "<m-r>", "<space>")
 
 -- save
-map({ "v", "n", "i" }, "<M-s>", function()
+local function save_special()
   vim.api.nvim_command("write")
   -- print("Saved " .. vim.api.nvim_buf_get_name(0))
   -- vim.notify("Saved")
-end, { desc = "Save file" })
+end
+
+map({ "v", "n", "i" }, "<M-s>", save_special, { desc = "Save file" })
+map({ "v", "n", "i" }, "<C-s>", save_special, { desc = "Save file" })
+-- map({ "v", "n", "i" }, "<Char-0xAE>", save_special, { desc = "Save file" }) -- wizterm "s" => Char-0xAE
 
 -- close buffer
 map("n", "<leader>w", ":bd!<cr>")
 map("n", "<leader>q", ":tabclose<cr>")
 -- map("n", "<m-w>", ":bd!<cr>")
-map("n", "<m-w>", function()
+
+local function close_special()
   local bufs = vim.fn.getbufinfo({ buflisted = 1 })
 
   if #bufs == 1 and bufs[1].name == "" then
@@ -158,7 +166,9 @@ map("n", "<m-w>", function()
   else
     vim.cmd("bd!")
   end
-end)
+end
+map("n", "<m-w>", close_special)
+-- map("n", "<Char-0xBA>", close_special) -- wizterm "w" => Char-0xBA
 
 map("n", ",v", ":e ~/.config/nvim/init.lua<CR>", { desc = "Open nvim config" })
 map("n", ",t", [[:%s/\s\+$//e<cr>]], { desc = "Remove trailing whitespaces" })

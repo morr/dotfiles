@@ -50,13 +50,9 @@ end
 
 ---@diagnostic disable-next-line: lowercase-global
 config_lsp_mappings = function(bufnr)
-  local opts = { noremap = true, silent = true, buffer = bufnr }
+  vim.lsp.inlay_hint.enable(true)
 
-  if vim.fn.has("nvim-0.10") then
-    vim.lsp.inlay_hint.enable(true)
-  else
-    vim.notify("neovim >=0.10 is required for inlay_hint feature")
-  end
+  local opts = { noremap = true, silent = true, buffer = bufnr }
 
   local signs = {
     { name = "DiagnosticSignError", text = "" },
@@ -122,7 +118,7 @@ config_lsp_mappings = function(bufnr)
   vim.keymap.set({ "n", "v" }, "<leader>la", vim.lsp.buf.code_action, opts)
   vim.keymap.set({ "n", "v" }, ",r", vim.lsp.buf.code_action, opts)
   vim.keymap.set({ "n", "v" }, "<m-A>", vim.lsp.buf.code_action, opts)
-  -- vim.keymap.set({ "n", "v" }, "<M-r>", vim.lsp.buf.code_action, opts)
+  vim.keymap.set({ "n", "v" }, "<c-s-A>", vim.lsp.buf.code_action, opts)
 
   opts.desc = "Smart rename"
   vim.keymap.set("n", "<leader>lR", vim.lsp.buf.rename, opts)
