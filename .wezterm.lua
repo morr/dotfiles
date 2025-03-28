@@ -70,6 +70,7 @@ local function create_neovim_keybind(key)
   }
 end
 
+-- hotkeys
 config.keys = {
   create_neovim_keybind("a"),
   create_neovim_keybind("A"),
@@ -91,6 +92,7 @@ config.keys = {
       end
     end),
   },
+
   -- cmd + t - open new tab
   {
     key = "t",
@@ -105,13 +107,13 @@ config.keys = {
     mods = "CMD",
     action = wezterm.action.SpawnWindow,
   },
+
   -- option+left - move cursor one word left
   {
     key = "LeftArrow",
     mods = "OPT",
     action = wezterm.action.SendKey({ key = "b", mods = "ALT" }),
   },
-
   -- option+right - move cursor one word right
   {
     key = "RightArrow",
@@ -125,8 +127,7 @@ config.keys = {
     mods = "CMD",
     action = wezterm.action.SendKey({ key = "a", mods = "CTRL" }),
   },
-
-  -- cmd+end - move cursor to the end of line
+  -- cmd+right - move cursor to the end of line
   {
     key = "RightArrow",
     mods = "CMD",
@@ -139,12 +140,24 @@ config.keys = {
     mods = "OPT",
     action = wezterm.action.SendKey({ key = "w", mods = "CTRL" }),
   },
-
   -- cmd+del - delete to the start of line
   {
     key = "Backspace",
     mods = "CMD",
     action = wezterm.action.SendKey({ key = "u", mods = "CTRL" }),
+  },
+
+  -- cmd+shift+left - move tab left
+  {
+    key = "LeftArrow",
+    mods = "SHIFT|CMD",
+    action = wezterm.action.MoveTabRelative(-1),
+  },
+  -- cmd+shift+right - move tab right
+  {
+    key = "RightArrow",
+    mods = "SHIFT|CMD",
+    action = wezterm.action.MoveTabRelative(1),
   },
 }
 
