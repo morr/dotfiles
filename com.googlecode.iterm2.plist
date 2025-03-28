@@ -19,7 +19,7 @@
 	<key>CheckTestRelease</key>
 	<false/>
 	<key>CloseBookmarksWindowAfterOpening</key>
-	<false/>
+	<true/>
 	<key>ClosingHotkeySwitchesSpaces</key>
 	<false/>
 	<key>CommandSelection</key>
