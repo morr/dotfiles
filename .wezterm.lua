@@ -7,6 +7,8 @@ config.font_size = 14.0
 config.initial_cols = 194
 config.initial_rows = 50
 
+config.window_decorations = "RESIZE"
+
 -- config.color_scheme = "Catppuccin Frappe"
 config.color_schemes = {
   ["Catppuccin_Frappe_Custom"] = {
