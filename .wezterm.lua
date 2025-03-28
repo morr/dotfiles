@@ -89,6 +89,7 @@ config.keys = {
       end
     end),
   },
+  -- cmd + t - open new tab
   {
     key = "t",
     mods = "CMD",
@@ -96,10 +97,52 @@ config.keys = {
       window:perform_action(wezterm.action.SpawnTab("CurrentPaneDomain"), pane)
     end),
   },
+  -- cmd + n - open new window
   {
     key = "n",
     mods = "CMD",
     action = wezterm.action.SpawnWindow,
+  },
+  -- option+left - move cursor one word left
+  {
+    key = "LeftArrow",
+    mods = "OPT",
+    action = wezterm.action.SendKey({ key = "b", mods = "ALT" }),
+  },
+
+  -- option+right - move cursor one word right
+  {
+    key = "RightArrow",
+    mods = "OPT",
+    action = wezterm.action.SendKey({ key = "f", mods = "ALT" }),
+  },
+
+  -- cmd+left - move cursor to the start of line
+  {
+    key = "LeftArrow",
+    mods = "CMD",
+    action = wezterm.action.SendKey({ key = "a", mods = "CTRL" }),
+  },
+
+  -- cmd+end - move cursor to the end of line
+  {
+    key = "RightArrow",
+    mods = "CMD",
+    action = wezterm.action.SendKey({ key = "e", mods = "CTRL" }),
+  },
+
+  -- option+del - delete previous word
+  {
+    key = "Backspace",
+    mods = "OPT",
+    action = wezterm.action.SendKey({ key = "w", mods = "CTRL" }),
+  },
+
+  -- cmd+del - delete to the start of line
+  {
+    key = "Backspace",
+    mods = "CMD",
+    action = wezterm.action.SendKey({ key = "u", mods = "CTRL" }),
   },
 }
 
