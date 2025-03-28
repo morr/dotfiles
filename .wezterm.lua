@@ -42,6 +42,40 @@ config.color_schemes = {
 }
 config.color_scheme = "Catppuccin_Frappe_Custom"
 
+-- change colorscheme for ssh
+local function is_ssh_session(pane)
+  local domain_name = pane:get_domain_name()
+  if domain_name and domain_name:match("^SSH:") then
+    return true
+  end
+
+  local process_name = pane:get_foreground_process_name()
+  if process_name and process_name:match("ssh") then
+    return true
+  end
+
+  return false
+end
+wezterm.on("update-status", function(window, pane)
+  local overrides = window:get_config_overrides() or {}
+
+  if is_ssh_session(pane) then
+    if not overrides.colors then
+      overrides.colors = {}
+    end
+
+    local ssh_color = "#803932"
+
+    overrides.colors.background = ssh_color
+    overrides.colors.foreground = "#ffffff"
+  else
+    -- Reset to default colors when not in SSH
+    overrides.colors = nil
+  end
+
+  window:set_config_overrides(overrides)
+end)
+
 -- compatibility with neovim
 local function is_neovim_process(pane)
   local process_name = pane:get_foreground_process_name()
