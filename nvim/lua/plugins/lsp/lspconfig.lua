@@ -203,7 +203,6 @@ return {
           --   opts
           -- )
           vim.keymap.set({ "n", "v" }, "<M-A>", "<cmd>RustLsp codeAction<cr>", opts)
-          vim.keymap.set({ "n", "v" }, "<c-s-a>", "<cmd>RustLsp codeAction<cr>", opts)
 
           vim.keymap.set("n", "J", "<cmd>RustLsp joinLines<cr>", opts)
 

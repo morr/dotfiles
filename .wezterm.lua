@@ -54,11 +54,11 @@ local function create_neovim_keybind(key)
     mods = "CMD",
     action = wezterm.action_callback(function(window, pane)
       if is_neovim_process(pane) then
-        local mods = "CTRL"
+        local mods = "ALT"
         local key_to_send = key
 
         if key_to_send:match("[A-Z]") then
-          mods = "CTRL|SHIFT"
+          mods = "ALT|SHIFT"
           key_to_send = key_to_send:lower()
         end
 
@@ -85,7 +85,7 @@ config.keys = {
     mods = "CMD",
     action = wezterm.action_callback(function(window, pane)
       if is_neovim_process(pane) then
-        window:perform_action({ SendKey = { key = "w", mods = "CTRL" } }, pane)
+        window:perform_action({ SendKey = { key = "w", mods = "ALT" } }, pane)
       else
         window:perform_action(wezterm.action.CloseCurrentTab({ confirm = false }), pane)
       end

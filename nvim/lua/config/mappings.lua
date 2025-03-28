@@ -51,11 +51,9 @@ map({ "i" }, "<c-c>", "<esc>")
 
 -- Cut
 map({ "v", "n" }, "<M-x>", '"*x')
-map({ "v", "n" }, "<c-x>", '"*x')
 
 -- Copy
 map({ "v", "n" }, "<M-c>", '"*y')
-map({ "v", "n" }, "<c-c>", '"*y')
 
 -- Paste
 -- map({ "v", "n" }, "<M-v>", '"*gP')
@@ -129,7 +127,6 @@ map("n", "<space>", ":nohlsearch<Bar>:echo<cr>")
 
 -- select all
 map("n", "<m-a>", "ggVG")
-map("n", "<c-a>", "ggVG")
 
 -- sort selection
 map("v", "<c-s>", ":sor<cr>")
@@ -150,7 +147,6 @@ local function save_special()
 end
 
 map({ "v", "n", "i" }, "<M-s>", save_special, { desc = "Save file" })
-map({ "v", "n", "i" }, "<C-s>", save_special, { desc = "Save file" })
 -- map({ "v", "n", "i" }, "<Char-0xAE>", save_special, { desc = "Save file" }) -- wizterm "s" => Char-0xAE
 
 -- close buffer
@@ -168,7 +164,6 @@ local function close_special()
   end
 end
 map("n", "<m-w>", close_special)
--- map("n", "<Char-0xBA>", close_special) -- wizterm "w" => Char-0xBA
 
 map("n", ",v", ":e ~/.config/nvim/init.lua<CR>", { desc = "Open nvim config" })
 map("n", ",t", [[:%s/\s\+$//e<cr>]], { desc = "Remove trailing whitespaces" })

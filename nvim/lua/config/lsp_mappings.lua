@@ -118,7 +118,6 @@ config_lsp_mappings = function(bufnr)
   vim.keymap.set({ "n", "v" }, "<leader>la", vim.lsp.buf.code_action, opts)
   vim.keymap.set({ "n", "v" }, ",r", vim.lsp.buf.code_action, opts)
   vim.keymap.set({ "n", "v" }, "<m-A>", vim.lsp.buf.code_action, opts)
-  vim.keymap.set({ "n", "v" }, "<c-s-A>", vim.lsp.buf.code_action, opts)
 
   opts.desc = "Smart rename"
   vim.keymap.set("n", "<leader>lR", vim.lsp.buf.rename, opts)
