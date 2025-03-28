@@ -43,14 +43,14 @@ local function is_neovim_process(pane)
   return process_name:match("n?vim") ~= nil
 end
 
-local function create_neovim_keybind(cmd_key, ctrl_key)
+local function create_neovim_keybind(key)
   return {
-    key = cmd_key,
+    key,
     mods = "CMD",
     action = wezterm.action_callback(function(window, pane)
       if is_neovim_process(pane) then
         local mods = "CTRL"
-        local key_to_send = ctrl_key
+        local key_to_send = key
 
         if key_to_send:match("[A-Z]") then
           mods = "CTRL|SHIFT"
@@ -59,7 +59,7 @@ local function create_neovim_keybind(cmd_key, ctrl_key)
 
         window:perform_action({ SendKey = { key = key_to_send, mods = mods } }, pane)
       else
-        window:perform_action({ SendKey = { key = cmd_key, mods = "CMD" } }, pane)
+        window:perform_action({ SendKey = { key, mods = "CMD" } }, pane)
       end
     end),
   }
@@ -78,7 +78,7 @@ for _, key in ipairs({
   "x",
   "\\",
 }) do
-  table.insert(config.keys, create_neovim_keybind(key, key))
+  table.insert(config.keys, create_neovim_keybind(key))
 end
 
 return config
