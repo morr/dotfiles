@@ -231,7 +231,7 @@ return {
           vim.keymap.set({ "n", "i" }, ",cT", "<cmd>TermExec cmd='cargo test'<cr>", opts)
 
           opts.desc = "Neotest: run nearest test"
-          vim.keymap.set({ "n", "i" }, "<m-T>", function()
+          vim.keymap.set({ "n", "i" }, "<leader>lt", function()
             require("neotest").run.run()
           end, opts)
         end,
