@@ -329,7 +329,9 @@ function iterm2_nvim() {
   ~/dotfiles/nvim_wrapper.sh "$@"
 }
 
-alias nvim='iterm2_nvim'
+if [[ -n "$ITERM_SESSION_ID" ]]; then
+  alias nvim='iterm2_nvim'
+fi
 
 #-------------------------------------------------------------------------------
 # PATH for Bundler and NodeJS

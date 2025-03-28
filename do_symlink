@@ -6,6 +6,7 @@ files = %w[
   .pryrc
   .irbrc
   .zshrc
+  .wezterm.lua
   .agignore
   .asdfrc
   .tool-versions
