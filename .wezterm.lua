@@ -193,6 +193,49 @@ config.keys = {
     mods = "SHIFT|CMD",
     action = wezterm.action.MoveTabRelative(1),
   },
+
+  -- cmd + d - split pane vertically
+  {
+    key = "d",
+    mods = "CMD",
+    action = wezterm.action_callback(function(window, pane)
+      if is_neovim_process(pane) then
+        window:perform_action({ SendKey = { key = "d", mods = "ALT" } }, pane)
+      else
+        window:perform_action(
+          wezterm.action.SplitPane({
+            direction = "Right",
+            size = { Percent = 50 },
+          }),
+          pane
+        )
+      end
+    end),
+  },
+  -- cmd + ] - switch to next pane
+  {
+    key = "]",
+    mods = "CMD",
+    action = wezterm.action_callback(function(window, pane)
+      if is_neovim_process(pane) then
+        window:perform_action({ SendKey = { key = "]", mods = "ALT" } }, pane)
+      else
+        window:perform_action(wezterm.action.ActivatePaneDirection("Next"), pane)
+      end
+    end),
+  },
+  -- cmd + [ - switch to previous pane
+  {
+    key = "[",
+    mods = "CMD",
+    action = wezterm.action_callback(function(window, pane)
+      if is_neovim_process(pane) then
+        window:perform_action({ SendKey({ key = "[", mods = "ALT" }) }, pane)
+      else
+        window:perform_action(wezterm.action.ActivatePaneDirection("Prev"), pane)
+      end
+    end),
+  },
 }
 
 return config
