@@ -120,7 +120,7 @@ map("v", ">", ">gv")
 map("n", "<cr>", "o<Esc>")
 
 -- insert newline before current line
-map("n", "<m-\\>", "O<Esc>")
+map("n", "<s-cr>", "O<Esc>")
 
 -- turn off highlighting and clear messages
 map("n", "<space>", ":nohlsearch<Bar>:echo<cr>")
@@ -147,12 +147,10 @@ local function save_special()
 end
 
 map({ "v", "n", "i" }, "<M-s>", save_special, { desc = "Save file" })
--- map({ "v", "n", "i" }, "<Char-0xAE>", save_special, { desc = "Save file" }) -- wizterm "s" => Char-0xAE
 
 -- close buffer
 map("n", "<leader>w", ":bd!<cr>")
 map("n", "<leader>q", ":tabclose<cr>")
--- map("n", "<m-w>", ":bd!<cr>")
 
 local function close_special()
   local bufs = vim.fn.getbufinfo({ buflisted = 1 })
