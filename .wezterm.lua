@@ -110,6 +110,7 @@ config.keys = {
   create_neovim_keybind("A"),
   create_neovim_keybind("c"),
   create_neovim_keybind("f"),
+  create_neovim_keybind("F"),
   create_neovim_keybind("r"),
   create_neovim_keybind("s"),
   -- create_neovim_keybind("w"),
@@ -230,9 +231,22 @@ config.keys = {
     mods = "CMD",
     action = wezterm.action_callback(function(window, pane)
       if is_neovim_process(pane) then
-        window:perform_action({ SendKey({ key = "[", mods = "ALT" }) }, pane)
+        window:perform_action({ SendKey = { key = "[", mods = "ALT" } }, pane)
       else
         window:perform_action(wezterm.action.ActivatePaneDirection("Prev"), pane)
+      end
+    end),
+  },
+
+  -- cmd + k - clear terminal
+  {
+    key = "k",
+    mods = "CMD",
+    action = wezterm.action_callback(function(window, pane)
+      if is_neovim_process(pane) then
+        window:perform_action({ SendKey = { key = "k", mods = "ALT" } }, pane)
+      else
+        window:perform_action(wezterm.action.ClearScrollback("ScrollbackAndViewport"), pane)
       end
     end),
   },
