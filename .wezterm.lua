@@ -112,6 +112,7 @@ config.keys = {
   create_neovim_keybind("f"),
   create_neovim_keybind("F"),
   create_neovim_keybind("r"),
+  create_neovim_keybind("R"),
   create_neovim_keybind("s"),
   -- create_neovim_keybind("w"),
   create_neovim_keybind("x"),
