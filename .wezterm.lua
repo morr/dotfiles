@@ -174,7 +174,7 @@ config.keys = {
   {
     key = "Backspace",
     mods = "OPT",
-    action = wezterm.action.SendKey({ key = "w", mods = "CTRL" }),
+    action = wezterm.action.SendKey({ key = "Backspace", mods = "ALT" }),
   },
   -- cmd+del - delete to the start of line
   {
