@@ -108,15 +108,41 @@ end
 config.keys = {
   create_neovim_keybind("a"),
   create_neovim_keybind("A"),
-  create_neovim_keybind("c"),
   create_neovim_keybind("f"),
   create_neovim_keybind("F"),
   create_neovim_keybind("r"),
   create_neovim_keybind("R"),
   create_neovim_keybind("s"),
-  -- create_neovim_keybind("w"),
   create_neovim_keybind("x"),
   create_neovim_keybind("\\"),
+
+  -- cmd + c - copy to clipboard functionality
+  {
+    key = "c",
+    mods = "CMD",
+    action = wezterm.action_callback(function(window, pane)
+      if is_neovim_process(pane) then
+        window:perform_action({ SendKey = { key = "c", mods = "ALT" } }, pane)
+      else
+        window:perform_action(wezterm.action.CopyTo("Clipboard"), pane)
+      end
+    end),
+  },
+
+  -- cmd + v - paste from clipboard functionality
+  {
+    key = "v",
+    mods = "CMD",
+    action = wezterm.action_callback(function(window, pane)
+      -- if is_neovim_process(pane) then
+      --   window:perform_action({ SendKey = { key = "v", mods = "ALT" } }, pane)
+      -- else
+      window:perform_action(wezterm.action.PasteFrom("Clipboard"), pane)
+      -- end
+    end),
+  },
+
+  -- cmd + w - close window
   {
     key = "w",
     mods = "CMD",
@@ -144,59 +170,59 @@ config.keys = {
     action = wezterm.action.SpawnWindow,
   },
 
-  -- option+left - move cursor one word left
+  -- option + left - move cursor one word left
   {
     key = "LeftArrow",
     mods = "OPT",
     action = wezterm.action.SendKey({ key = "b", mods = "ALT" }),
   },
-  -- option+right - move cursor one word right
+  -- option + right - move cursor one word right
   {
     key = "RightArrow",
     mods = "OPT",
     action = wezterm.action.SendKey({ key = "f", mods = "ALT" }),
   },
 
-  -- cmd+left - move cursor to the start of line
+  -- cmd + left - move cursor to the start of line
   {
     key = "LeftArrow",
     mods = "CMD",
     action = wezterm.action.SendKey({ key = "a", mods = "CTRL" }),
   },
-  -- cmd+right - move cursor to the end of line
+  -- cmd + right - move cursor to the end of line
   {
     key = "RightArrow",
     mods = "CMD",
     action = wezterm.action.SendKey({ key = "e", mods = "CTRL" }),
   },
 
-  -- option+del - delete previous word
+  -- option + del - delete previous word
   {
     key = "Backspace",
     mods = "OPT",
     action = wezterm.action.SendKey({ key = "Backspace", mods = "ALT" }),
   },
-  -- cmd+del - delete to the start of line
+  -- cmd + del - delete to the start of line
   {
     key = "Backspace",
     mods = "CMD",
     action = wezterm.action.SendKey({ key = "u", mods = "CTRL" }),
   },
 
-  -- cmd+shift+left - move tab left
+  -- cmd + shift + left - move tab left
   {
     key = "LeftArrow",
     mods = "SHIFT|CMD",
     action = wezterm.action.MoveTabRelative(-1),
   },
-  -- cmd+shift+right - move tab right
+  -- cmd + shift + right - move tab right
   {
     key = "RightArrow",
     mods = "SHIFT|CMD",
     action = wezterm.action.MoveTabRelative(1),
   },
 
-  -- cmd + d - split pane vertically
+  -- cmd +  d - split pane vertically
   {
     key = "d",
     mods = "CMD",
