@@ -240,6 +240,20 @@ config.keys = {
       end
     end),
   },
+  -- cmd + shift d - split pane vertically
+  {
+    key = "d",
+    mods = "SHIFT|CMD",
+    action = wezterm.action_callback(function(window, pane)
+      window:perform_action(
+        wezterm.action.SplitPane({
+          direction = "Down",
+          size = { Percent = 50 },
+        }),
+        pane
+      )
+    end),
+  },
   -- cmd + ] - switch to next pane
   {
     key = "]",
