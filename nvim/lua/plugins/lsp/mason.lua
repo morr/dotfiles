@@ -1,12 +1,7 @@
 return {
   "williamboman/mason.nvim",
   dependencies = {
-    {
-      "williamboman/mason-lspconfig.nvim",
-      -- using this fork until PR is merged https://github.com/williamboman/mason-lspconfig.nvim/pull/372
-      url = "https://github.com/simeonoff/mason-lspconfig.nvim.git",
-      branch = "somesass_ls",
-    },
+    "mason-org/mason-lspconfig.nvim",
     "WhoIsSethDaniel/mason-tool-installer.nvim",
   },
   config = function()
