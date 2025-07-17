@@ -141,8 +141,8 @@ alias finalize='git rebase --interactive --autosquash master'
 alias update='git add -A && git commit -m "updates"'
 alias bugfix='git add -A && git commit -m "bugfixes"'
 
-alias migrate='rake db:migrate && RAILS_ENV=test rake db:migrate'
-alias rollback='rake db:rollback STEP=1 && RAILS_ENV=test rake db:rollback STEP=1'
+alias migrate='bundle exec rails db:migrate && RAILS_ENV=test bundle exec rails db:migrate'
+alias rollback='bundle exec rails db:rollback STEP=1 && RAILS_ENV=test bundle exec rails db:rollback STEP=1'
 
 alias deploy='git push && cap production deploy'
 
