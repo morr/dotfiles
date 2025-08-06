@@ -50,7 +50,7 @@ end
 
 ---@diagnostic disable-next-line: lowercase-global
 config_lsp_mappings = function(bufnr)
-  vim.lsp.inlay_hint.enable(true)
+  vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
 
   local opts = { noremap = true, silent = true, buffer = bufnr }
 
