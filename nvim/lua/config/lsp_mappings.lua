@@ -50,8 +50,6 @@ end
 
 ---@diagnostic disable-next-line: lowercase-global
 config_lsp_mappings = function(bufnr)
-  vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
-
   local opts = { noremap = true, silent = true, buffer = bufnr }
 
   local signs = {
@@ -149,3 +147,15 @@ config_lsp_mappings = function(bufnr)
     vim.lsp.buf.format({ async = true })
   end, opts)
 end
+
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+    if client and client.name == "rust-analyzer" then
+      -- Small delay to ensure server is fully ready
+      vim.defer_fn(function()
+        vim.lsp.inlay_hint.enable(true, { bufnr = args.buf })
+      end, 100)
+    end
+  end,
+})
