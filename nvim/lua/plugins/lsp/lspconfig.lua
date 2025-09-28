@@ -12,7 +12,6 @@ return {
     "ray-x/lsp_signature.nvim",
   },
   config = function()
-    local lspconfig = require("lspconfig")
     local cmp_nvim_lsp = require("cmp_nvim_lsp")
 
     ---@diagnostic disable-next-line: unused-local
@@ -62,17 +61,17 @@ return {
       vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
     end
 
-    lspconfig["html"].setup({
+    vim.lsp.config("html", {
       capabilities = capabilities,
       on_attach = on_attach,
     })
 
-    lspconfig["cssls"].setup({
+    vim.lsp.config("cssls", {
       capabilities = capabilities,
       on_attach = on_attach,
     })
 
-    lspconfig["lua_ls"].setup({
+    vim.lsp.config("lua_ls", {
       capabilities = capabilities,
       on_attach = function(client, bufnr)
         on_attach(client, bufnr)
@@ -98,7 +97,7 @@ return {
       },
     })
 
-    lspconfig["eslint"].setup({
+    vim.lsp.config("eslint", {
       capabilities = capabilities,
       on_attach = function(client, bufnr)
         on_attach(client, bufnr)
@@ -110,12 +109,12 @@ return {
       end,
     })
 
-    lspconfig["somesass_ls"].setup({
+    vim.lsp.config("somesass_ls", {
       capabilities = capabilities,
       on_attach = on_attach,
     })
 
-    lspconfig["rubocop"].setup({
+    vim.lsp.config("rubocop", {
       capabilities = capabilities,
       on_attach = on_attach,
       -- on_attach = function(client, bufnr)
@@ -133,7 +132,7 @@ return {
     })
 
     -- require("lspconfig-bundler").setup()
-    -- lspconfig["solargraph"].setup({
+    -- vim.lsp.config("solargraph", {
     --   capabilities = capabilities,
     --   on_attach = on_attach,
     --   root_dir = lspconfig.util.root_pattern("Gemfile", ".git", "."),
@@ -153,7 +152,7 @@ return {
     --   },
     -- })
 
-    -- lspconfig["solargraph"].setup({
+    -- vim.lsp.config("solargraph", {
     --   capabilities = capabilities,
     --   on_attach = on_attach,
     --   -- cmd = { os.getenv( "HOME" ) .. "/.rbenv/shims/solargraph", 'stdio' },
@@ -175,7 +174,7 @@ return {
     --   },
     -- })
 
-    lspconfig["wgsl_analyzer"].setup({
+    vim.lsp.config("wgsl_analyzer", {
       capabilities = capabilities,
       on_attach = on_attach,
     })
