@@ -111,14 +111,11 @@ return {
           buffer = bufnr,
           -- command = "EslintFixAll",
           callback = function()
+            local notify = vim.notify
+            ---@diagnostic disable-next-line: duplicate-set-field
+            vim.notify = function() end -- suppress notifications
             vim.lsp.buf.format({ async = false })
-            -- vim.lsp.buf.code_action({
-            --   context = {
-            --     only = { "source.fixAll.eslint" },
-            --     diagnostics = {},
-            --   },
-            --   apply = true,
-            -- })
+            vim.notify = notify -- restore notifications
           end,
         })
       end,
