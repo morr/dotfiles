@@ -107,19 +107,20 @@ return {
       on_attach = function(client, bufnr)
         on_attach(client, bufnr)
         -- autofix all correctable problems on save
-        -- vim.api.nvim_create_autocmd("BufWritePre", {
-        --   buffer = bufnr,
-        --   callback = function()
-        --     -- vim.lsp.buf.format({ async = false })
-        --     -- vim.lsp.buf.code_action({
-        --     --   context = {
-        --     --     only = { "source.fixAll.eslint" },
-        --     --     diagnostics = {},
-        --     --   },
-        --     --   apply = true,
-        --     -- })
-        --   end,
-        -- })
+        vim.api.nvim_create_autocmd("BufWritePre", {
+          buffer = bufnr,
+          -- command = "EslintFixAll",
+          callback = function()
+            vim.lsp.buf.format({ async = false })
+            -- vim.lsp.buf.code_action({
+            --   context = {
+            --     only = { "source.fixAll.eslint" },
+            --     diagnostics = {},
+            --   },
+            --   apply = true,
+            -- })
+          end,
+        })
       end,
     })
 
