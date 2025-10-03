@@ -125,9 +125,9 @@ alias iex='iex -S mix'
 #-------------------------------------------------------------------------------
 # rust aliases
 #-------------------------------------------------------------------------------
-alias cr='cargo run'
+alias cr='RUST_BACKTRACE=1 cargo run'
 alias cb='cargo build'
-alias ct='cargo test'
+alias ct='RUST_BACKTRACE=1 cargo test'
 
 #-------------------------------------------------------------------------------
 # git aliases
