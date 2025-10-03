@@ -108,13 +108,25 @@ end
 config.keys = {
   create_neovim_keybind("a"),
   create_neovim_keybind("A"),
-  create_neovim_keybind("f"),
   create_neovim_keybind("F"),
   create_neovim_keybind("r"),
   create_neovim_keybind("R"),
   create_neovim_keybind("s"),
   create_neovim_keybind("x"),
   create_neovim_keybind("\\"),
+
+  -- cmd + f - search functionality
+  {
+    key = "f",
+    mods = "CMD",
+    action = wezterm.action_callback(function(window, pane)
+      if is_neovim_process(pane) then
+        window:perform_action({ SendKey = { key = "f", mods = "ALT" } }, pane)
+      else
+        window:perform_action(wezterm.action.Search("CurrentSelectionOrEmptyString"), pane)
+      end
+    end),
+  },
 
   -- cmd + c - copy to clipboard functionality
   {
