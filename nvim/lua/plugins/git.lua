@@ -60,7 +60,7 @@ return {
   {
     "FabijanZulj/blame.nvim",
     init = function()
-      vim.keymap.set("n", "<leader>gb", "<cmd>ToggleBlame<CR>", { desc = "Git blame" })
+      vim.keymap.set("n", "<leader>gb", "<cmd>Git blame<CR>", { desc = "Git blame" })
     end,
   },
 }
