@@ -166,7 +166,7 @@ map("n", "<m-w>", close_special)
 map("n", ",v", ":e ~/.config/nvim/init.lua<CR>", { desc = "Open nvim config" })
 local function clean_buffer()
   -- Trailing whitespace
-  vim.cmd([[%s/\s\+$//e]])
+  vim.cmd([[%s/\(\s\|\%u00a0\|\%u202f\|\%u2003\|\%u2002\|\%u2009\)\+$//e]])
 
   -- Line/paragraph separators
   vim.cmd([[%s/\%u2028/ /ge]])
