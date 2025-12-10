@@ -164,4 +164,25 @@ end
 map("n", "<m-w>", close_special)
 
 map("n", ",v", ":e ~/.config/nvim/init.lua<CR>", { desc = "Open nvim config" })
-map("n", ",t", [[:%s/\s\+$//e<cr>:%s/\%u2028/ /g<cr>]], { desc = "Remove trailing whitespaces" })
+local function clean_buffer()
+  -- Trailing whitespace
+  vim.cmd([[%s/\s\+$//e]])
+
+  -- Line/paragraph separators
+  vim.cmd([[%s/\%u2028/ /ge]])
+  vim.cmd([[%s/\%u2029/ /ge]])
+
+  -- Zero-width characters
+  vim.cmd([[%s/\%u200b//ge]]) -- zero-width space
+  vim.cmd([[%s/\%u200c//ge]]) -- zero-width non-joiner
+  vim.cmd([[%s/\%u200d//ge]]) -- zero-width joiner
+  vim.cmd([[%s/\%u2060//ge]]) -- word joiner
+  vim.cmd([[%s/\%ufeff//ge]]) -- BOM / zero-width no-break space
+
+  -- Special spaces → regular space
+  vim.cmd([[%s/\%u00a0/\&nbsp;/ge]]) -- non-breaking space
+  vim.cmd([[%s/\%u202f//ge]]) -- narrow no-break space
+  vim.cmd([[%s/\%u2003/ /ge]]) -- em space
+  vim.cmd([[%s/\%u2002/ /ge]]) -- en space
+end
+map("n", ",t", clean_buffer, { desc = "Remove trailing whitespaces and invisible unicode" })
