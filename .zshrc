@@ -369,6 +369,7 @@ fi
 eval "$(rbenv init -)"
 
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+export THOR_SILENCE_DEPRECATION=1
 
 #-------------------------------------------------------------------------------
 # GPG
