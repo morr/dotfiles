@@ -180,7 +180,7 @@ local function clean_buffer()
   vim.cmd([[%s/\%ufeff//ge]]) -- BOM / zero-width no-break space
 
   -- Special spaces → regular space
-  vim.cmd([[%s/\%u00a0/\&nbsp;/ge]]) -- non-breaking space
+  -- vim.cmd([[%s/\%u00a0/\&nbsp;/ge]]) -- non-breaking space
   vim.cmd([[%s/\%u202f//ge]]) -- narrow no-break space
   vim.cmd([[%s/\%u2003/ /ge]]) -- em space
   vim.cmd([[%s/\%u2002/ /ge]]) -- en space
