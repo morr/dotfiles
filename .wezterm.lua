@@ -1,6 +1,8 @@
 local wezterm = require("wezterm")
 local config = wezterm.config_builder()
 
+config.scrollback_lines = 35000
+
 config.font = wezterm.font("MonacoLigaturized Nerd Font Mono")
 config.font_size = 14.0
 
@@ -115,7 +117,7 @@ config.keys = {
   create_neovim_keybind("x"),
   create_neovim_keybind("\\"),
 
-  -- cmd + f - search functionality
+  -- cmd + f - search functionality with cleared search term
   {
     key = "f",
     mods = "CMD",
@@ -123,7 +125,7 @@ config.keys = {
       if is_neovim_process(pane) then
         window:perform_action({ SendKey = { key = "f", mods = "ALT" } }, pane)
       else
-        window:perform_action(wezterm.action.Search("CurrentSelectionOrEmptyString"), pane)
+        window:perform_action(wezterm.action.Search({ CaseInSensitiveString = "" }), pane)
       end
     end),
   },
@@ -300,6 +302,20 @@ config.keys = {
         window:perform_action({ SendKey = { key = "k", mods = "ALT" } }, pane)
       else
         window:perform_action(wezterm.action.ClearScrollback("ScrollbackAndViewport"), pane)
+      end
+    end),
+  },
+
+  -- cmd + p - copy all
+  {
+    key = "p",
+    mods = "CMD",
+    action = wezterm.action_callback(function(window, pane)
+      if is_neovim_process(pane) then
+        window:perform_action({ SendKey = { key = "c", mods = "ALT" } }, pane)
+      else
+        local selected = pane:get_lines_as_text(pane:get_dimensions().scrollback_rows)
+        window:copy_to_clipboard(selected, "Clipboard")
       end
     end),
   },
