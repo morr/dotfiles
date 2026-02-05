@@ -1,3 +1,4 @@
 .DS_Store
 nvim/telescope_history.sqlite3
 iterm2_venv
+.proxy_url
