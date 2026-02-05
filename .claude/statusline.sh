@@ -57,7 +57,7 @@ if [ -f "$CACHE_FILE" ]; then
 
     RESET_STR=""
     if [ -n "$FIVE_HOUR_RESET" ]; then
-      RESET_EPOCH=$(date -j -f "%Y-%m-%dT%H:%M:%S" "$(echo "$FIVE_HOUR_RESET" | sed 's/\.[0-9]*+.*//; s/\.[0-9]*-.*//')" +%s 2>/dev/null)
+      RESET_EPOCH=$(date -u -j -f "%Y-%m-%dT%H:%M:%S" "$(echo "$FIVE_HOUR_RESET" | sed 's/\.[0-9]*+.*//; s/\.[0-9]*-.*//')" +%s 2>/dev/null)
       if [ -n "$RESET_EPOCH" ]; then
         NOW_EPOCH=$(date +%s)
         DIFF=$((RESET_EPOCH - NOW_EPOCH))
