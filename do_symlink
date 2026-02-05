@@ -11,6 +11,8 @@ files = %w[
   .asdfrc
   .tool-versions
   .ssh/config
+  .claude/settings.json
+  .claude/statusline.sh
 ]
 
 config_dirs = %w[
