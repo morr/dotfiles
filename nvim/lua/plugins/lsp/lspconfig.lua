@@ -142,6 +142,7 @@ return {
       --   })
       -- end,
     })
+    vim.lsp.enable("rubocop")
 
     -- require("lspconfig-bundler").setup()
     -- vim.lsp.config("solargraph", {
