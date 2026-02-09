@@ -63,41 +63,69 @@ map({ "v", "n" }, "<M-c>", '"*y')
 -- map("i", "<c-v>", '<c-r>*')  -- Paste from clipboard in insert mode
 
 -- Custom paste implementation that pastes text BEFORE cursor in normal mode
+-- For large pastes, Neovim streams data in multiple phases (1→2→3).
+-- We buffer all chunks and paste once all data arrives.
 local original_paste = vim.paste
--- Explanation
--- Mode Check: The function now explicitly checks for being in normal mode (vim.fn.mode() == "n") to apply the custom behavior.
--- Phase Check: Ensures that the custom pasting logic only applies during the first phase of pasting (phase == 1). Pasting can be a multi-phase operation especially with clipboard managers or when triggered by external scripts, so this ensures we only modify the initial insertion behavior.
--- Using vim.api.nvim_put: This function is used to put the lines into the buffer. The parameters are adjusted to not advance the cursor unnecessarily:
--- The second parameter 'c' tells Neovim to treat the lines as if they were yanked into a register, keeping the block structure if it's a block-wise visual mode yank.
--- The third parameter false ensures we are not advancing the cursor after the paste.
--- The fourth parameter true sets the paste as a normal command, which, in normal mode, means it follows the normal mode cursor behavior (i.e., paste after the cursor).
+local paste_buffer = {}
+local paste_mode = nil
+
+local function append_chunk(buffer, lines)
+  if #buffer > 0 and #lines > 0 then
+    -- Join partial lines at chunk boundary (channel-lines format)
+    buffer[#buffer] = buffer[#buffer] .. lines[1]
+    for i = 2, #lines do
+      table.insert(buffer, lines[i])
+    end
+  elseif #lines > 0 then
+    vim.list_extend(buffer, lines)
+  end
+end
+
 vim.paste = function(lines, phase)
   local mode = vim.fn.mode()
-  -- Check if we are in normal mode (`n`), and phase is the first phase of pasting (`1`)
-  -- vim.notify("Paste mode: " .. mode .. ", lines: " .. vim.inspect(lines) .. ", phase: " .. phase)
-  -- vim.notify("Paste mode: " .. mode .. ", phase: " .. phase)
 
-  if mode == "n" and (phase == 1 or phase == -1) then
-    -- If the content has more than one line, paste at the beginning of the current line
+  if mode == "n" and phase == -1 then
+    -- Single-chunk paste (small text): handle directly
     if #lines > 1 then
       vim.api.nvim_command("normal! 0")
     end
-    -- Use `p` for normal mode to paste after the cursor
     vim.api.nvim_put(lines, "c", false, true)
+    return true
+
+  elseif mode == "n" and phase == 1 then
+    -- Start of multi-chunk paste: begin buffering
+    paste_buffer = {}
+    vim.list_extend(paste_buffer, lines)
+    paste_mode = mode
+    return true
+
+  elseif paste_mode == "n" and phase == 2 then
+    -- Continue buffering
+    append_chunk(paste_buffer, lines)
+    return true
+
+  elseif paste_mode == "n" and phase == 3 then
+    -- End of multi-chunk paste: paste all buffered content at once
+    append_chunk(paste_buffer, lines)
+    if #paste_buffer > 1 then
+      vim.api.nvim_command("normal! 0")
+    end
+    vim.api.nvim_put(paste_buffer, "c", false, true)
+    paste_buffer = {}
+    paste_mode = nil
+    return true
+
   elseif mode == "v" or mode == "V" then
-    -- add newline if content has no \n
     if mode == "V" then
       if phase == -1 and ((#lines == 1 and not lines[1]:find("\n")) or #lines > 1) then
         table.insert(lines, "")
       end
-
-      -- For visual line-wise mode, move cursor to the start of the line
       vim.api.nvim_command("normal! 0")
     end
+    return original_paste(lines, phase)
 
-    original_paste(lines, phase)
   else
-    original_paste(lines, phase)
+    return original_paste(lines, phase)
   end
 end
 
