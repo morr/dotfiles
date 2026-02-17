@@ -1,4 +1,5 @@
 -- General
+vim.opt.autoread = true -- Reload files changed outside of Neovim
 vim.opt.undodir = "/tmp/nvim.undo"
 vim.opt.undofile = true -- Enable persistent undo (see also `:h undodir`)
 

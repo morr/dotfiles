@@ -1,3 +1,8 @@
+-- Auto-reload files changed outside of Neovim
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold" }, {
+   command = "silent! checktime",
+})
+
 --
 -- -- only highlight when searching
 -- vim.api.nvim_create_autocmd("CmdlineEnter", {
