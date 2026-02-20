@@ -62,6 +62,23 @@ vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost" }, {
    end,
 })
 
+vim.api.nvim_create_autocmd("FileType", {
+   pattern = "slim",
+   callback = function(args)
+      vim.keymap.set("n", ",f", function()
+         local filepath = vim.api.nvim_buf_get_name(args.buf)
+         vim.fn.jobstart({ "rubocop", "-a", "--no-color", filepath }, {
+            on_exit = function()
+               vim.schedule(function()
+                  vim.cmd("edit!")
+                  rubocop_slim_lint(args.buf)
+               end)
+            end,
+         })
+      end, { buffer = args.buf, desc = "Rubocop autocorrect" })
+   end,
+})
+
 --
 -- -- only highlight when searching
 -- vim.api.nvim_create_autocmd("CmdlineEnter", {
