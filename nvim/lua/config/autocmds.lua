@@ -3,6 +3,65 @@ vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold" }, {
    command = "silent! checktime",
 })
 
+-- Rubocop diagnostics for slim files (rubocop --lsp doesn't support slim)
+local rubocop_slim_ns = vim.api.nvim_create_namespace("rubocop_slim")
+local severity_map = {
+   convention = vim.diagnostic.severity.HINT,
+   refactor = vim.diagnostic.severity.HINT,
+   warning = vim.diagnostic.severity.WARN,
+   error = vim.diagnostic.severity.ERROR,
+   fatal = vim.diagnostic.severity.ERROR,
+}
+
+local function rubocop_slim_lint(bufnr)
+   local filepath = vim.api.nvim_buf_get_name(bufnr)
+   if filepath == "" then
+      return
+   end
+
+   vim.fn.jobstart({ "rubocop", "--format", "json", "--no-color", filepath }, {
+      stdout_buffered = true,
+      on_stdout = function(_, data)
+         local output = table.concat(data, "\n")
+         if output == "" then
+            return
+         end
+
+         local ok, result = pcall(vim.json.decode, output)
+         if not ok or not result.files or not result.files[1] then
+            return
+         end
+
+         local diagnostics = {}
+         for _, offense in ipairs(result.files[1].offenses) do
+            table.insert(diagnostics, {
+               lnum = (offense.location.start_line or 1) - 1,
+               col = (offense.location.start_column or 1) - 1,
+               end_lnum = (offense.location.last_line or offense.location.start_line or 1) - 1,
+               end_col = offense.location.last_column or offense.location.start_column or 1,
+               severity = severity_map[offense.severity] or vim.diagnostic.severity.WARN,
+               message = offense.message,
+               source = "rubocop",
+               code = offense.cop_name,
+            })
+         end
+
+         vim.schedule(function()
+            if vim.api.nvim_buf_is_valid(bufnr) then
+               vim.diagnostic.set(rubocop_slim_ns, bufnr, diagnostics)
+            end
+         end)
+      end,
+   })
+end
+
+vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost" }, {
+   pattern = "*.slim",
+   callback = function(args)
+      rubocop_slim_lint(args.buf)
+   end,
+})
+
 --
 -- -- only highlight when searching
 -- vim.api.nvim_create_autocmd("CmdlineEnter", {
