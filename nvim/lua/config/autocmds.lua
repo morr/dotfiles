@@ -104,32 +104,116 @@ local function sass_responsive_split(line1, line2)
    end
 
    local content_indent = base_indent .. "  "
+
+   -- Scan buffer below selection for existing +lte_ipad / +gte_laptop blocks
+   local buf_line_count = vim.api.nvim_buf_line_count(0)
+   local after_lines = vim.api.nvim_buf_get_lines(0, line2, buf_line_count, false)
+
+   local lte_block = nil
+   local gte_block = nil
+   local scan_end = 0
+
+   local i = 1
+   while i <= #after_lines do
+      local sl = after_lines[i]
+
+      if sl:match("^%s*$") then
+         i = i + 1
+      elseif sl == base_indent .. "+lte_ipad" then
+         lte_block = { lines = {} }
+         scan_end = i
+         i = i + 1
+         while i <= #after_lines do
+            local cl = after_lines[i]
+            if not cl:match("^%s*$") and #(cl:match("^(%s*)")) > #base_indent then
+               table.insert(lte_block.lines, cl)
+               scan_end = i
+               i = i + 1
+            else
+               break
+            end
+         end
+      elseif sl == base_indent .. "+gte_laptop" then
+         gte_block = { lines = {} }
+         scan_end = i
+         i = i + 1
+         while i <= #after_lines do
+            local cl = after_lines[i]
+            if not cl:match("^%s*$") and #(cl:match("^(%s*)")) > #base_indent then
+               table.insert(gte_block.lines, cl)
+               scan_end = i
+               i = i + 1
+            else
+               break
+            end
+         end
+      elseif #(sl:match("^(%s*)")) < #base_indent then
+         break
+      else
+         i = i + 1
+      end
+   end
+
    local result = {}
 
    for _, line in ipairs(non_px_lines) do
       table.insert(result, line)
    end
 
-   if #non_px_lines > 0 then
+   if lte_block and gte_block then
+      -- Merge into existing blocks
+      for _, line in ipairs(px_lines) do
+         local trimmed = line:match("^%s*(.*)")
+         local converted = trimmed:gsub("(%d+px)", "rem4(%1)")
+         table.insert(lte_block.lines, content_indent .. converted)
+      end
+      table.sort(lte_block.lines, function(a, b)
+         return a:match("^%s*(.*)") < b:match("^%s*(.*)")
+      end)
+
+      for _, line in ipairs(px_lines) do
+         local trimmed = line:match("^%s*(.*)")
+         table.insert(gte_block.lines, content_indent .. trimmed)
+      end
+      table.sort(gte_block.lines, function(a, b)
+         return a:match("^%s*(.*)") < b:match("^%s*(.*)")
+      end)
+
       table.insert(result, "")
+      table.insert(result, base_indent .. "+lte_ipad")
+      for _, cl in ipairs(lte_block.lines) do
+         table.insert(result, cl)
+      end
+      table.insert(result, "")
+      table.insert(result, base_indent .. "+gte_laptop")
+      for _, cl in ipairs(gte_block.lines) do
+         table.insert(result, cl)
+      end
+
+      vim.api.nvim_buf_set_lines(0, line1 - 1, line2 + scan_end, false, result)
+   else
+      -- No existing blocks, create new ones
+      if #non_px_lines > 0 then
+         table.insert(result, "")
+      end
+
+      table.insert(result, base_indent .. "+lte_ipad")
+      for _, line in ipairs(px_lines) do
+         local trimmed = line:match("^%s*(.*)")
+         local converted = trimmed:gsub("(%d+px)", "rem4(%1)")
+         table.insert(result, content_indent .. converted)
+      end
+
+      table.insert(result, "")
+
+      table.insert(result, base_indent .. "+gte_laptop")
+      for _, line in ipairs(px_lines) do
+         local trimmed = line:match("^%s*(.*)")
+         table.insert(result, content_indent .. trimmed)
+      end
+
+      vim.api.nvim_buf_set_lines(0, line1 - 1, line2, false, result)
    end
-
-   table.insert(result, base_indent .. "+lte_ipad")
-   for _, line in ipairs(px_lines) do
-      local trimmed = line:match("^%s*(.*)")
-      local converted = trimmed:gsub("(%d+px)", "rem4(%1)")
-      table.insert(result, content_indent .. converted)
-   end
-
-   table.insert(result, "")
-
-   table.insert(result, base_indent .. "+gte_laptop")
-   for _, line in ipairs(px_lines) do
-      local trimmed = line:match("^%s*(.*)")
-      table.insert(result, content_indent .. trimmed)
-   end
-
-   vim.api.nvim_buf_set_lines(0, line1 - 1, line2, false, result)
 end
 
 vim.api.nvim_create_autocmd("FileType", {
@@ -141,7 +225,7 @@ vim.api.nvim_create_autocmd("FileType", {
             sass_responsive_split(line, line)
          end, { buffer = args.buf, desc = "SASS responsive split" })
 
-         vim.keymap.set("v", "R", function()
+         vim.keymap.set("v", "<C-r>", function()
             local line1 = vim.fn.line("v")
             local line2 = vim.fn.line(".")
             if line1 > line2 then
