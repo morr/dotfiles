@@ -79,6 +79,93 @@ vim.api.nvim_create_autocmd("FileType", {
    end,
 })
 
+-- SASS responsive block splitter
+local function sass_responsive_split(line1, line2)
+   local lines = vim.api.nvim_buf_get_lines(0, line1 - 1, line2, false)
+
+   local px_lines = {}
+   local non_px_lines = {}
+   local base_indent = nil
+
+   for _, line in ipairs(lines) do
+      if line:match("%d+px") then
+         table.insert(px_lines, line)
+         local indent = line:match("^(%s*)")
+         if base_indent == nil or #indent < #base_indent then
+            base_indent = indent
+         end
+      else
+         table.insert(non_px_lines, line)
+      end
+   end
+
+   if #px_lines == 0 then
+      return
+   end
+
+   local content_indent = base_indent .. "  "
+   local result = {}
+
+   for _, line in ipairs(non_px_lines) do
+      table.insert(result, line)
+   end
+
+   if #non_px_lines > 0 then
+      table.insert(result, "")
+   end
+
+   table.insert(result, base_indent .. "+lte_ipad")
+   for _, line in ipairs(px_lines) do
+      local trimmed = line:match("^%s*(.*)")
+      local converted = trimmed:gsub("(%d+px)", "rem4(%1)")
+      table.insert(result, content_indent .. converted)
+   end
+
+   table.insert(result, "")
+
+   table.insert(result, base_indent .. "+gte_laptop")
+   for _, line in ipairs(px_lines) do
+      local trimmed = line:match("^%s*(.*)")
+      table.insert(result, content_indent .. trimmed)
+   end
+
+   vim.api.nvim_buf_set_lines(0, line1 - 1, line2, false, result)
+end
+
+vim.api.nvim_create_autocmd("FileType", {
+   pattern = "sass",
+   callback = function(args)
+      local function set_sass_mappings()
+         vim.keymap.set("n", ",r", function()
+            local line = vim.fn.line(".")
+            sass_responsive_split(line, line)
+         end, { buffer = args.buf, desc = "SASS responsive split" })
+
+         vim.keymap.set("v", "R", function()
+            local line1 = vim.fn.line("v")
+            local line2 = vim.fn.line(".")
+            if line1 > line2 then
+               line1, line2 = line2, line1
+            end
+            vim.api.nvim_feedkeys(
+               vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "nx", false
+            )
+            sass_responsive_split(line1, line2)
+         end, { buffer = args.buf, desc = "SASS responsive split (visual)" })
+      end
+
+      set_sass_mappings()
+
+      vim.api.nvim_create_autocmd("LspAttach", {
+         buffer = args.buf,
+         once = true,
+         callback = function()
+            vim.schedule(set_sass_mappings)
+         end,
+      })
+   end,
+})
+
 --
 -- -- only highlight when searching
 -- vim.api.nvim_create_autocmd("CmdlineEnter", {
