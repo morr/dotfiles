@@ -1,7 +1,30 @@
- {
-    "statusLine": {
-      "type": "command",
-      "command": "~/dotfiles/.claude/statusline.sh",
-      "padding": 0
-    }
+{
+  "statusLine": {
+    "type": "command",
+    "command": "~/dotfiles/.claude/statusline.sh",
+    "padding": 0
+  },
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(gh run view:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git status:*)",
+      "Bash(git rebase:*)",
+      "Bash(git stash pop:*)",
+      "Bash(git stash:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(git checkout:*)",
+      "Bash(git rm:*)",
+      "Bash(git log:*)",
+      "Bash(git mv:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)"
+    ]
   }
+}

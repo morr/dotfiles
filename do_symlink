@@ -19,23 +19,24 @@ config_dirs = %w[
   nvim
 ]
 
+current_dir = `pwd`.strip
+
 files.each do |file|
   puts "symlinking to ~/#{file}"
   `rm -f $HOME/#{file}`
-  `ln ./#{file} $HOME/#{file}`
+  `ln -s #{current_dir}/#{file} $HOME/#{file}`
 end
 
 config_dirs.each do |dir|
   puts "symlinking to ~/.config/#{dir}"
   `rm -f $HOME/.config/#{dir}`
-  current_dir = `pwd`.strip
   `cd ~/.config; ln -s #{current_dir}/#{dir}; cd #{current_dir}`
 end
 
 conf = '.gnupg/gpg.conf'
 puts "symlinking #{conf}"
 `rm -f $HOME/#{conf}`
-`ln ./#{conf} $HOME/#{conf}`
+`ln -s #{current_dir}/#{conf} $HOME/#{conf}`
 puts 'dont forget to write passphrase to /Users/morr/.gnupg/passphrase'
 
 puts 'done!'
