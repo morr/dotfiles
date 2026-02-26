@@ -214,3 +214,9 @@ local function clean_buffer()
   vim.cmd([[%s/\%u2002/ /ge]]) -- en space
 end
 map("n", ",t", clean_buffer, { desc = "Remove trailing whitespaces and invisible unicode" })
+
+map("n", ",p", function()
+  local path = vim.fn.expand("%")
+  vim.fn.setreg("+", path)
+  vim.notify(path)
+end, { desc = "Copy file path to clipboard" })
