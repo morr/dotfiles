@@ -248,75 +248,73 @@ return {
       winbar = {},
       inactive_winbar = {},
       extensions = {
-        {
-          filetypes = { "snacks_terminal" },
-          sections = {
-            lualine_a = {
-              function()
-                local bufname = vim.api.nvim_buf_get_name(0)
-                if bufname:lower():find("claude") then
-                  return "CLAUDE CODE"
+        (function()
+          local _claude_status_parts = {}
+
+          local function read_claude_status()
+            local dir = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+            local f = io.open("/tmp/claude_statusline_" .. dir .. ".txt", "r")
+            if f then
+              local content = f:read("*l")
+              f:close()
+              if content and content ~= "" then
+                local parts = {}
+                for part in content:gmatch("[^|]+") do
+                  table.insert(parts, vim.trim(part))
                 end
-                return "TERMINAL"
-              end,
-            },
-            lualine_b = {},
-            lualine_c = {},
-            lualine_x = {
-              function()
-                local bufname = vim.api.nvim_buf_get_name(0)
-                if not bufname:lower():find("claude") then
-                  return ""
-                end
-                local dir = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
-                local f = io.open("/tmp/claude_statusline_" .. dir .. ".txt", "r")
-                if f then
-                  local content = f:read("*l")
-                  f:close()
-                  if content and content ~= "" then
-                    return content:gsub("%%", "%%%%")
-                  end
-                end
+                _claude_status_parts = parts
+                return
+              end
+            end
+            _claude_status_parts = {}
+          end
+
+          local function is_claude()
+            return vim.api.nvim_buf_get_name(0):lower():find("claude")
+          end
+
+          local function terminal_label()
+            if is_claude() then
+              read_claude_status()
+              return "CLAUDE CODE"
+            end
+            _claude_status_parts = {}
+            return "TERMINAL"
+          end
+
+          local function status_part(n)
+            return function()
+              if not is_claude() then
                 return ""
-              end,
+              end
+              local part = _claude_status_parts[n]
+              if part then
+                return part:gsub("%%", "%%%%")
+              end
+              return ""
+            end
+          end
+
+          return {
+            filetypes = { "snacks_terminal" },
+            sections = {
+              lualine_a = { terminal_label },
+              lualine_b = {},
+              lualine_c = {},
+              lualine_x = { status_part(1) },
+              lualine_y = { status_part(2) },
+              lualine_z = { status_part(3) },
             },
-            lualine_y = {},
-            lualine_z = {},
-          },
-          inactive_sections = {
-            lualine_a = {},
-            lualine_b = {},
-            lualine_c = {
-              function()
-                local bufname = vim.api.nvim_buf_get_name(0)
-                if bufname:lower():find("claude") then
-                  return "CLAUDE CODE"
-                end
-                return "TERMINAL"
-              end,
+            inactive_sections = {
+              lualine_a = {},
+              lualine_b = {},
+              lualine_c = { terminal_label },
+              lualine_x = { status_part(1) },
+              lualine_y = { status_part(2) },
+              lualine_z = { status_part(3) },
             },
-            lualine_x = {
-              function()
-                local bufname = vim.api.nvim_buf_get_name(0)
-                if not bufname:lower():find("claude") then
-                  return ""
-                end
-                local dir = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
-                local f = io.open("/tmp/claude_statusline_" .. dir .. ".txt", "r")
-                if f then
-                  local content = f:read("*l")
-                  f:close()
-                  if content and content ~= "" then
-                    return content:gsub("%%", "%%%%")
-                  end
-                end
-                return ""
-              end,
-            },
-            lualine_y = {},
-            lualine_z = {},
-          },
-        },
+          }
+        end)(),
       },
     },
     init = function()
