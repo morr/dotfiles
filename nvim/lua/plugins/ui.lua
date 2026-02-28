@@ -247,7 +247,43 @@ return {
       -- },
       winbar = {},
       inactive_winbar = {},
-      extensions = {},
+      extensions = {
+        {
+          filetypes = { "snacks_terminal" },
+          sections = {
+            lualine_a = {
+              function()
+                local bufname = vim.api.nvim_buf_get_name(0)
+                if bufname:lower():find("claude") then
+                  return "CLAUDE CODE"
+                end
+                return "TERMINAL"
+              end,
+            },
+            lualine_b = {},
+            lualine_c = {},
+            lualine_x = {},
+            lualine_y = {},
+            lualine_z = {},
+          },
+          inactive_sections = {
+            lualine_a = {},
+            lualine_b = {},
+            lualine_c = {
+              function()
+                local bufname = vim.api.nvim_buf_get_name(0)
+                if bufname:lower():find("claude") then
+                  return "CLAUDE CODE"
+                end
+                return "TERMINAL"
+              end,
+            },
+            lualine_x = {},
+            lualine_y = {},
+            lualine_z = {},
+          },
+        },
+      },
     },
     init = function()
       vim.opt.showmode = false
