@@ -1,16 +1,5 @@
 {
-  "statusLine": {
-    "type": "command",
-    "command": "~/dotfiles/.claude/statusline.sh",
-    "padding": 0
-  },
-  "enabledPlugins": {
-    "rust-analyzer-lsp@claude-plugins-official": true
-  },
   "permissions": {
-    "additionalDirectories": [
-      "/tmp/99"
-    ],
     "allow": [
       "Bash(gh run view:*)",
       "Bash(gh pr view:*)",
@@ -34,6 +23,18 @@
       "Bash(grep:*)",
       "Read(~/dotfiles/**)",
       "Read(~/.claude/**)"
+    ],
+    "additionalDirectories": [
+      "/tmp/99"
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/dotfiles/.claude/statusline.sh",
+    "padding": 0
+  },
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "lua-lsp@claude-plugins-official": true
   }
 }
