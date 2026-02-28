@@ -22,22 +22,31 @@ config_dirs = %w[
 
 current_dir = `pwd`.strip
 
+require 'fileutils'
+require 'shellwords'
+
+def symlink(source, target)
+  if File.symlink?(target) && File.readlink(target) == source
+    puts "  already symlinked: #{target}"
+  else
+    FileUtils.rm_f(target)
+    FileUtils.ln_s(source, target)
+    puts "  symlinked: #{target} -> #{source}"
+  end
+end
+
 files.each do |file|
-  puts "symlinking to ~/#{file}"
-  `rm -f $HOME/#{file}`
-  `ln -s #{current_dir}/#{file} $HOME/#{file}`
+  symlink("#{current_dir}/#{file}", "#{Dir.home}/#{file}")
 end
 
 config_dirs.each do |dir|
-  puts "symlinking to ~/.config/#{dir}"
-  `rm -f $HOME/.config/#{dir}`
-  `cd ~/.config; ln -s #{current_dir}/#{dir}; cd #{current_dir}`
+  symlink("#{current_dir}/#{dir}", "#{Dir.home}/.config/#{dir}")
 end
 
+symlink("#{current_dir}/lazygit/config.yml", "#{Dir.home}/Library/Application Support/lazygit/config.yml")
+
 conf = '.gnupg/gpg.conf'
-puts "symlinking #{conf}"
-`rm -f $HOME/#{conf}`
-`ln -s #{current_dir}/#{conf} $HOME/#{conf}`
+symlink("#{current_dir}/#{conf}", "#{Dir.home}/#{conf}")
 puts 'dont forget to write passphrase to /Users/morr/.gnupg/passphrase'
 
 puts 'done!'
