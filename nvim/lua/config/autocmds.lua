@@ -3,6 +3,7 @@ vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold" }, {
    command = "silent! checktime",
 })
 
+
 -- Rubocop diagnostics for slim files (rubocop --lsp doesn't support slim)
 local rubocop_slim_ns = vim.api.nvim_create_namespace("rubocop_slim")
 local severity_map = {

@@ -22,17 +22,9 @@ return {
     end,
   },
   {
-    "rcarriga/nvim-notify",
-    opts = {},
-    config = function()
-      vim.notify = require("notify")
-    end,
-  },
-  {
     "folke/noice.nvim",
     dependencies = {
       "MunifTanjim/nui.nvim",
-      "rcarriga/nvim-notify",
     },
     event = "VeryLazy",
     opts = {
@@ -344,9 +336,5 @@ return {
       -- or leave it empty to use the default settings
       -- refer to the configuration section below
     },
-  },
-  { -- fancy ui for neovim select dialogs
-    "stevearc/dressing.nvim",
-    event = "VeryLazy",
   },
 }
