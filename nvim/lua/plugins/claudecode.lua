@@ -24,6 +24,26 @@ return {
         desc = "Add file",
         ft = { "NvimTree", "neo-tree", "oil", "minifiles", "netrw" },
       },
+      -- cmd+shift+c continue/focus Claude (wezterm sends Alt+Shift+c)
+      {
+        "<M-C>",
+        function()
+          -- Check if a Claude terminal buffer already exists
+          for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+            if
+              vim.api.nvim_buf_is_valid(buf)
+              and vim.bo[buf].buftype == "terminal"
+              and vim.api.nvim_buf_get_name(buf):find("claude")
+            then
+              vim.cmd("ClaudeCodeFocus")
+              return
+            end
+          end
+          vim.cmd("ClaudeCode --continue")
+        end,
+        mode = { "n", "t" },
+        desc = "Continue/Focus Claude",
+      },
       { ",ca", "<cmd>ClaudeCodeDiffAccept<cr>", desc = "Accept diff" },
       { ",cd", "<cmd>ClaudeCodeDiffDeny<cr>", desc = "Deny diff" },
       -- cmd+] / cmd+[ window navigation (wezterm sends Alt+]/Alt+[)

@@ -313,6 +313,19 @@ config.keys = {
     action = wezterm.action.SendString("\x1b[13;2u"),
   },
 
+  -- cmd + shift + c - resume or focus Claude
+  {
+    key = "c",
+    mods = "SHIFT|CMD",
+    action = wezterm.action_callback(function(window, pane)
+      if is_neovim_process(pane) then
+        window:perform_action({ SendKey = { key = "c", mods = "ALT|SHIFT" } }, pane)
+      else
+        window:perform_action(wezterm.action.SendString("with-proxy claude --resume\r"), pane)
+      end
+    end),
+  },
+
   -- cmd + p - copy all
   {
     key = "p",
