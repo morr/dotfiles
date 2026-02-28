@@ -262,7 +262,24 @@ return {
             },
             lualine_b = {},
             lualine_c = {},
-            lualine_x = {},
+            lualine_x = {
+              function()
+                local bufname = vim.api.nvim_buf_get_name(0)
+                if not bufname:lower():find("claude") then
+                  return ""
+                end
+                local dir = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+                local f = io.open("/tmp/claude_statusline_" .. dir .. ".txt", "r")
+                if f then
+                  local content = f:read("*l")
+                  f:close()
+                  if content and content ~= "" then
+                    return content:gsub("%%", "%%%%")
+                  end
+                end
+                return ""
+              end,
+            },
             lualine_y = {},
             lualine_z = {},
           },
@@ -278,7 +295,24 @@ return {
                 return "TERMINAL"
               end,
             },
-            lualine_x = {},
+            lualine_x = {
+              function()
+                local bufname = vim.api.nvim_buf_get_name(0)
+                if not bufname:lower():find("claude") then
+                  return ""
+                end
+                local dir = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+                local f = io.open("/tmp/claude_statusline_" .. dir .. ".txt", "r")
+                if f then
+                  local content = f:read("*l")
+                  f:close()
+                  if content and content ~= "" then
+                    return content:gsub("%%", "%%%%")
+                  end
+                end
+                return ""
+              end,
+            },
             lualine_y = {},
             lualine_z = {},
           },

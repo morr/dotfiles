@@ -83,4 +83,14 @@ if [ -f "$CACHE_FILE" ]; then
   fi
 fi
 
-echo "Ctx: ${PERCENT_USED}% of ${TOTAL_K}k${SESSION_INFO}"
+OUTPUT="Ctx: ${PERCENT_USED}% of ${TOTAL_K}k${SESSION_INFO}"
+
+# Write status to a file so Neovim statusline can read it
+echo "$OUTPUT" > "/tmp/claude_statusline_$(basename "$PWD").txt"
+
+# Inside Neovim, hide Claude's own status line (Neovim shows it instead)
+if [ -n "$NVIM" ]; then
+  echo ""
+else
+  echo "$OUTPUT"
+fi

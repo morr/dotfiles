@@ -21,6 +21,7 @@
       "Bash(find:*)",
       "Bash(ls:*)",
       "Bash(grep:*)",
+      "Bash(nvim:*)",
       "Read(~/dotfiles/**)",
       "Read(~/.claude/**)"
     ],
