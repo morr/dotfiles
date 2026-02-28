@@ -4,6 +4,9 @@ return {
     dependencies = { "folke/snacks.nvim" },
     opts = {
       terminal_cmd = "with-proxy claude",
+      diff_opts = {
+        keep_terminal_focus = true,
+      },
       env = {
         NO_PROXY = "localhost,127.0.0.1,::1",
         no_proxy = "localhost,127.0.0.1,::1",
