@@ -7,6 +7,7 @@ vim.opt.history = 10000
 vim.opt.undolevels = 10000
 
 vim.opt.swapfile = false -- Disable swap file
+vim.opt.sessionoptions = "buffers,curdir,tabpages,winsize"
 
 vim.opt.backup = false -- Don't store backup while overwriting the file
 vim.opt.writebackup = false -- Don't store backup while overwriting the file
