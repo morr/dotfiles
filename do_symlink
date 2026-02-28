@@ -13,6 +13,7 @@ files = %w[
   .ssh/config
   .claude/settings.json
   .claude/statusline.sh
+  .claude/CLAUDE.md
   .mcp.json
 ]
 
