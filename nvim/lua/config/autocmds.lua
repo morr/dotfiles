@@ -343,3 +343,32 @@ vim.api.nvim_create_autocmd("FileType", {
 --       )
 --    end,
 -- })
+
+
+-- Auto-enter terminal mode when focusing Claude Code terminal from another window
+vim.api.nvim_create_autocmd("WinEnter", {
+  callback = function()
+    if vim.bo.buftype == "terminal" and vim.api.nvim_buf_get_name(0):lower():find("claude") then
+      vim.cmd("startinsert")
+    end
+  end,
+})
+
+-- Prevent mouse clicks from moving cursor away from Claude Code input
+vim.api.nvim_create_autocmd("TermOpen", {
+  callback = function()
+    local buf = vim.api.nvim_get_current_buf()
+    vim.defer_fn(function()
+      if not vim.api.nvim_buf_is_valid(buf) then
+        return
+      end
+      if not vim.api.nvim_buf_get_name(buf):lower():find("claude") then
+        return
+      end
+      -- Simple click (no drag) re-enters terminal mode; drag selection stays in visual mode
+      vim.keymap.set("n", "<LeftRelease>", function()
+        vim.cmd("startinsert")
+      end, { buffer = buf, silent = true })
+    end, 200)
+  end,
+})
