@@ -26,6 +26,11 @@ return {
       },
       { ",ca", "<cmd>ClaudeCodeDiffAccept<cr>", desc = "Accept diff" },
       { ",cd", "<cmd>ClaudeCodeDiffDeny<cr>", desc = "Deny diff" },
+      -- cmd+] / cmd+[ window navigation (wezterm sends Alt+]/Alt+[)
+      { "<M-]>", "<C-w>l", mode = "n", desc = "Go to right window" },
+      { "<M-]>", "<C-\\><C-n><C-w>l", mode = "t", desc = "Go to right window" },
+      { "<M-[>", "<C-w>h", mode = "n", desc = "Go to left window" },
+      { "<M-[>", "<C-\\><C-n><C-w>h", mode = "t", desc = "Go to left window" },
     },
   },
 }
