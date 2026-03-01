@@ -15,6 +15,7 @@ files = %w[
   .claude/statusline.sh
   .claude/CLAUDE.md
   .mcp.json
+  Library/LaunchAgents/com.morr.ssh-tunnel.plist
 ]
 
 config_dirs = %w[
