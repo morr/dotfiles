@@ -17,9 +17,7 @@ return {
         notify = true,
       },
     },
-    init = function()
-      vim.cmd.colorscheme("catppuccin")
-    end,
+    init = function() vim.cmd.colorscheme("catppuccin") end,
   },
   {
     "folke/noice.nvim",
@@ -262,6 +260,11 @@ return {
                 for part in content:gmatch("[^|]+") do
                   table.insert(parts, vim.trim(part))
                 end
+
+                for i = #parts, 1, -1 do
+                  table.insert(_claude_status_parts, parts[i])
+                end
+
                 _claude_status_parts = parts
                 return
               end
@@ -269,9 +272,7 @@ return {
             _claude_status_parts = {}
           end
 
-          local function is_claude()
-            return vim.api.nvim_buf_get_name(0):lower():find("claude")
-          end
+          local function is_claude() return vim.api.nvim_buf_get_name(0):lower():find("claude") end
 
           local function terminal_label()
             if is_claude() then
@@ -284,13 +285,9 @@ return {
 
           local function status_part(n)
             return function()
-              if not is_claude() then
-                return ""
-              end
+              if not is_claude() then return "" end
               local part = _claude_status_parts[n]
-              if part then
-                return part:gsub("%%", "%%%%")
-              end
+              if part then return part:gsub("%%", "%%%%") end
               return ""
             end
           end
@@ -301,25 +298,23 @@ return {
               lualine_a = { terminal_label },
               lualine_b = {},
               lualine_c = {},
-              lualine_x = { status_part(1) },
-              lualine_y = { status_part(2) },
-              lualine_z = { status_part(3) },
+              lualine_x = { status_part(3) },
+              lualine_y = { status_part(1) },
+              lualine_z = { status_part(2) },
             },
             inactive_sections = {
               lualine_a = {},
               lualine_b = {},
               lualine_c = { terminal_label },
-              lualine_x = { status_part(1) },
-              lualine_y = { status_part(2) },
-              lualine_z = { status_part(3) },
+              lualine_x = { status_part(3) },
+              lualine_y = { status_part(1) },
+              lualine_z = { status_part(2) },
             },
           }
         end)(),
       },
     },
-    init = function()
-      vim.opt.showmode = false
-    end,
+    init = function() vim.opt.showmode = false end,
   },
   {
     "akinsho/bufferline.nvim",
@@ -384,7 +379,6 @@ return {
     init = function()
       vim.o.timeout = true
       vim.o.timeoutlen = 300
-
     end,
     opts = {
       spec = {
