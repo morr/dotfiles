@@ -33,3 +33,7 @@ This is a Lua-based Neovim configuration managed with **lazy.nvim**. It lives wi
 ## Development Targets
 
 Primary languages: Ruby/Rails, Rust, JavaScript/Vue, SASS/CSS. LSP servers are auto-installed via mason.nvim.
+
+## Git
+
+- Do not use `git -C` to change to the repo root. Git works fine from any subdirectory — just use paths relative to the current working directory.

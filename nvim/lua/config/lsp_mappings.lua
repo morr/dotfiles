@@ -98,19 +98,19 @@ config_lsp_mappings = function(bufnr)
   vim.keymap.set("n", "<space>", show_lsp_diagnostics, opts)
 
   opts.desc = "Show LSP references"
-  vim.keymap.set("n", "<leader>lr", "<cmd>Telescope lsp_references<CR>", opts)
+  vim.keymap.set("n", "<leader>lr", function() Snacks.picker.lsp_references() end, opts)
 
   opts.desc = "Go to declaration"
   vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
 
   opts.desc = "Show LSP definitions"
-  vim.keymap.set("n", "<leader>ld", "<cmd>Telescope lsp_definitions<CR>", opts)
+  vim.keymap.set("n", "<leader>ld", function() Snacks.picker.lsp_definitions() end, opts)
 
   opts.desc = "Show LSP implementations"
-  vim.keymap.set("n", "<leader>li", "<cmd>Telescope lsp_implementations<CR>", opts)
+  vim.keymap.set("n", "<leader>li", function() Snacks.picker.lsp_implementations() end, opts)
 
   opts.desc = "Show LSP type definitions"
-  vim.keymap.set("n", "<leader>lt", "<cmd>Telescope lsp_type_definitions<CR>", opts)
+  vim.keymap.set("n", "<leader>lt", function() Snacks.picker.lsp_type_definitions() end, opts)
 
   opts.desc = "See available code actions"
   vim.keymap.set({ "n", "v" }, "<leader>la", vim.lsp.buf.code_action, opts)
