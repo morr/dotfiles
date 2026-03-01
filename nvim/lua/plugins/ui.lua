@@ -385,14 +385,16 @@ return {
       vim.o.timeout = true
       vim.o.timeoutlen = 300
 
-      -- require("which-key").register({
-      --   ["<leader>"] = {
-      --     l = { name = "LSP" },
-      --     r = { name = "Rails" },
-      --   },
-      -- })
     end,
     opts = {
+      spec = {
+        { "<leader>b", group = "Buffers" },
+        { "<leader>g", group = "Git" },
+        { "<leader>s", group = "Search" },
+        { "<leader>l", group = "LSP" },
+        { "<leader>u", group = "UI" },
+        { "<leader>c", group = "Code" },
+      },
       presets = {
         bottom_search = true, -- use a classic bottom cmdline for search
         command_palette = true, -- position the cmdline and popupmenu together
@@ -400,9 +402,6 @@ return {
         inc_rename = false, -- enables an input dialog for inc-rename.nvim
         lsp_doc_border = false, -- add a border to hover docs and signature help
       },
-      -- your configuration comes here
-      -- or leave it empty to use the default settings
-      -- refer to the configuration section below
     },
   },
 }

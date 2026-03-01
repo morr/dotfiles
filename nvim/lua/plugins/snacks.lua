@@ -28,9 +28,7 @@ return {
           desc = "Browse Repo",
           padding = 1,
           key = "b",
-          action = function()
-            Snacks.gitbrowse()
-          end,
+          action = function() Snacks.gitbrowse() end,
         },
         function()
           local in_git = Snacks.git.get_root() ~= nil
@@ -38,9 +36,7 @@ return {
             {
               title = "Notifications",
               cmd = "gh notify -s -a -n5",
-              action = function()
-                vim.ui.open("https://github.com/notifications")
-              end,
+              action = function() vim.ui.open("https://github.com/notifications") end,
               key = "n",
               icon = " ",
               height = 5,
@@ -50,9 +46,7 @@ return {
               title = "Open Issues",
               cmd = "gh issue list -L 3",
               key = "i",
-              action = function()
-                vim.fn.jobstart("gh issue list --web", { detach = true })
-              end,
+              action = function() vim.fn.jobstart("gh issue list --web", { detach = true }) end,
               icon = " ",
               height = 7,
             },
@@ -61,9 +55,7 @@ return {
               title = "Open PRs",
               cmd = "gh pr list -L 3",
               key = "P",
-              action = function()
-                vim.fn.jobstart("gh pr list --web", { detach = true })
-              end,
+              action = function() vim.fn.jobstart("gh pr list --web", { detach = true }) end,
               height = 7,
             },
             {
@@ -73,16 +65,19 @@ return {
               height = 10,
             },
           }
-          return vim.tbl_map(function(cmd)
-            return vim.tbl_extend("force", {
-              pane = 2,
-              section = "terminal",
-              enabled = in_git,
-              padding = 1,
-              ttl = 5 * 60,
-              indent = 3,
-            }, cmd)
-          end, cmds)
+          return vim.tbl_map(
+            function(cmd)
+              return vim.tbl_extend("force", {
+                pane = 2,
+                section = "terminal",
+                enabled = in_git,
+                padding = 1,
+                ttl = 5 * 60,
+                indent = 3,
+              }, cmd)
+            end,
+            cmds
+          )
         end,
         { section = "startup" },
       },
@@ -163,19 +158,15 @@ return {
   keys = {
     -- Top Pickers & Explorer
     { "<leader><space>", function() Snacks.picker.smart() end, desc = "Smart Find Files" },
-    { "<leader>,", function() Snacks.picker.buffers() end, desc = "Buffers" },
     { "<leader>\\", function() Snacks.picker.grep() end, desc = "Grep" },
     { "<leader><Bar>", function() Snacks.picker.grep({ live = false }) end, desc = "Grep (with args)" },
     { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
     { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification History" },
     { "<leader>e", function() Snacks.explorer() end, desc = "File Explorer" },
-    -- find
-    { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Buffers" },
-    { "<leader>fc", function() Snacks.picker.files({ cwd = vim.fn.stdpath("config") }) end, desc = "Find Config File" },
-    { "<leader>ff", function() Snacks.picker.files() end, desc = "Find Files" },
-    { "<leader>fg", function() Snacks.picker.git_files() end, desc = "Find Git Files" },
-    { "<leader>fp", function() Snacks.picker.projects() end, desc = "Projects" },
-    { "<leader>fr", function() Snacks.picker.recent() end, desc = "Recent" },
+    -- buffers
+    { "<leader>be", function() Snacks.picker.buffers() end, desc = "Buffers" },
+    { "<leader>b\\", function() Snacks.picker.grep_buffers() end, desc = "Grep Buffers" },
+    { "<leader>bd", function() Snacks.picker.diagnostics_buffer() end, desc = "Buffer Diagnostics" },
     -- git
     { "<leader>gb", function() Snacks.picker.git_branches() end, desc = "Git Branches" },
     { "<leader>gl", function() Snacks.picker.git_log() end, desc = "Git Log" },
@@ -185,21 +176,18 @@ return {
     { "<leader>gD", function() Snacks.picker.git_diff() end, desc = "Git Diff (Hunks)" },
     { "<leader>gf", function() Snacks.picker.git_log_file() end, desc = "Git Log File" },
     { "<leader>gg", function() Snacks.lazygit() end, desc = "Lazygit" },
+    { "<leader>gB", function() Snacks.gitbrowse() end, desc = "Git Browse", mode = { "n", "v" } },
     -- gh
     { "<leader>gi", function() Snacks.picker.gh_issue() end, desc = "GitHub Issues (open)" },
     { "<leader>gI", function() Snacks.picker.gh_issue({ state = "all" }) end, desc = "GitHub Issues (all)" },
     { "<leader>gp", function() Snacks.picker.gh_pr() end, desc = "GitHub Pull Requests (open)" },
     { "<leader>gP", function() Snacks.picker.gh_pr({ state = "all" }) end, desc = "GitHub Pull Requests (all)" },
-    -- Grep
-    { "<leader>sb", function() Snacks.picker.lines() end, desc = "Buffer Lines" },
-    { "<leader>sB", function() Snacks.picker.grep_buffers() end, desc = "Grep Open Buffers" },
-    { "<leader>sg", function() Snacks.picker.grep() end, desc = "Grep" },
-    { "<leader>sw", function() Snacks.picker.grep_word() end, desc = "Visual selection or word", mode = { "n", "x" } },
     -- search
     { '<leader>s"', function() Snacks.picker.registers() end, desc = "Registers" },
     { "<leader>s/", function() Snacks.picker.search_history() end, desc = "Search History" },
     { "<leader>sa", function() Snacks.picker.autocmds() end, desc = "Autocmds" },
     { "<leader>sb", function() Snacks.picker.lines() end, desc = "Buffer Lines" },
+    { "<leader>sB", function() Snacks.picker.grep_buffers() end, desc = "Grep Open Buffers" },
     { "<leader>sc", function() Snacks.picker.command_history() end, desc = "Command History" },
     { "<leader>sC", function() Snacks.picker.commands() end, desc = "Commands" },
     { "<leader>sd", function() Snacks.picker.diagnostics() end, desc = "Diagnostics" },
@@ -216,6 +204,16 @@ return {
     { "<leader>sq", function() Snacks.picker.qflist() end, desc = "Quickfix List" },
     { "<leader>sR", function() Snacks.picker.resume() end, desc = "Resume" },
     { "<leader>su", function() Snacks.picker.undo() end, desc = "Undo History" },
+    { "<leader>sf", function() Snacks.picker.files() end, desc = "Files" },
+    {
+      "<leader>sn",
+      function() Snacks.picker.files({ cwd = vim.fn.stdpath("config") }) end,
+      desc = "Neovim Config Files",
+    },
+    { "<leader>sG", function() Snacks.picker.git_files() end, desc = "Git Files" },
+    { "<leader>sP", function() Snacks.picker.projects() end, desc = "Projects" },
+    { "<leader>sr", function() Snacks.picker.recent() end, desc = "Recent Files" },
+    { "<leader>sw", function() Snacks.picker.grep_word() end, desc = "Grep Word", mode = { "n", "x" } },
     { "<leader>uC", function() Snacks.picker.colorschemes() end, desc = "Colorschemes" },
     -- LSP
     { "gd", function() Snacks.picker.lsp_definitions() end, desc = "Goto Definition" },
@@ -232,9 +230,8 @@ return {
     { "<leader>Z", function() Snacks.zen.zoom() end, desc = "Toggle Zoom" },
     -- { "<leader>.", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer" },
     -- { "<leader>S", function() Snacks.scratch.select() end, desc = "Select Scratch Buffer" },
-    { "<leader>bd", function() Snacks.bufdelete() end, desc = "Delete Buffer" },
+    -- { "<leader>bd", function() Snacks.bufdelete() end, desc = "Delete Buffer" },
     { "<leader>cR", function() Snacks.rename.rename_file() end, desc = "Rename File" },
-    { "<leader>gB", function() Snacks.gitbrowse() end, desc = "Git Browse", mode = { "n", "v" } },
     { "<leader>un", function() Snacks.notifier.hide() end, desc = "Dismiss All Notifications" },
     { "<c-/>", function() Snacks.terminal() end, desc = "Toggle Terminal" },
     { "]]", function() Snacks.words.jump(vim.v.count1) end, desc = "Next Reference", mode = { "n", "t" } },
