@@ -29,6 +29,7 @@ return {
           key = "b",
           action = function() Snacks.gitbrowse() end,
         },
+        lazygit = {},
         function()
           local in_git = Snacks.git.get_root() ~= nil
           local cmds = {
@@ -156,9 +157,13 @@ return {
   },
   keys = {
     -- Top Pickers & Explorer
+    -- { "<leader>t", function() Snacks.picker.smart() end, desc = "Smart Find Files" },
     { "<leader><space>", function() Snacks.picker.smart() end, desc = "Smart Find Files" },
-    { "<leader>\\", function() Snacks.picker.grep() end, desc = "Grep" },
-    { "<leader><Bar>", function() Snacks.picker.grep({ live = false }) end, desc = "Grep (with args)" },
+    {
+      "<leader>\\",
+      function() Snacks.picker.grep({ title = "Grep (`-- -g *.rs` does files filtering)" }) end,
+      desc = "Grep",
+    },
     { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
     { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification History" },
     { "<leader>e", function() Snacks.explorer() end, desc = "File Explorer" },
@@ -174,7 +179,7 @@ return {
     { "<leader>gS", function() Snacks.picker.git_stash() end, desc = "Git Stash" },
     { "<leader>gD", function() Snacks.picker.git_diff() end, desc = "Git Diff (Hunks)" },
     { "<leader>gf", function() Snacks.picker.git_log_file() end, desc = "Git Log File" },
-    { "<leader>gg", function() Snacks.lazygit() end, desc = "Lazygit" },
+    { "<leader>gg", function() Snacks.lazygit({ args = { "status" } }) end, desc = "Lazygit" },
     { "<leader>gB", function() Snacks.gitbrowse() end, desc = "Git Browse", mode = { "n", "v" } },
     -- gh
     { "<leader>gi", function() Snacks.picker.gh_issue() end, desc = "GitHub Issues (open)" },
