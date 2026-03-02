@@ -366,6 +366,9 @@ test -e "$HOME/.cargo/env" && . "$HOME/.cargo/env"
 #-------------------------------------------------------------------------------
 export MTL_HUD_ENABLED=1
 export MTL_HUD_ALIGNMENT=15
+export MTL_HUD_SCALE=0.15
+# export MTL_HUD_ELEMENTS=device,rosetta,layersize,memory,fps,frameinterval,frameintervalhistogram,metalcpu,gputimeline,shaders,framenumber,disk,frameintervalgraph,presentdelay,gputime,thermal,fpsgraph,layerscale,refreshrate,gamemode,client
+export MTL_HUD_ELEMENTS=memory,fps,fpsgraph #,frameintervalhistogram
 
 #-------------------------------------------------------------------------------
 # go
