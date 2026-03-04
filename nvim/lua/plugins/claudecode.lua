@@ -3,7 +3,7 @@ return {
     "coder/claudecode.nvim",
     dependencies = { "folke/snacks.nvim" },
     opts = {
-      terminal_cmd = "with-proxy claude",
+      terminal_cmd = "with-proxy claude --verbose",
       diff_opts = {
         keep_terminal_focus = true,
       },
