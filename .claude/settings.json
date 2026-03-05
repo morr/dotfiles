@@ -23,7 +23,9 @@
       "Bash(grep:*)",
       "Bash(nvim:*)",
       "Read(~/dotfiles/**)",
-      "Read(~/.claude/**)"
+      "Read(~/.claude/**)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs"
     ],
     "additionalDirectories": [
       "/tmp/99"
