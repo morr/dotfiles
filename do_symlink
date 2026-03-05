@@ -46,6 +46,7 @@ config_dirs.each do |dir|
 end
 
 symlink("#{current_dir}/lazygit/config.yml", "#{Dir.home}/Library/Application Support/lazygit/config.yml")
+symlink("#{current_dir}/bat/themes/Catppuccin Frappe.tmTheme", "#{Dir.home}/.config/bat/themes/Catppuccin Frappe.tmTheme")
 
 conf = '.gnupg/gpg.conf'
 symlink("#{current_dir}/#{conf}", "#{Dir.home}/#{conf}")
