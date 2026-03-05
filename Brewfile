@@ -41,8 +41,12 @@ brew 'mc'
 # brew 'mpv' # media player
 brew 'node'
 brew 'fzf'
-brew 'bat' # syntax highlight in fzf vim
+brew 'bat' # syntax highlight in fzf vim and lazygit
+
 brew 'fd'
+
+brew 'lazygit'
+brew 'git-delta'
 
 # https://github.com/Homebrew/brew/blob/master/docs/Versions.md
 # brew 'postgresql@9.5', restart_service: :changed
@@ -101,6 +105,9 @@ cask 'transmission'
 cask 'discord'
 cask 'toptracker'
 
+cask 'loop'
+cask 'inkscape'
+
 # cask 'google-chrome'
 # cask 'skype'
 # cask 'steam'
@@ -153,7 +160,6 @@ cask 'toptracker'
 #     - Maximize: <S-M-CR>
 #   - Preferences:
 #     - [ ] Show icon in Dock
-mas 'Flexiglass', id: 426410278
 # - app preferences:
 #   - General:
 #     - After upload:
@@ -173,5 +179,4 @@ mas 'Monosnap', id: 540348655
 mas 'Sip', id: 507257563
 mas 'Telegram', id: 747648890
 # mas 'Telegram Desktop', id: 946399090
-mas 'Boxy SVG', id: 611658502
 mas 'Xcode', id: 497799835
