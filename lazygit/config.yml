@@ -1,2 +1,33 @@
 quitOnTopLevelReturn: true
 promptToReturnFromSubprocess: false
+git:
+  pagers:
+    - colorArg: always
+      pager: /opt/homebrew/bin/delta --dark --paging=never --side-by-side --line-numbers
+
+gui:
+  screenMode: half
+  enlargedSideViewLocation: top
+  theme:
+    activeBorderColor:
+      - '#8caaee'
+      - bold
+    inactiveBorderColor:
+      - '#a5adce'
+    optionsTextColor:
+      - '#8caaee'
+    selectedLineBgColor:
+      - '#414559'
+    cherryPickedCommitBgColor:
+      - '#51576d'
+    cherryPickedCommitFgColor:
+      - '#8caaee'
+    unstagedChangesColor:
+      - '#e78284'
+    defaultFgColor:
+      - '#c6d0f5'
+    searchingActiveBorderColor:
+      - '#e5c890'
+
+authorColors:
+  '*': '#babbf1'
