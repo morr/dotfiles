@@ -28,6 +28,46 @@ return {
         ["config/locales/*en.yml"] = {
           alternate = "config/locales/{}ru.yml",
         },
+        ["app/services/*.rb"] = {
+          command = "service",
+          test = "spec/services/{}_spec.rb",
+          alternate = "spec/services/{}_spec.rb",
+        },
+        ["app/queries/*.rb"] = {
+          command = "query",
+          test = "spec/queries/{}_spec.rb",
+          alternate = "spec/queries/{}_spec.rb",
+        },
+        ["app/operations/*.rb"] = {
+          command = "operation",
+          test = "spec/operations/{}_spec.rb",
+          alternate = "spec/operations/{}_spec.rb",
+        },
+        ["app/value_objects/*.rb"] = {
+          command = "value_object",
+          test = "spec/value_objects/{}_spec.rb",
+          alternate = "spec/value_objects/{}_spec.rb",
+        },
+        ["app/view_objects/*.rb"] = {
+          command = "view_object",
+          test = "spec/view_objects/{}_spec.rb",
+          alternate = "spec/view_objects/{}_spec.rb",
+        },
+        ["app/validators/*.rb"] = {
+          command = "validator",
+          test = "spec/validators/{}_spec.rb",
+          alternate = "spec/validators/{}_spec.rb",
+        },
+        ["app/errors/*.rb"] = {
+          command = "error",
+          test = "spec/errors/{}_spec.rb",
+          alternate = "spec/errors/{}_spec.rb",
+        },
+        ["lib/*.rb"] = {
+          command = "lib",
+          test = "spec/lib/{}_spec.rb",
+          alternate = "spec/lib/{}_spec.rb",
+        },
       }
     end,
   },
