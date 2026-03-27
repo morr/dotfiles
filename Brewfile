@@ -9,8 +9,6 @@
 # Taps (third-party repositories)
 #-------------------------------------------------------------------------------
 
-tap 'homebrew/bundle'
-tap 'homebrew/services'
 tap 'puma/puma'
 
 #-------------------------------------------------------------------------------
@@ -90,14 +88,14 @@ brew 'openjdk'
 # Homebrew-Cask
 #-------------------------------------------------------------------------------
 
-cask 'homebrew/cask-versions/adoptopenjdk8'
+# cask 'homebrew/cask-versions/adoptopenjdk8'
 
 cask_args appdir: '/Applications'
 
-cask 'macvim'
+# cask 'macvim'
 cask 'karabiner-elements'
-cask 'iterm2'
-cask 'mucommander'
+# cask 'iterm2'
+# cask 'mucommander'
 cask 'krita'
 
 cask 'transmission'

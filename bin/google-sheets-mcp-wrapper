@@ -1,0 +1,33 @@
+#!/bin/bash
+# Generates a Google access token from service account key and runs google-sheets-mcp
+
+SA_KEY=~/dotfiles/.google_service_account.secret.json
+
+# Build JWT header and claims
+HEADER=$(printf '{"alg":"RS256","typ":"JWT"}' | openssl base64 -e -A | tr '+/' '-_' | tr -d '=')
+
+NOW=$(date +%s)
+EXP=$((NOW + 3600))
+CLIENT_EMAIL=$(python3 -c "import json; print(json.load(open('$SA_KEY'))['client_email'])")
+CLAIMS=$(printf '{"iss":"%s","scope":"https://www.googleapis.com/auth/spreadsheets","aud":"https://oauth2.googleapis.com/token","iat":%s,"exp":%s}' "$CLIENT_EMAIL" "$NOW" "$EXP" | openssl base64 -e -A | tr '+/' '-_' | tr -d '=')
+
+# Sign with RSA using private key from the JSON
+SIGNING_INPUT="${HEADER}.${CLAIMS}"
+python3 -c "import json; print(json.load(open('$SA_KEY'))['private_key'], end='')" > /tmp/sa_key.pem
+SIGNATURE=$(printf '%s' "$SIGNING_INPUT" | openssl dgst -sha256 -sign /tmp/sa_key.pem | openssl base64 -e -A | tr '+/' '-_' | tr -d '=')
+rm -f /tmp/sa_key.pem
+
+JWT="${SIGNING_INPUT}.${SIGNATURE}"
+
+# Exchange JWT for access token
+GOOGLE_ACCESS_TOKEN=$(curl -s -X POST https://oauth2.googleapis.com/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${JWT}" | python3 -c "import json,sys; print(json.load(sys.stdin)['access_token'])")
+
+if [ -z "$GOOGLE_ACCESS_TOKEN" ]; then
+  echo "Failed to get access token" >&2
+  exit 1
+fi
+
+export GOOGLE_ACCESS_TOKEN
+exec npx -y google-sheets-mcp

@@ -1,8 +1,8 @@
 #!/bin/bash
-PROXY_URL=$(cat ~/dotfiles/.proxy_url 2>/dev/null)
+PROXY_URL=$(cat ~/dotfiles/.proxy_url.secret 2>/dev/null)
 
 if [ -z "$PROXY_URL" ]; then
-  echo "Error: ~/dotfiles/.proxy_url not found or empty" >&2
+  echo "Error: ~/dotfiles/.proxy_url.secret not found or empty" >&2
   exit 1
 fi
 

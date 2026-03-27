@@ -7,6 +7,12 @@ echo ==========================================================================
 ./do_symlink
 
 echo ==========================================================================
+echo LAUNCHAGENTS...
+echo ==========================================================================
+launchctl unload ~/Library/LaunchAgents/com.morr.ssh-tunnel.plist 2>/dev/null || true
+launchctl load ~/Library/LaunchAgents/com.morr.ssh-tunnel.plist
+
+echo ==========================================================================
 echo BREWING...
 echo ==========================================================================
 brew bundle

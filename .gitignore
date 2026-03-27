@@ -1,4 +1,6 @@
 .DS_Store
 nvim/telescope_history.sqlite3
 iterm2_venv
-.proxy_url
+.proxy_url.secret
+.google_client.secret
+.google_service_account.secret.json
