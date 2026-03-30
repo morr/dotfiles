@@ -142,7 +142,7 @@ alias finalize='git rebase --interactive --autosquash master'
 alias update='git add -A && git commit -m "updates"'
 alias bugfix='git add -A && git commit -m "bugfixes"'
 
-alias migrate='bundle exec rails db:migrate && bundle exec flatware fan rake db:test:prepare'
+alias migrate='echo "Migrating Kladovkin..." && env PGUSER=minisklad_production PGDATABASE=minisklad_production bundle exec rails db:migrate && echo "Migrating SpaceHub..." && env PGUSER=spacehubstore_production PGDATABASE=spacehubstore_production bundle exec rails db:migrate && echo "Preparing flatware..." && bundle exec flatware fan rake db:test:prepare'
 alias rollback='bundle exec rails db:rollback STEP=1'
 
 alias deploy='git push && cap production deploy'
