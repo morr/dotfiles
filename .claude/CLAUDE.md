@@ -20,3 +20,5 @@ After writing or editing code, check LSP diagnostics and fix errors before proce
 ## Library/API documentation
 
 Prioritize use of Context7 MCP instead of web searching for Library/API documentation access.
+
+@RTK.md

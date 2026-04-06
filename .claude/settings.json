@@ -5,6 +5,7 @@
       "Bash(gh pr view:*)",
       "Bash(gh repo view:*)",
       "Bash(gh api repos/*)",
+      "Bash(gh pr diff:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
@@ -25,6 +26,7 @@
       "Read(~/dotfiles/**)",
       "Read(~/.claude/**)",
       "Read(~/.rbenv/**)",
+      "Read(/tmp/**)",
       "mcp__context7__resolve-library-id",
       "mcp__context7__query-docs"
     ],
