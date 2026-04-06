@@ -111,6 +111,22 @@ return {
       },
       scope = "window",
     },
+    config = function(_, opts)
+      require("smartcolumn").setup(opts)
+      -- Wrap autocmds in pcall to prevent "Index out of bounds" errors
+      -- when external tools (e.g. Claude Code) modify the buffer
+      local autocmds = vim.api.nvim_get_autocmds({ group = "SmartColumn" })
+      vim.api.nvim_create_augroup("SmartColumn", { clear = true })
+      for _, au in ipairs(autocmds) do
+        local orig_callback = au.callback
+        vim.api.nvim_create_autocmd(au.event, {
+          group = "SmartColumn",
+          callback = function()
+            pcall(orig_callback)
+          end,
+        })
+      end
+    end,
   },
   {
     "nvim-lualine/lualine.nvim",
