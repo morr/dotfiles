@@ -84,6 +84,10 @@ brew 'zsh'
 # brew 'java'
 brew 'openjdk'
 
+# CLI proxy that reduces LLM token consumption by 60-90% on common dev commands. Single Rust binary, zero dependencies
+# `rtk init -g` to setup
+brew 'rtk'
+
 #-------------------------------------------------------------------------------
 # Homebrew-Cask
 #-------------------------------------------------------------------------------

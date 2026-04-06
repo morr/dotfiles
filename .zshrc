@@ -55,6 +55,9 @@ source $ZSH/oh-my-zsh.sh
 # fix lag on paste text into console
 unset zle_bracketed_paste
 
+# disable telemetry for rtk
+export RTK_TELEMETRY_DISABLED=1
+
 #-------------------------------------------------------------------------------
 # ubuntu config
 #-------------------------------------------------------------------------------
@@ -142,8 +145,27 @@ alias finalize='git rebase --interactive --autosquash master'
 alias update='git add -A && git commit -m "updates"'
 alias bugfix='git add -A && git commit -m "bugfixes"'
 
-alias migrate='echo "Migrating Kladovkin..." && env PGUSER=minisklad_production PGDATABASE=minisklad_production bundle exec rails db:migrate && echo "Migrating SpaceHub..." && env PGUSER=spacehubstore_production PGDATABASE=spacehubstore_production bundle exec rails db:migrate && echo "Preparing flatware..." && bundle exec flatware fan rake db:test:prepare'
-alias rollback='bundle exec rails db:rollback STEP=1'
+migrate() {
+  local task="db:migrate"
+  if [[ "$1" =~ ^(up|down|redo|status)$ ]]; then
+    task="db:migrate:$1"
+    shift
+  fi
+  echo "Migrating Kladovkin..."
+  env PGUSER=minisklad_production PGDATABASE=minisklad_production bundle exec rails "$task" "$@"
+  echo "Migrating SpaceHub..."
+  env PGUSER=spacehubstore_production PGDATABASE=spacehubstore_production bundle exec rails "$task" "$@"
+  echo "Preparing flatware..."
+  bundle exec flatware fan rake db:test:prepare
+}
+rollback() {
+  echo "Rolling back Kladovkin..."
+  env PGUSER=minisklad_production PGDATABASE=minisklad_production bundle exec rails db:rollback "$@"
+  echo "Rolling back SpaceHub..."
+  env PGUSER=spacehubstore_production PGDATABASE=spacehubstore_production bundle exec rails db:rollback "$@"
+  echo "Preparing flatware..."
+  bundle exec flatware fan rake db:test:prepare
+}
 
 alias deploy='git push && cap production deploy'
 
