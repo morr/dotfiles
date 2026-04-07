@@ -21,10 +21,19 @@ return {
             -- Find the Ruby constant expression (A::B::C) surrounding the cursor
             -- Match all qualified constants on the line and pick the one under cursor
             local word
+            -- First try qualified constants (A::B::C), then single constants (UserMailer)
             for match_start, match, match_end in line:gmatch("()(%u[%w_]*::%u[%w_:]+)()") do
               if col >= match_start and col < match_end then
                 word = match
                 break
+              end
+            end
+            if not word then
+              for match_start, match, match_end in line:gmatch("()(%u%w+%u%w*)()") do
+                if col >= match_start and col < match_end then
+                  word = match
+                  break
+                end
               end
             end
 
