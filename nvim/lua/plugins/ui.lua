@@ -8,16 +8,14 @@ return {
       flavour = "frappe", -- latte, frappe, macchiato, mocha
       -- flavour = "macchiato", -- latte, frappe, macchiato, mocha
       -- flavour = "mocha", -- latte, frappe, macchiato, mocha
-      -- custom_highlights = function(colors)
-      --    return {
-      --       VertSplit = { fg = colors.surface0 },
-      --    }
-      -- end,
       integrations = {
         notify = true,
       },
     },
-    init = function() vim.cmd.colorscheme("catppuccin") end,
+    config = function(_, opts)
+      require("catppuccin").setup(opts)
+      vim.cmd.colorscheme("catppuccin")
+    end,
   },
   {
     "folke/noice.nvim",
