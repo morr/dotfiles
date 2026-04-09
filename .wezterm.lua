@@ -3,6 +3,11 @@ local config = wezterm.config_builder()
 
 config.scrollback_lines = 35000
 
+-- Use wezterm's own terminfo so neovim sets scroll regions correctly
+-- (works around a wezterm bug exposed by xterm-256color's smglr capability).
+-- See https://github.com/neovim/neovim/issues/35133
+config.term = 'wezterm'
+
 config.font = wezterm.font("MonacoLigaturized Nerd Font Mono")
 config.font_size = 14.0
 

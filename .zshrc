@@ -33,7 +33,11 @@ setopt HIST_EXPIRE_DUPS_FIRST
 setopt EXTENDED_HISTORY
 setopt HIST_SAVE_NO_DUPS
 
-TERM="xterm-256color"
+# Respect TERM set by the terminal (e.g. wezterm) if it provides one,
+# otherwise fall back to xterm-256color.
+if [[ -z "$TERM" || "$TERM" == "dumb" || "$TERM" == "xterm" ]]; then
+  TERM="xterm-256color"
+fi
 
 if [[ $(uname -m) == 'arm64' ]]; then
   export LOCAL_BREW=/opt/homebrew
