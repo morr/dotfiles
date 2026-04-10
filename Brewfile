@@ -71,6 +71,9 @@ brew 'ripgrep'
 # brew 'ctags'
 # brew 'the_silver_searcher'
 
+# nvim-treesitter (main branch) builds parsers from source via the CLI
+brew 'tree-sitter-cli'
+
 brew 'yarn'
 # - make it a login shell: `chsh -s /bin/zsh`
 #   (all available shells are listed in /etc/shells,

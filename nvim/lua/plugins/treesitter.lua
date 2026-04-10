@@ -1,106 +1,79 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "main",
+    lazy = false,
     build = ":TSUpdate",
     config = function()
-      require("nvim-treesitter.configs").setup({
-        auto_install = true,
-        ensure_installed = {
-          -- https://github.com/nvim-treesitter/nvim-treesitter?tab=readme-ov-file#supported-languages
-          -- vim basics
-          "lua",
-          "vim",
-          -- general
-          "comment",
-          "diff",
-          "vimdoc",
-          "bash",
-          "markdown_inline",
-          -- git
-          "git_rebase",
-          "gitattributes",
-          "gitcommit",
-          "gitignore",
-          -- web
-          "css",
-          "dockerfile",
-          "graphql",
-          "html",
-          "javascript",
-          "json",
-          "markdown",
-          "regex",
-          "ruby",
-          "scss",
-          "tsx",
-          "vue",
-          "yaml",
-          "pug",
-          -- other
-          "elixir",
-          "erlang",
-          "python",
-          "rust",
-          "sql",
-          "wgsl",
-        },
-        highlight = { enable = true },
-        indent = { enable = true },
-        autotag = { enable = true },
-        incremental_selection = {
-          enable = true,
-          keymaps = {
-            init_selection = "gnn",
-            node_incremental = "grn",
-            scope_incremental = "grc",
-            node_decremental = "grm",
-          },
-        },
-        parser_config = {
-          wgsl = {
-            install_info = {
-              url = "https://github.com/szebniok/tree-sitter-wgsl",
-              files = { "src/parser.c" },
-            },
-          },
-        },
-        -- sass = {
-        --   install_info = {
-        --     url = "file:///Users/morr/.local/share/nvim/lazy/nvim-treesitter/parser", -- Use file protocol for local files
-        --     files = { "scss.so" },
-        --   },
-        --   filetype = "sass",
-        --   used_by = { "sass" },
-        -- },
-      })
-
-      -- local parser_config =
-      --   require("nvim-treesitter.parsers").get_parser_configs()
+      require("nvim-treesitter").setup()
 
       vim.filetype.add({ extension = { wgsl = "wgsl" } })
-      -- parser_config.wgsl = {
-      --   install_info = {
-      --     url = "https://github.com/szebniok/tree-sitter-wgsl",
-      --     files = { "src/parser.c" },
-      --   },
-      -- }
-      --
-      -- vim.filetype.add({ extension = { sass = "scss" } })
-      -- parser_config.sass = {
-      --   install_info = {
-      --     url = "file:///Users/morr/.local/share/nvim/lazy/nvim-treesitter/parser", -- Use file protocol for local files
-      --     files = { "scss.so" },
-      --   },
-      --   filetype = "sass",
-      --   used_by = { "sass" },
-      -- }
+
+      local ensure_installed = {
+        -- https://github.com/nvim-treesitter/nvim-treesitter/blob/main/SUPPORTED_LANGUAGES.md
+        -- vim basics
+        "lua",
+        "vim",
+        -- general
+        "comment",
+        "diff",
+        "vimdoc",
+        "bash",
+        "markdown_inline",
+        -- git
+        "git_rebase",
+        "gitattributes",
+        "gitcommit",
+        "gitignore",
+        -- web
+        "css",
+        "dockerfile",
+        "graphql",
+        "html",
+        "javascript",
+        "json",
+        "markdown",
+        "regex",
+        "ruby",
+        "scss",
+        "tsx",
+        "vue",
+        "yaml",
+        "pug",
+        -- other
+        "elixir",
+        "erlang",
+        "python",
+        "rust",
+        "sql",
+        "wgsl",
+      }
+
+      local installed = require("nvim-treesitter").get_installed("parsers")
+      local installed_set = {}
+      for _, p in ipairs(installed) do
+        installed_set[p] = true
+      end
+      local missing = vim.tbl_filter(function(p)
+        return not installed_set[p]
+      end, ensure_installed)
+      if #missing > 0 then
+        require("nvim-treesitter").install(missing)
+      end
+
+      vim.api.nvim_create_autocmd("FileType", {
+        callback = function(args)
+          local buf = args.buf
+          local lang = vim.treesitter.language.get_lang(args.match)
+          if not lang then
+            return
+          end
+          if not pcall(vim.treesitter.start, buf, lang) then
+            return
+          end
+          vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+        end,
+      })
     end,
   },
-  { "nvim-treesitter/playground" },
-  -- {
-  --   "nvim-treesitter/nvim-treesitter-context",
-  --   config = function()
-  --     vim.cmd("hi TreesitterContextBottom gui=underdashed guisp=#585b70")
-  --   end,
-  -- },
 }
