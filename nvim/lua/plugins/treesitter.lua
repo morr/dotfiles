@@ -68,6 +68,9 @@ return {
           if not lang then
             return
           end
+          if #vim.treesitter.query.get_files(lang, "highlights") == 0 then
+            return
+          end
           if not pcall(vim.treesitter.start, buf, lang) then
             return
           end
