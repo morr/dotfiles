@@ -39,6 +39,8 @@ return {
                   for i = cursor_idx, #segments do
                     table.insert(words, table.concat(segments, "::", 1, i))
                   end
+                else
+                  table.insert(words, match)
                 end
                 break
               end
@@ -66,6 +68,14 @@ return {
 
               local glob = vim.fn.glob("app/**/" .. path, false, true)
               if #glob > 0 then
+                table.sort(glob, function(a, b)
+                  local da = select(2, a:gsub("/", "/"))
+                  local db = select(2, b:gsub("/", "/"))
+                  if da ~= db then
+                    return da < db
+                  end
+                  return a < b
+                end)
                 return glob[1], path
               end
 
@@ -89,13 +99,13 @@ return {
             -- Fallback to vim-ruby/vim-rails gf
             local ok, cfile = pcall(vim.fn.RubyCursorFile)
             if ok and cfile and cfile ~= "" then
-              local find_ok, find_err = pcall(vim.cmd, "find " .. cfile)
-              if not find_ok then
+              local find_ok, find_err = pcall(vim.cmd, "find " .. vim.fn.fnameescape(cfile))
+              if not find_ok and not (find_err:match("E345") or find_err:match("E447")) then
                 vim.notify(find_err, vim.log.levels.ERROR)
               end
             else
               local gf_ok, gf_err = pcall(vim.cmd, "normal! gf")
-              if not gf_ok then
+              if not gf_ok and not (gf_err:match("E345") or gf_err:match("E447") or gf_err:match("E446")) then
                 vim.notify(gf_err, vim.log.levels.ERROR)
               end
             end
