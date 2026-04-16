@@ -66,7 +66,7 @@ return {
                 end
               end
 
-              local glob = vim.fn.glob("app/**/" .. path, false, true)
+              local glob = vim.fn.glob("app/*/" .. path, false, true)
               if #glob > 0 then
                 table.sort(glob, function(a, b)
                   local da = select(2, a:gsub("/", "/"))
