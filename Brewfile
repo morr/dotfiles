@@ -19,7 +19,7 @@ brew 'coreutils'
 brew 'curl'
 brew 'git'
 brew 'wget'
-brew 'asdf'
+# brew 'asdf'
 brew 'gh' # github cli
 
 brew 'overmind'
@@ -35,7 +35,7 @@ brew 'jq'
 
 brew 'mas'
 brew 'memcached', restart_service: :changed
-brew 'mc'
+# brew 'mc'
 # brew 'mpv' # media player
 brew 'node'
 brew 'fzf'
