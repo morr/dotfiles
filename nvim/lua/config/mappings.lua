@@ -216,7 +216,7 @@ end
 map("n", ",t", clean_buffer, { desc = "Remove trailing whitespaces and invisible unicode" })
 
 map("n", ",p", function()
-  local path = vim.fn.expand("%")
+  local path = vim.fn.fnamemodify(vim.fn.expand("%:p"), ":.")
   vim.fn.setreg("+", path)
   vim.notify(path)
 end, { desc = "Copy file path to clipboard" })
