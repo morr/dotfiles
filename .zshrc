@@ -156,17 +156,17 @@ migrate() {
     shift
   fi
   echo "Migrating Kladovkin..."
-  env PGUSER=minisklad_production PGDATABASE=minisklad_production bundle exec rails "$task" "$@"
+  env BRAND=kladovkin PGUSER=minisklad_production PGDATABASE=minisklad_production bundle exec rails "$task" "$@"
   echo "Migrating SpaceHub..."
-  env PGUSER=spacehubstore_production PGDATABASE=spacehubstore_production bundle exec rails "$task" "$@"
+  env BRAND=spacehub PGUSER=spacehubstore_production PGDATABASE=spacehubstore_production bundle exec rails "$task" "$@"
   echo "Preparing flatware..."
   bundle exec flatware fan rake db:test:prepare
 }
 rollback() {
   echo "Rolling back Kladovkin..."
-  env PGUSER=minisklad_production PGDATABASE=minisklad_production bundle exec rails db:rollback "$@"
+  env BRAND=kladovkin PGUSER=minisklad_production PGDATABASE=minisklad_production bundle exec rails db:rollback "$@"
   echo "Rolling back SpaceHub..."
-  env PGUSER=spacehubstore_production PGDATABASE=spacehubstore_production bundle exec rails db:rollback "$@"
+  env BRAND=spacehub PGUSER=spacehubstore_production PGDATABASE=spacehubstore_production bundle exec rails db:rollback "$@"
   echo "Preparing flatware..."
   bundle exec flatware fan rake db:test:prepare
 }
