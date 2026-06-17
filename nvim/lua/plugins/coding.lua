@@ -77,7 +77,18 @@ return {
       require("spider").setup({
         skipInsignificantPunctuation = false, -- this is essential to make it to not skip russian words
         subwordMovement = true,
+        -- spider uses Lua patterns (%w/%u/%l) which are ASCII-only in Neovim, so
+        -- Cyrillic isn't seen as word chars and whole Russian phrases collapse into
+        -- one "word". Add a byte-range pattern matching runs of Cyrillic UTF-8
+        -- chars (lead bytes 0xD0-0xD3, continuation 0x80-0xBF) so w/b/e stop per word.
+        customPatterns = {
+          patterns = { cyrillic = "[\128-\191\208-\211]+" },
+        },
       })
+      -- Make spider's string helpers character-indexed (instead of byte-indexed)
+      -- so end-of-word motions land on char boundaries and don't get stuck on
+      -- multibyte (Cyrillic) words. See lua/config/spider_utf8.lua for details.
+      require("spider.extras.utf8-support").stringFuncs = require("config.spider_utf8")
     end,
   },
   -- {
