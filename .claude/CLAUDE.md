@@ -1,10 +1,5 @@
 # Project Instructions
 
-## Git Commits
-
-- Only add `Co-Authored-By: Claude` to commits where Claude authored or co-authored the changes. Do not add it when committing changes made entirely by the user.
-- Never chain `git add` and `git commit` with `&&` in a single Bash call. Always use separate Bash tool calls for `git add` and `git commit` so each matches its permission rule individually.
-
 ## Code Intelligence
 
 Prefer LSP over Grep/Read for code navigation — it's faster, precise, and avoids reading entire files:
@@ -16,6 +11,16 @@ Prefer LSP over Grep/Read for code navigation — it's faster, precise, and avoi
 Use Grep only when LSP isn't available or for text/pattern searches (comments, strings, config).
 
 After writing or editing code, check LSP diagnostics and fix errors before proceeding.
+
+## GitHub Issues / PRs
+
+Always fetch issues and PRs in raw markdown format, not the human-rendered text. The default `gh issue view N` / `gh pr view N` output strips attached images and file links. Use one of:
+
+- `gh issue view N --json body,title,comments` (markdown body + comment bodies preserved)
+- `gh api repos/{owner}/{repo}/issues/N --jq '.body'`
+- `gh api repos/{owner}/{repo}/issues/N/comments --jq '.[].body'`
+
+This preserves `![image](url)` and `[file](url)` markdown that the rendered text view drops, so attachments and downloadable files aren't missed.
 
 ## Library/API documentation
 
