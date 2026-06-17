@@ -8,8 +8,50 @@ return {
       --   { "<leader>r", group = "Rails" },
       -- })
       -- vim.keymap.set("n", "<leader>r", nil, { desc = "rspec" })
-      vim.keymap.set("n", "gs", "<cmd>AV<cr>", { desc = "RSpec split view" })
-      vim.keymap.set("n", "gS", "<cmd>A<cr>", { desc = "RSpec current buffer" })
+      -- Open the alternate (spec) file. If it exists, let vim-rails open it via
+      -- :A/:AV. If it's missing, offer to create it through vim.ui.select (a
+      -- native floating dialog via snacks) instead of vim-rails' inputlist().
+      local function alternate(cmd, open)
+        return function()
+          local root = vim.fn.eval("rails#app().path()")
+          local current = vim.fn.eval("rails#buffer().alternate()")
+          if type(current) == "string" and current ~= "" then
+            local clean = current:gsub("#.*", "")
+            if vim.fn.filereadable(root .. "/" .. clean) == 1 then
+              pcall(vim.cmd, cmd) -- exists → vim-rails opens it as usual
+              return
+            end
+          end
+
+          -- Gather projected (possibly missing) alternates, same filter vim-rails
+          -- uses for its prompt: the raw target's directory prefix must exist.
+          local ok, projected = pcall(vim.fn.eval, "rails#buffer().projected_with_raw('alternate')")
+          local candidates = {}
+          if ok then
+            for _, pair in ipairs(projected) do
+              local dir = pair[2]:match("^[^{}]*/")
+              if dir and vim.fn.isdirectory(root .. "/" .. dir) == 1 then
+                table.insert(candidates, pair[1])
+              end
+            end
+          end
+          if #candidates == 0 then
+            vim.notify("No alternate file defined", vim.log.levels.WARN)
+            return
+          end
+
+          vim.ui.select(candidates, { prompt = "Create alternate file?" }, function(choice)
+            if not choice then
+              return
+            end
+            local abs = root .. "/" .. choice
+            vim.fn.mkdir(vim.fn.fnamemodify(abs, ":h"), "p")
+            vim.cmd(open .. " " .. vim.fn.fnameescape(abs))
+          end)
+        end
+      end
+      vim.keymap.set("n", "gs", alternate("AV", "vsplit"), { desc = "RSpec split view" })
+      vim.keymap.set("n", "gS", alternate("A", "edit"), { desc = "RSpec current buffer" })
 
       vim.api.nvim_create_autocmd("FileType", {
         pattern = "ruby",
