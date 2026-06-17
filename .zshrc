@@ -244,6 +244,10 @@ alias fix-spotlight="cd $HOME; find . -type d -path './.*' -prune -o -path './Pi
 # zsh-completions
 #-------------------------------------------------------------------------------
 fpath=(path/to/zsh-completions/src $fpath)
+# ssh/scp/etc: complete from ~/.ssh/config only, ignore /etc/hosts & known_hosts
+# (avoids *.local aliases from /etc/hosts shadowing real config hosts)
+zstyle ':completion:*:(ssh|scp|sftp|slogin|rsync):*:hosts' hosts
+
 zstyle ':completion:*:processes' command 'ps -ax'
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;32'
 zstyle ':completion:*:*:kill:*' menu yes select
