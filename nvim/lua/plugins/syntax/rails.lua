@@ -27,10 +27,12 @@ return {
           -- uses for its prompt: the raw target's directory prefix must exist.
           local ok, projected = pcall(vim.fn.eval, "rails#buffer().projected_with_raw('alternate')")
           local candidates = {}
+          local seen = {}
           if ok then
             for _, pair in ipairs(projected) do
               local dir = pair[2]:match("^[^{}]*/")
-              if dir and vim.fn.isdirectory(root .. "/" .. dir) == 1 then
+              if dir and not seen[pair[1]] and vim.fn.isdirectory(root .. "/" .. dir) == 1 then
+                seen[pair[1]] = true
                 table.insert(candidates, pair[1])
               end
             end
