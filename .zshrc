@@ -63,16 +63,9 @@ unset zle_bracketed_paste
 export RTK_TELEMETRY_DISABLED=1
 
 #-------------------------------------------------------------------------------
-# ubuntu config
+# PATH for claude coed
 #-------------------------------------------------------------------------------
-unamestr=`uname`
-if [[ "$unamestr" == 'Linux' ]]; then
-  zstyle :omz:plugins:ssh-agent identities id_rsa github_2_rsa
-  # xmodmap -e "keycode 94 = asciitilde"
-  alias mvim="gvim"
-
-  export PATH=$HOME/.local/bin:$PATH
-fi
+export PATH="$HOME/.local/bin:$PATH"
 
 #-------------------------------------------------------------------------------
 # configs projects
