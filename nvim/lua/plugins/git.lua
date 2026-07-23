@@ -4,6 +4,8 @@ return {
     opts = {},
     keys = {
       { "<leader>gd", function() require("gitsigns").diffthis() end, desc = "Git Diff Buffer" },
+      { "<leader>gb", function() require("gitsigns").blame() end, desc = "Git Blame File" },
+      { "<leader>gl", function() require("gitsigns").blame_line() end, desc = "Git Blame Line" },
     },
   },
   -- {
