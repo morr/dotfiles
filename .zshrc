@@ -59,9 +59,6 @@ source $ZSH/oh-my-zsh.sh
 # fix lag on paste text into console
 unset zle_bracketed_paste
 
-# disable telemetry for rtk
-export RTK_TELEMETRY_DISABLED=1
-
 #-------------------------------------------------------------------------------
 # PATH for claude coed
 #-------------------------------------------------------------------------------

@@ -25,5 +25,3 @@ This preserves `![image](url)` and `[file](url)` markdown that the rendered text
 ## Library/API documentation
 
 Prioritize use of Context7 MCP instead of web searching for Library/API documentation access.
-
-@RTK.md
