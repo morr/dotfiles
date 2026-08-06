@@ -5,6 +5,7 @@ files = %w[
   .gitconfig
   .pryrc
   .irbrc
+  .guard.rb
   .zshrc
   .wezterm.lua
   .agignore

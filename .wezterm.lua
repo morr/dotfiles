@@ -346,4 +346,63 @@ config.keys = {
   },
 }
 
+-- guard test status dot in the tab title, fed by the `guard_status` user var
+-- that ~/.guard.rb emits: red (failed) wins over yellow (running) over green
+-- (passed), so a tab with several guard panes shows the worst state.
+local GUARD_STATUS_COLORS = {
+  fail = "#ee5849",
+  running = "#d1b93b",
+  pass = "#75a774",
+}
+local GUARD_STATUS_PRIORITY = { "fail", "running", "pass" }
+
+local function tab_state(tab)
+  local unseen_output = false
+  local guard_statuses = {}
+
+  for _, pane in ipairs(tab.panes) do
+    if pane.has_unseen_output then
+      unseen_output = true
+    end
+    local status = pane.user_vars.guard_status
+    if status then
+      guard_statuses[status] = true
+    end
+  end
+
+  local guard_color
+  for _, status in ipairs(GUARD_STATUS_PRIORITY) do
+    if guard_statuses[status] then
+      guard_color = GUARD_STATUS_COLORS[status]
+      break
+    end
+  end
+
+  return unseen_output, guard_color
+end
+
+-- NB: max_width (tab_max_width, 16 by default) is deliberately ignored — the
+-- built-in title formatter doesn't apply it either, and honouring it squeezes
+-- every tab down to a few characters.
+wezterm.on("format-tab-title", function(tab)
+  local unseen_output, guard_color = tab_state(tab)
+
+  local title = tab.tab_title
+  if title == nil or #title == 0 then
+    title = tab.active_pane.title
+  end
+  title = string.format("%d: %s%s", tab.tab_index + 1, unseen_output and "* " or "", title)
+
+  if guard_color == nil then
+    return title
+  end
+
+  return {
+    { Foreground = { Color = guard_color } },
+    { Text = "●" },
+    "ResetAttributes",
+    { Text = " " .. title },
+  }
+end)
+
 return config
