@@ -39,6 +39,52 @@ sites, where Edit has no equivalent (it does no regex, and fails on a non-unique
 instead of replacing all). Then: `assert` on *every* replacement, not just the first, and
 `git diff` afterwards to show what actually landed.
 
+## Shell is zsh — three mandatory forms when writing a Bash command
+
+Not prohibitions to recall, but the only shapes to type. Everything below them is mechanics —
+read that when debugging a failure, not when composing a command.
+
+1. **A separator is `echo ---`.** Never `echo ===`.
+2. **A glob inside a flag value is quoted:** `--include='*.rb'`, `--exclude='*.log'`,
+   `-name '*.yml'`.
+3. **A `;`-chain never ends with an existence probe** (`ls maybe-missing.yml`, a `grep` that
+   may not match, `[ -f … ]`) — move it earlier, or append `; true`.
+
+Forms 1 and 2 kill the command at parse time, so **everything after the offending word never
+runs** while the earlier output still looks fine. Form 3 breaks nothing — it just makes a
+healthy call report "Exit code 1". All three read identically from the outside: output stops,
+exit 1. Before "fixing" one, check which it actually is.
+
+---
+
+The Bash tool runs **zsh**, where the `EQUALS` option is on by default: a word starting with
+`=` is replaced by the full path to the command of that name (`echo =ls` → `/bin/ls`). So
+`echo ===` fails with `(eval):1: == not found` and exits 1. Worse, the expansion happens at
+parse time, so **the rest of the command line never runs** — it reads as "git worked, then
+grep silently printed nothing", and the failure becomes the exit code of the whole call.
+
+Write separators as `echo ---` (zsh leaves a leading hyphen alone) or quote them:
+`echo '==='`. Same rule for any bare argument with a leading `=`.
+
+A glob with no matches is an error (`no matches found`) rather than a literal, and it kills the
+whole command before it runs — quote it or use `ls`/`find`. **This bites hardest when the glob
+sits inside a flag value, where it doesn't read as a glob:** `grep -rn foo --include=*.rb app`
+dies with `(eval):1: no matches found: --include=*.rb`, because zsh expands `*.rb` against the
+*current* directory, not against grep's search target. Always quote the pattern —
+`--include='*.rb'`, `--exclude='*.log'`, `-name '*.yml'`. The symptom is identical to the
+`=`-expansion one above (output stops right after the preceding `echo ---`), so check which of
+the two it actually is before "fixing" the separator.
+
+A `;`-chain reports the exit code of its **last** command only. If the chain ends with a
+probe that legitimately "fails" — `ls maybe-missing.yml 2>/dev/null`, a `grep` with no matches,
+`[ -f … ]` — the whole Bash call shows "Exit code 1" even though every earlier part ran and
+printed fine. Before treating such a call as broken, check whether the tail was an existence
+probe answering "no". Avoid the false alarm by not putting probes last, ending with `; true`,
+or phrasing them as `[ -f x ] && echo yes || echo no`.
+
+Related shell gotchas: `~` inside quotes is not expanded. macOS `cat` is BSD: there is no `-A`,
+only `-e` / `-t` / `-vet`; watch for the same GNU-vs-BSD flag gap in other coreutils.
+
 ## GitHub Issues / PRs
 
 Always fetch issues and PRs in raw markdown format, not the human-rendered text. The default `gh issue view N` / `gh pr view N` output strips attached images and file links. Use one of:
