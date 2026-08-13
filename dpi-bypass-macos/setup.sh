@@ -181,7 +181,8 @@ if sudo -n true 2>/dev/null; then
 else
     sudo -v || die "без прав администратора настройка невозможна"
 fi
-( while true; do sudo -n true 2>/dev/null || exit; sleep 50; done ) &
+# Именно -v: он продлевает отметку времени явно, а не как побочный эффект команды.
+( while true; do sudo -n -v 2>/dev/null || exit; sleep 50; done ) &
 SUDO_KEEPALIVE_PID=$!
 ok "сессия sudo получена"
 
