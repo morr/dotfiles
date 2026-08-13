@@ -16,10 +16,14 @@
 | `dnscrypt-proxy` (DNS поверх HTTPS) | `/opt/homebrew/etc/dnscrypt-proxy.toml` | `sudo brew services start dnscrypt-proxy` |
 | Исходники | `~/develop/darkware-zapret`, `~/develop/byedpi` | — |
 
-Управление сервисом (пароль не спрашивает — правило в `/etc/sudoers.d/darkware-zapret`):
+Разворачивается всё скриптом `setup.sh` рядом — он ставит зависимости, собирает,
+проводит через GUI-шаги с проверкой и идемпотентен (повторный запуск ничего не ломает).
+
+Управление сервисом (пароль не спрашивает — правило в `/etc/sudoers.d/darkware-zapret`;
+команды `status` у него нет, без аргументов печатает список поддерживаемых):
 
 ```bash
-sudo /opt/darkware-zapret/init.d/macos/zapret start|stop|restart|status
+sudo /opt/darkware-zapret/init.d/macos/zapret start|stop|restart|start-fw|stop-fw|restart-fw|start-daemons|stop-daemons|restart-daemons
 ```
 
 ## Рабочая стратегия
