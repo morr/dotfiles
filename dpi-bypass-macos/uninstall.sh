@@ -285,7 +285,7 @@ else
             *"An asterisk"*|"") continue ;;
         esac
         svc="${svc#\*}"
-        current="$(networksetup -getdnsservers "$svc" 2>/dev/null | tr '\n' ' ')"
+        current="$(networksetup -getdnsservers "$svc" 2>/dev/null | tr '\n' ' ' || true)"
         # «There aren't any DNS Servers set on X» — это и есть автоматический DNS,
         # но целой фразой в отчёте оно читается как поломка.
         case "$current" in *"aren't any"*) current="не задан" ;; esac
@@ -633,7 +633,7 @@ fi
 
 info "DNS сетевых сервисов:"
 networksetup -listallnetworkservices | tail -n +2 | while IFS= read -r svc; do
-    printf '        %-24s %s\n' "$svc" "$(networksetup -getdnsservers "${svc#\*}" 2>/dev/null | tr '\n' ' ')"
+    printf '        %-24s %s\n' "$svc" "$(networksetup -getdnsservers "${svc#\*}" 2>/dev/null | tr '\n' ' ' || true)"
 done
 
 check "системный DNS резолвит имена" system_resolves

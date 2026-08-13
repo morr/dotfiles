@@ -303,7 +303,9 @@ else
     ( cd "$BYEDPI_SRC" && run make )
 fi
 [ -x "$BYEDPI_SRC/ciadpi" ] || die "ciadpi не собрался" "посмотри вывод make выше"
-ok "ciadpi готов: $("$BYEDPI_SRC/ciadpi" --version 2>&1 | head -1)"
+# `|| true` обязателен: --version/--help этих утилит выходят с кодом 1, а ERR-обработчик
+# наследуется в подстановку команд (set -E) и печатает оттуда ложный «[СБОЙ]».
+ok "ciadpi готов: $("$BYEDPI_SRC/ciadpi" --version 2>&1 | head -1 || true)"
 
 step "Сборка tpws, ip2net, mdig (make mac)"
 if [ -x "$ZAPRET_SRC/zapret_src/binaries/my/tpws" ]; then
@@ -314,7 +316,7 @@ fi
 for b in tpws ip2net mdig; do
     [ -x "$ZAPRET_SRC/zapret_src/binaries/my/$b" ] || die "не собрался $b" "посмотри вывод make mac выше"
 done
-ok "tpws: $("$ZAPRET_SRC/zapret_src/binaries/my/tpws" --help 2>&1 | head -1)"
+ok "tpws: $("$ZAPRET_SRC/zapret_src/binaries/my/tpws" --help 2>&1 | head -1 || true)"
 
 step "Подмена ciadpi на свою сборку"
 if cmp -s "$BYEDPI_SRC/ciadpi" "$ZAPRET_SRC/zapret_src/byedpi/ciadpi"; then
@@ -535,7 +537,7 @@ while IFS= read -r svc; do
         *"An asterisk"*|"") continue ;;
     esac
     svc="${svc#\*}"
-    current="$(networksetup -getdnsservers "$svc" 2>/dev/null | tr '\n' ' ')"
+    current="$(networksetup -getdnsservers "$svc" 2>/dev/null | tr '\n' ' ' || true)"
     case "$current" in
         *"aren't any"*) prev="Empty" ;;
         *)              prev="$current" ;;
@@ -584,12 +586,15 @@ if sudo grep -q "^ALL " /etc/sudoers.d/darkware-zapret 2>/dev/null; then
 else
     skip "правило sudoers уже сужено"
 fi
-# У управляющего скрипта нет команды status: без аргументов он печатает usage и
-# выходит с кодом 1. Нам важно другое — что sudo пропустил его без пароля.
-if sudo -n "$ZAPRET_CTL" 2>&1 | grep -q 'Usage:'; then
+# Спрашиваем у sudo право на команду (-l), а не запускаем её: у управляющего скрипта
+# нет команды status, без аргументов он печатает usage и выходит с кодом 1, и по такому
+# выводу «разрешено или нет» не отличить от «сессия sudo истекла».
+if sudo -n -l "$ZAPRET_CTL" >/dev/null 2>&1; then
     ok "перезапуск сервиса по-прежнему работает без пароля"
-else
+elif sudo -n true 2>/dev/null; then
     warn "sudo больше не пропускает управляющий скрипт без пароля — проверь /etc/sudoers.d/darkware-zapret"
+else
+    skip "правило sudoers не проверить: сессия sudo истекла (на работу сервиса это не влияет)"
 fi
 
 # ═════════════════════════ ФАЗА H — финальная проверка ══════════════════════
@@ -610,14 +615,14 @@ check "процесс dnscrypt-proxy работает" pgrep -f dnscrypt-proxy
 
 info "DNS сетевых сервисов:"
 networksetup -listallnetworkservices | tail -n +2 | while IFS= read -r svc; do
-    printf '        %-24s %s\n' "$svc" "$(networksetup -getdnsservers "$svc" 2>/dev/null | tr '\n' ' ')"
+    printf '        %-24s %s\n' "$svc" "$(networksetup -getdnsservers "$svc" 2>/dev/null | tr '\n' ' ' || true)"
 done
 
 info "Сверяю системный резолв с ответом по HTTPS (так видно подмену DNS):"
 sys_ip="$(dig +short rutracker.org 2>/dev/null | head -1)"
 doh_ip="$(curl -s --max-time 10 -H 'accept: application/dns-json' \
           'https://1.1.1.1/dns-query?name=rutracker.org&type=A' 2>/dev/null \
-          | python3 -c 'import json,sys; d=json.load(sys.stdin); print("\n".join(a["data"] for a in d.get("Answer",[]) if a.get("type")==1))' 2>/dev/null | head -1)"
+          | python3 -c 'import json,sys; d=json.load(sys.stdin); print("\n".join(a["data"] for a in d.get("Answer",[]) if a.get("type")==1))' 2>/dev/null | head -1 || true)"
 info "системный: ${sys_ip:-нет ответа}   по HTTPS: ${doh_ip:-нет ответа}"
 if [ -n "$sys_ip" ] && [ -n "$doh_ip" ]; then
     if dig +short rutracker.org 2>/dev/null | grep -qx "$doh_ip"; then
