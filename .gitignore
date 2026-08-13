@@ -4,3 +4,4 @@ iterm2_venv
 .proxy_url.secret
 .google_client.secret
 .google_service_account.secret.json
+.proxy_url*.secret
