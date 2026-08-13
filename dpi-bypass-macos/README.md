@@ -191,11 +191,32 @@ sudo sed -i '' "s/^ALL /$USER /" /etc/sudoers.d/darkware-zapret
 
 ## Полное удаление
 
+`./uninstall.sh` рядом — снимает всё, что ставит `setup.sh`, и так же идемпотентен.
+Запущенный без аргументов, спрашивает объём удаления сам; ключи нужны для неинтерактивного
+запуска и отключают опрос: `--keep-sources` (не трогать `~/develop`), `--keep-dnscrypt`
+(оставить шифрованный DNS и системные настройки DNS как есть), `--keep-logs`,
+`--yes` (не спрашивать подтверждения плана).
+Кнопка Uninstall в самом приложении делает меньше: сносит `/opt` и правило sudoers,
+но оставляет LaunchDaemon, патч `/etc/pf.conf` и настройки DNS и Chrome.
+
+Порядок в скрипте не случайный: **сначала системный DNS возвращается на автоматический
+и проверяется, что резолв живой, и только потом останавливается `dnscrypt-proxy`** —
+наоборот машина осталась бы без DNS. Если резолв после отката не поднимается,
+скрипт демон не трогает и говорит об этом.
+
+Вручную, если нужно по шагам:
+
 ```bash
+sudo networksetup -setdnsservers Ethernet Empty; sudo networksetup -setdnsservers Wi-Fi Empty
+dig +short example.com                                  # убедиться, что DNS жив
+sudo brew services stop dnscrypt-proxy
+sudo /opt/darkware-zapret/init.d/macos/zapret stop      # снимает правила PF и демонов
 sudo launchctl unload /Library/LaunchDaemons/com.darkware.zapret.plist
 sudo rm /Library/LaunchDaemons/com.darkware.zapret.plist /etc/sudoers.d/darkware-zapret
-sudo rm -rf /opt/darkware-zapret
-sudo brew services stop dnscrypt-proxy
-sudo networksetup -setdnsservers Ethernet Empty; sudo networksetup -setdnsservers Wi-Fi Empty
+sudo rm -f /etc/pf.anchors/zapret /etc/pf.anchors/zapret-v4 /etc/pf.anchors/zapret-v6
+sudo sed -i '' -e '/^anchor "zapret"$/d' -e '/^rdr-anchor "zapret"$/d' \
+               -e '/^set limit table-entries/d' /etc/pf.conf
+sudo pfctl -qf /etc/pf.conf
+sudo rm -rf /opt/darkware-zapret "/Applications/darkware zapret.app"
 defaults delete com.google.Chrome QuicAllowed
 ```
