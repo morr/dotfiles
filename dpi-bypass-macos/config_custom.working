@@ -1,0 +1,12 @@
+MODE_FILTER=autohostlist
+TPWS_ENABLE=1
+TPWS_SOCKS_ENABLE=1
+TPWS_PORTS=80,443
+INIT_APPLY_FW=1
+DISABLE_IPV6=1
+GZIP_LISTS=0
+GETLIST=get_refilter_domains.sh
+TPWS_OPT="
+--filter-tcp=80 --methodeol <HOSTLIST> --new
+--filter-tcp=443 --split-pos=midsld --disorder <HOSTLIST>
+"

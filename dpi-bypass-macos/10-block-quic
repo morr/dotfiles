@@ -1,0 +1,19 @@
+# Block outbound QUIC (UDP port 443).
+#
+# tpws works on TCP only. Chrome remembers the h3 Alt-Svc of youtube.com and
+# keeps going over QUIC, which bypasses the desync entirely and is dropped by
+# the DPI. With UDP 443 blocked, browsers fall back to TCP, where tpws applies
+# --split-pos=midsld --disorder and the request goes through.
+#
+# Rules land in the zapret-v4 / zapret-v6 anchors, which pf.conf references both
+# as rdr-anchor and as anchor, so filter rules are valid here.
+
+zapret_custom_firewall_v4()
+{
+	echo "block drop out quick inet proto udp from any to any port 443"
+}
+
+zapret_custom_firewall_v6()
+{
+	echo "block drop out quick inet6 proto udp from any to any port 443"
+}
