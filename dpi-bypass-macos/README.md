@@ -7,6 +7,38 @@
 Конкретные адреса в тексте намеренно не зашиты: везде, где они нужны, приведена команда,
 которая их получает.
 
+## Два скрипта
+
+```bash
+./install.sh      # развернуть настройку
+./uninstall.sh    # снять её полностью
+```
+
+Оба идемпотентны: повторный запуск на уже настроенной (или уже вычищенной) машине
+проходит на «ПРОПУСК» и ничего не ломает. Каждый пишет полный лог —
+`~/dpi-bypass-install-*.log` и `~/dpi-bypass-uninstall-*.log`; если что-то пошло не так,
+этот файл и есть то, что нужно показать. Пароль администратора спрашивается в начале;
+система может переспросить его посреди работы — это нормально.
+
+**`install.sh`** ставит зависимости (Command Line Tools, Homebrew, git, dnscrypt-proxy,
+Chrome), собирает `tpws` и `ciadpi` из исходников, ставит приложение, проводит через
+два шага, которые нельзя сделать за тебя — кнопку **Install Service** в меню-баре и
+флаги Chrome, — и после каждого проверяет результат, не пропуская дальше, пока он не
+достигнут. Затем прописывает стратегию, хук блокировки QUIC, шифрованный DNS и
+закрывает дыру, которую оставляет установщик апстрима (см. ниже). Ключ `--rebuild`
+заставляет пересобрать приложение, даже если сервис уже стоит.
+
+**`uninstall.sh`** без аргументов спрашивает объём удаления: сносить ли шифрованный DNS,
+исходники сборки, логи. Ключи `--keep-dnscrypt`, `--keep-sources`, `--keep-logs`
+отвечают на те же вопросы заранее и отключают опрос, `--yes` снимает и подтверждение
+плана — вместе они дают неинтерактивный запуск. Порядок шагов там не случайный:
+**сначала системный DNS возвращается на автоматический и проверяется, что резолв живой,
+и только потом останавливается `dnscrypt-proxy`** — наоборот машина осталась бы без DNS.
+Если резолв после отката не поднимается, скрипт демон не трогает и говорит об этом.
+
+Кнопка Uninstall в самом приложении делает заметно меньше: сносит `/opt` и правило
+sudoers, но оставляет LaunchDaemon, патч `/etc/pf.conf` и настройки DNS и Chrome.
+
 ## Что стоит и где
 
 | Компонент | Где | Автозапуск |
@@ -14,10 +46,12 @@
 | `tpws` (обход DPI, только TCP) | `/opt/darkware-zapret/` | LaunchDaemon `/Library/LaunchDaemons/com.darkware.zapret.plist` |
 | GUI-пульт «darkware zapret» | `/Applications/darkware zapret.app` | не нужен, сервис живёт сам |
 | `dnscrypt-proxy` (DNS поверх HTTPS) | `/opt/homebrew/etc/dnscrypt-proxy.toml` | `sudo brew services start dnscrypt-proxy` |
-| Исходники | `~/develop/darkware-zapret`, `~/develop/byedpi` | — |
+| Исходники (материал сборки) | `~/Library/Caches/dpi-bypass-macos/{darkware-zapret,byedpi}` | — |
 
-Разворачивается всё скриптом `setup.sh` рядом — он ставит зависимости, собирает,
-проводит через GUI-шаги с проверкой и идемпотентен (повторный запуск ничего не ломает).
+Исходники лежат в кэше намеренно: после установки сервис живёт в `/opt` и от них не
+зависит, так что каталог можно снести в любой момент — `./install.sh --rebuild`
+переклонирует и пересоберёт. Поэтому же они не в `~/develop` (это не рабочий проект)
+и не в репозитории dotfiles (16 МБ чужих бинарников в git не нужны).
 
 Управление сервисом (пароль не спрашивает — правило в `/etc/sudoers.d/darkware-zapret`;
 команды `status` у него нет, без аргументов печатает список поддерживаемых):
@@ -28,8 +62,9 @@ sudo /opt/darkware-zapret/init.d/macos/zapret start|stop|restart|start-fw|stop-f
 
 ## Рабочая стратегия
 
-`/opt/darkware-zapret/config_custom` — файл с правами 666, редактируется без sudo,
-GUI перезаписывает его тем же содержимым:
+`/opt/darkware-zapret/config_custom` — эталон лежит рядом в `config_custom.working`,
+`install.sh` копирует его туда. Права 600, владелец — ты, так что правится без sudo;
+GUI перезаписывает файл тем же содержимым:
 
 ```
 MODE_FILTER=autohostlist
@@ -60,6 +95,8 @@ tpws работает только с TCP, а Chrome ходит на YouTube п�
 2. Политика Chrome: `defaults write com.google.Chrome QuicAllowed -bool false`.
 3. Флаг `chrome://flags/#enable-quic` → Disabled.
 
+Первые два делает `install.sh`, третий — ты сам на его шаге про флаги.
+
 ## Chrome: обязательные настройки
 
 - **`chrome://flags/#cryptography-compliance-cnsa` → Default.** Это была причина
@@ -69,6 +106,9 @@ tpws работает только с TCP, а Chrome ходит на YouTube п�
   на чистом профиле: с флагом — ERR_CONNECTION_CLOSED, без — YouTube грузится.
 - **«Всегда использовать безопасные соединения»** (`chrome://settings/security`) —
   порт 80 не обходится в принципе (см. ниже), а браузер при вводе голого домена лезет туда.
+
+Флаги живут в `Local State` и записываются на диск только при полном выходе из Chrome —
+поэтому `install.sh` просит закрыть его через Cmd+Q, а потом читает файл и проверяет.
 
 ## DNS
 
@@ -100,6 +140,9 @@ sudo networksetup -setdnsservers Wi-Fi 127.0.0.1
 sudo networksetup -setdnsservers Ethernet Empty; sudo networksetup -setdnsservers Wi-Fi Empty
 ```
 
+`install.sh` делает это для **всех** сетевых сервисов (Ethernet, Wi-Fi, Thunderbolt Bridge,
+iPhone USB и прочих) и только после того, как локальный резолвер уже ответил.
+
 Chrome использует **свой** резолвер, но серверы берёт из системной конфигурации, так что
 идёт через тот же `127.0.0.1`. Secure DNS в самом Chrome включать не нужно.
 
@@ -130,22 +173,26 @@ curl -s -o /dev/null -w '%{http_code}\n' --max-time 10 https://www.youtube.com  
 curl -s https://httpbin.org/ip                            # свой внешний адрес, если нужен
 ```
 
+Те же проверки делает `install.sh` в конце — при повторном запуске он их прогонит,
+ничего не меняя, так что это ещё и способ получить сводку о состоянии стенда.
+
 Отладка tpws (пишет имена хостов, потом обязательно убрать):
 добавить `--debug=@/tmp/tpws.log` первой строкой в `TPWS_OPT`, перезапустить сервис.
 В логе видно `hostlist check ... positive`, `multisplit pos: N`, размер ClientHello.
 
-## Сборка с нуля
+## Сборка с нуля — то, что `install.sh` делает за тебя
 
 ```bash
-git clone https://github.com/roninreilly/darkware-zapret.git ~/develop/darkware-zapret
-git clone https://github.com/hufrea/byedpi.git ~/develop/byedpi
+SRC=~/Library/Caches/dpi-bypass-macos
+git clone https://github.com/roninreilly/darkware-zapret.git "$SRC/darkware-zapret"
+git clone https://github.com/hufrea/byedpi.git "$SRC/byedpi"
 
-cd ~/develop/byedpi && make                     # ciadpi; для universal — две сборки + lipo
-cd ~/develop/darkware-zapret/zapret_src && make mac   # tpws, ip2net, mdig в binaries/my
-cp ~/develop/byedpi/ciadpi zapret_src/byedpi/ciadpi   # не доверять бинарнику из репозитория
+cd "$SRC/byedpi" && make                       # ciadpi; для universal — две сборки + lipo
+cd "$SRC/darkware-zapret/zapret_src" && make mac      # tpws, ip2net, mdig в binaries/my
+cp "$SRC/byedpi/ciadpi" zapret_src/byedpi/ciadpi      # не доверять бинарнику из репозитория
 
-cd ~/develop/darkware-zapret && swift build -c release -Xswiftc -parse-as-library
-# бандл собирается скриптом make_bundle.sh (копия в этой папке): бинарь + zapret_src
+cd "$SRC/darkware-zapret" && swift build -c release -Xswiftc -parse-as-library
+./make_bundle.sh "$SRC/darkware-zapret"        # из этой папки: бинарь + zapret_src
 # в Resources + Info.plist + codesign -s -. Полный create_app.sh делает ещё DMG и требует
 # Finder/AppleScript, а universal-сборка Swift — полного Xcode (в CLT нет xcbuild).
 ```
@@ -153,12 +200,12 @@ cd ~/develop/darkware-zapret && swift build -c release -Xswiftc -parse-as-librar
 Дальше — запустить приложение, нажать **Install Service** (один раз, с паролем админа),
 затем вписать стратегию в `config_custom` и `sudo /opt/darkware-zapret/init.d/macos/zapret restart`.
 
-## Что делает установщик апстрима — проверить сразу после установки
+## Дыра в установщике апстрима — её закрывает `install.sh`
 
-Читается в `install_darkware.sh` самого проекта. Две вещи стоит поправить первым делом:
-правило sudoers он выписывает на всех пользователей, а свой файл конфигурации создаёт
-доступным на запись кому угодно. Поскольку этот конфиг подключается в тот, что читает
-запускаемый под root скрипт, вместе это даёт локальному процессу root без пароля.
+Читается в `install_darkware.sh` самого проекта. Правило sudoers он выписывает на всех
+пользователей, а свой файл конфигурации создаёт доступным на запись кому угодно.
+Поскольку этот конфиг подключается в тот, что читает запускаемый под root скрипт,
+вместе это даёт локальному процессу root без пароля.
 
 ```bash
 # сузить sudoers до себя и закрыть конфиг на запись остальным
@@ -167,8 +214,8 @@ sudo chmod 600 /opt/darkware-zapret/config_custom
 sudo sed -i '' "s/^ALL /$USER /" /etc/sudoers.d/darkware-zapret
 ```
 
-Установщик также патчит `/etc/pf.conf` (добавляет `rdr-anchor "zapret"` и `anchor "zapret"`)
-и ставит LaunchDaemon с автозапуском.
+Установщик также патчит `/etc/pf.conf` (добавляет `rdr-anchor "zapret"`, `anchor "zapret"`
+и `set limit table-entries`) и ставит LaunchDaemon с автозапуском.
 
 ## Тупики — не тратить на них время повторно
 
@@ -189,22 +236,9 @@ sudo sed -i '' "s/^ALL /$USER /" /etc/sudoers.d/darkware-zapret
   заголовком имя хоста, и это легко принять за успех. Проверять размер DOM и наличие
   осмысленного контента.
 
-## Полное удаление
+## Удаление вручную
 
-`./uninstall.sh` рядом — снимает всё, что ставит `setup.sh`, и так же идемпотентен.
-Запущенный без аргументов, спрашивает объём удаления сам; ключи нужны для неинтерактивного
-запуска и отключают опрос: `--keep-sources` (не трогать `~/develop`), `--keep-dnscrypt`
-(оставить шифрованный DNS и системные настройки DNS как есть), `--keep-logs`,
-`--yes` (не спрашивать подтверждения плана).
-Кнопка Uninstall в самом приложении делает меньше: сносит `/opt` и правило sudoers,
-но оставляет LaunchDaemon, патч `/etc/pf.conf` и настройки DNS и Chrome.
-
-Порядок в скрипте не случайный: **сначала системный DNS возвращается на автоматический
-и проверяется, что резолв живой, и только потом останавливается `dnscrypt-proxy`** —
-наоборот машина осталась бы без DNS. Если резолв после отката не поднимается,
-скрипт демон не трогает и говорит об этом.
-
-Вручную, если нужно по шагам:
+Штатный путь — `./uninstall.sh` (см. выше). По шагам, если нужно руками:
 
 ```bash
 sudo networksetup -setdnsservers Ethernet Empty; sudo networksetup -setdnsservers Wi-Fi Empty
@@ -220,3 +254,8 @@ sudo pfctl -qf /etc/pf.conf
 sudo rm -rf /opt/darkware-zapret "/Applications/darkware zapret.app"
 defaults delete com.google.Chrome QuicAllowed
 ```
+
+`brew uninstall dnscrypt-proxy` при этом честно скажет «Could not remove keg»: бинарник
+лежит в `Cellar/.../sbin`, который `brew services` перевёл во владение root, — каталог
+нужно добить через `sudo rm -rf "$(brew --cellar dnscrypt-proxy)"`. Конфигурацию в
+`etc/dnscrypt-proxy.toml` brew не удаляет никогда. `uninstall.sh` доводит оба хвоста сам.
