@@ -45,10 +45,10 @@ STRATEGIES=(
 )
 
 # Целевые хосты — те, что SNI-блокировкой режутся, но чинятся обходом (в README
-# они в «работает»). Два, чтобы на каждый пришлось меньше хендшейков, чем на один.
-# rutracker/x.com/discord сюда не годятся: их душат по входящему потоку, обходом
-# не лечится, они провалят любую стратегию и только испортят замер.
-TARGETS=(www.youtube.com www.instagram.com)
+# они в «работает»). rutracker/x.com/discord сюда не годятся: их душат по входящему
+# потоку, обходом не лечится, они провалят любую стратегию и только испортят замер.
+# Добавить ещё цели можно флагом --host (тогда хендшейки размажутся по нескольким).
+TARGETS=(www.youtube.com)
 # Контрольный хост — не в блок-листе, идёт через tpws нетронутым и обязан
 # отвечать всегда. Если он не отвечает, значит лёг сам туннель или DNS, и
 # провал целей в этом прогоне ничего не говорит о стратегии.
@@ -401,16 +401,38 @@ if [ "$USE_CHROME" -eq 1 ] && [ -x "$CHROME_BIN" ]; then
     if apply_config "$(config_for "$best_strat")"; then
         sleep 2
         prof="$(mktemp -d /tmp/dpi-tuning-chrome.XXXXXX)"
+        domfile="$(mktemp /tmp/dpi-tuning-dom.XXXXXX)"
         host="${TARGETS[0]}"
-        info "гружу https://$host свежим профилем Chrome (без куки), меряю размер DOM"
-        dom="$("$CHROME_BIN" --headless=new --disable-gpu --no-first-run \
-               --user-data-dir="$prof" --virtual-time-budget=10000 \
-               --dump-dom "https://$host" 2>/dev/null | wc -c | tr -d ' ')" || dom=0
-        rm -rf "$prof"   # профиль мог набрать куки — удаляем сразу
+        chrome_wait=25
+        info "гружу https://$host свежим профилем Chrome (без куки), меряю размер DOM (до $chrome_wait с)"
+        # headless=new с --dump-dom иногда не выходит сам (QUIC закрыт, страница
+        # добирает ресурсы), а timeout на macOS нет — сторожим вручную и добиваем
+        # по уникальному пути профиля, чтобы не осталось висящих процессов Chrome.
+        "$CHROME_BIN" --headless=new --disable-gpu --no-first-run --no-default-browser-check \
+            --user-data-dir="$prof" --virtual-time-budget=10000 \
+            --dump-dom "https://$host" >"$domfile" 2>/dev/null &
+        cpid=$!
+        waited=0
+        while kill -0 "$cpid" 2>/dev/null && [ "$waited" -lt "$chrome_wait" ]; do
+            sleep 1; waited=$((waited + 1))
+        done
+        if kill -0 "$cpid" 2>/dev/null; then
+            warn "Chrome не завершился за $chrome_wait с — снимаю его и пропускаю проверку"
+            kill "$cpid" 2>/dev/null || true
+            pkill -f "$prof" 2>/dev/null || true
+            dom=0
+        else
+            wait "$cpid" 2>/dev/null || true
+            dom="$(wc -c <"$domfile" | tr -d ' ')"
+        fi
+        rm -rf "$prof" "$domfile"   # профиль мог набрать куки — удаляем сразу
         if [ "${dom:-0}" -ge 5000 ]; then
             ok "Chrome отдал $dom байт DOM — победитель подтверждён браузером"
+        elif [ "${dom:-0}" -eq 0 ]; then
+            warn "Chrome ничего не отдал (таймаут или сбой) — браузером подтвердить не вышло"
+            warn "для curl стратегия сработала; проверь вручную (README, п.2 «Правила работы со стендом»)"
         else
-            warn "Chrome отдал всего ${dom:-0} байт DOM — для curl стратегия сработала, для Chrome под вопросом"
+            warn "Chrome отдал всего $dom байт DOM — для curl стратегия сработала, для Chrome под вопросом"
             warn "проверь вручную (README, п.2 «Правила работы со стендом») прежде чем оставлять её надолго"
         fi
     else
