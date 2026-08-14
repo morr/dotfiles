@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Полностью снимает настройку обхода DPI, которую разворачивает setup.sh рядом:
+# Полностью снимает настройку обхода DPI, которую разворачивает install.sh рядом:
 # tpws (darkware-zapret), правила PF, блокировку QUIC, шифрованный DNS
 # и связанные настройки Chrome.
 #
@@ -13,9 +13,12 @@
 #
 set -Eeuo pipefail
 
-DEV_DIR="$HOME/develop"
-ZAPRET_SRC="$DEV_DIR/darkware-zapret"
-BYEDPI_SRC="$DEV_DIR/byedpi"
+SRC_DIR="$HOME/Library/Caches/dpi-bypass-macos"
+ZAPRET_SRC="$SRC_DIR/darkware-zapret"
+BYEDPI_SRC="$SRC_DIR/byedpi"
+# Прежнее расположение исходников (до переезда в Caches) — на давно настроенной
+# машине они лежат там, и «удалить исходники» должно означать и их тоже.
+LEGACY_SRC=("$HOME/develop/darkware-zapret" "$HOME/develop/byedpi")
 APP_DST="/Applications/darkware zapret.app"
 OPT_DIR="/opt/darkware-zapret"
 ZAPRET_CTL="$OPT_DIR/init.d/macos/zapret"
@@ -46,7 +49,7 @@ for arg in "$@"; do
         -y|--yes)        ASSUME_YES=1 ;;
         -h|--help)
             printf 'Использование: %s [--keep-sources] [--keep-dnscrypt] [--keep-logs] [--yes]\n\n' "$0"
-            printf '  --keep-sources    не удалять исходники в ~/develop (darkware-zapret, byedpi)\n'
+            printf '  --keep-sources    не удалять исходники (darkware-zapret, byedpi) в кэше сборки\n'
             printf '  --keep-dnscrypt   оставить шифрованный DNS как есть:\n'
             printf '                    не трогать системный DNS, не останавливать и не удалять демон\n'
             printf '  --keep-logs       не удалять логи установки и работы сервиса\n'
@@ -206,7 +209,7 @@ if [ "$ASK_OPTIONS" -eq 1 ]; then
     printf '\n'
     ask_yes_no "Вернуть системный DNS на автоматический и снести dnscrypt-proxy?" y \
         || KEEP_DNSCRYPT=1
-    ask_yes_no "Удалить исходники в ~/develop (darkware-zapret, byedpi)?" y \
+    ask_yes_no "Удалить исходники сборки (darkware-zapret, byedpi)?" y \
         || KEEP_SOURCES=1
     ask_yes_no "Удалить логи установки и работы сервиса (в них есть имена посещённых сайтов)?" y \
         || KEEP_LOGS=1
@@ -237,13 +240,16 @@ printf '  Исходники:\n'
 if [ "$KEEP_SOURCES" -eq 1 ]; then
     printf '    • НЕ трогаю (--keep-sources)\n'
 else
-    printf '    • %s и %s\n' "$ZAPRET_SRC" "$BYEDPI_SRC"
+    printf '    • %s (darkware-zapret, byedpi)\n' "$SRC_DIR"
+    for d in "${LEGACY_SRC[@]}"; do
+        [ -d "$d" ] && printf '    • %s — от прежней установки\n' "$d" || true
+    done
 fi
 printf '  Логи:\n'
 if [ "$KEEP_LOGS" -eq 1 ]; then
     printf '    • НЕ трогаю (--keep-logs)\n'
 else
-    printf '    • /tmp/darkware-zapret.*.log, /tmp/tpws.log, ~/dpi-bypass-setup-*.log\n'
+    printf '    • /tmp/darkware-zapret.*.log, /tmp/tpws.log, ~/dpi-bypass-install-*.log\n'
     printf '      (лог самого удаления остаётся)\n'
 fi
 printf '\n  Не трогаю: Homebrew, Command Line Tools, Google Chrome.\n'
@@ -510,7 +516,7 @@ step "Удаление исходников"
 if [ "$KEEP_SOURCES" -eq 1 ]; then
     skip "запрошено ключом --keep-sources"
 else
-    for dir in "$ZAPRET_SRC" "$BYEDPI_SRC"; do
+    for dir in "$ZAPRET_SRC" "$BYEDPI_SRC" "${LEGACY_SRC[@]}"; do
         if [ -d "$dir" ]; then
             run rm -rf "$dir"
             ok "удалён $dir"
@@ -518,6 +524,9 @@ else
             skip "$dir уже удалён"
         fi
     done
+    # Каталог кэша наш целиком, но убираем его только если он пуст:
+    # чужого там быть не должно, а если что-то есть — пусть останется на виду.
+    rmdir "$SRC_DIR" 2>/dev/null && ok "удалён каталог кэша $SRC_DIR" || true
 fi
 
 # ═════════════════════════════ ФАЗА D — Chrome ══════════════════════════════
@@ -580,13 +589,15 @@ else
             skip "$f уже нет"
         fi
     done
-    found_setup_log=0
-    for f in "$HOME"/dpi-bypass-setup-*.log; do
+    # dpi-bypass-setup-*.log — имя логов до переименования setup.sh в install.sh;
+    # на давно настроенной машине они ещё лежат, и вычистить их надо тоже.
+    found_install_log=0
+    for f in "$HOME"/dpi-bypass-install-*.log "$HOME"/dpi-bypass-setup-*.log; do
         [ -f "$f" ] || continue
-        found_setup_log=1
+        found_install_log=1
         run rm -f "$f"
     done
-    [ "$found_setup_log" -eq 1 ] && ok "логи установки удалены" || skip "логов установки нет"
+    [ "$found_install_log" -eq 1 ] && ok "логи установки удалены" || skip "логов установки нет"
     info "Лог этого удаления остаётся: $LOG_FILE"
 fi
 
@@ -647,7 +658,7 @@ if [ "${#FAILED_CHECKS[@]}" -eq 0 ]; then
     printf '  • Homebrew, Command Line Tools, Google Chrome — их скрипт не ставил как одноразовые\n'
     printf '  • настройка «Всегда использовать безопасные соединения» в Chrome, если ты её оставил\n\n'
     printf 'Заблокированные сайты снова блокируются — это ожидаемо.\n'
-    printf 'Развернуть всё обратно: ./setup.sh рядом с этим скриптом.\n'
+    printf 'Развернуть всё обратно: ./install.sh рядом с этим скриптом.\n'
 else
     printf 'ЗАВЕРШЕНО С ЗАМЕЧАНИЯМИ. Не прошли проверки:\n'
     for c in "${FAILED_CHECKS[@]}"; do printf '  • %s\n' "$c"; done

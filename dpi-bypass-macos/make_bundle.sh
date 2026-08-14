@@ -1,12 +1,14 @@
 #!/bin/bash
 # Bundle-only part of darkware-zapret's create_app.sh (no DMG, no Finder scripting).
+#
+# Usage: make_bundle.sh <path-to-darkware-zapret-checkout> [version]
 set -e
 
-cd "$HOME/develop/darkware-zapret"
+cd "${1:?укажи путь к исходникам darkware-zapret первым аргументом}"
 
 APP_NAME="darkware zapret"
 BUNDLE_IDENTIFIER="com.darkware.zapret"
-VERSION="${1:-1.0.39-local}"
+VERSION="${2:-1.0.39-local}"
 APP="$APP_NAME.app"
 
 rm -rf "$APP"

@@ -10,16 +10,18 @@
 set -Eeuo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEV_DIR="$HOME/develop"
-ZAPRET_SRC="$DEV_DIR/darkware-zapret"
-BYEDPI_SRC="$DEV_DIR/byedpi"
+# Исходники — материал сборки, а не рабочий проект: после установки сервис живёт
+# в /opt и от них не зависит, а удаление кэша чинится одним --rebuild.
+SRC_DIR="$HOME/Library/Caches/dpi-bypass-macos"
+ZAPRET_SRC="$SRC_DIR/darkware-zapret"
+BYEDPI_SRC="$SRC_DIR/byedpi"
 APP_SRC="$ZAPRET_SRC/darkware zapret.app"
 APP_DST="/Applications/darkware zapret.app"
 OPT_DIR="/opt/darkware-zapret"
 ZAPRET_CTL="$OPT_DIR/init.d/macos/zapret"
 CHROME_APP="/Applications/Google Chrome.app"
 CHROME_LOCAL_STATE="$HOME/Library/Application Support/Google/Chrome/Local State"
-LOG_FILE="$HOME/dpi-bypass-setup-$(date +%Y%m%d-%H%M%S).log"
+LOG_FILE="$HOME/dpi-bypass-install-$(date +%Y%m%d-%H%M%S).log"
 
 FORCE_REBUILD=0
 for arg in "$@"; do
@@ -265,7 +267,8 @@ fi
 # ═══════════════════════ ФАЗА B — исходники и сборка ════════════════════════
 
 step "Исходники darkware-zapret и byedpi"
-mkdir -p "$DEV_DIR"
+info "Кладу их в $SRC_DIR — сервис от них не зависит, каталог можно снести в любой момент."
+mkdir -p "$SRC_DIR"
 clone_or_skip() {
     local url="$1" dir="$2"
     if [ -d "$dir/.git" ]; then
@@ -335,7 +338,7 @@ info "Занимает около минуты."
 ok "бинарник собран"
 
 step "Сборка бандла .app"
-run bash "$DOTFILES_DIR/make_bundle.sh"
+run bash "$DOTFILES_DIR/make_bundle.sh" "$ZAPRET_SRC"
 [ -d "$APP_SRC" ] || die "бандл не собрался" "посмотри вывод make_bundle.sh выше"
 ok "бандл готов: $APP_SRC"
 
