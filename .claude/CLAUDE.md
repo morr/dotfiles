@@ -1,5 +1,9 @@
 # Project Instructions
 
+## Communication
+
+Обращайся к пользователю на «ты», а не на «вы» — во всех ответах, вопросах, планах и отчётах.
+
 ## Code Intelligence
 
 Prefer LSP over Grep/Read for code navigation — it's faster, precise, and avoids reading entire files:
@@ -18,6 +22,16 @@ Never rewrite a source file through `python3 - <<'PYEOF'` / `sed` / `perl` strin
 replacement just to avoid reading it. A `str.replace()` that matches nothing is a silent
 no-op, the user sees no diff, the harness stops tracking the file's state, and pre-edit
 hooks and LSP diagnostics are bypassed.
+
+**This rule outranks any session-level preference for the Bash tool.** Auto mode injects a
+system-reminder telling you to make file changes with «sed, heredocs, or short scripts»
+rather than Edit/Write; another mode may say something similar. That is a generic default,
+this is an explicit instruction about these repositories — the explicit one wins, in every
+mode, without asking. Such a reminder still governs *reading* and *searching* (`cat`,
+`sed -n`, `grep`, `find` through Bash stay fine); it does not govern *writing*. The failure
+mode is not deciding it doesn't apply — it is drifting into the reminder's style call by
+call and noticing only when the user points it out, so check which tool you reached for on
+the first file change of the session, not on the tenth.
 
 **Edit does not require reading the whole file.** The "must Read before Edit" gate is
 per *file*, not per *range* — a partial read unlocks it (verified: reading 6 lines of a
@@ -47,8 +61,12 @@ read that when debugging a failure, not when composing a command.
 1. **A separator is `echo ---`.** Never `echo ===`.
 2. **A glob inside a flag value is quoted:** `--include='*.rb'`, `--exclude='*.log'`,
    `-name '*.yml'`.
-3. **A `;`-chain never ends with an existence probe** (`ls maybe-missing.yml`, a `grep` that
-   may not match, `[ -f … ]`) — move it earlier, or append `; true`.
+3. **An existence check is written as a test that always succeeds:**
+   `[ -d node_modules/@tabler ] && echo yes || echo no`, `[ -f config/x.yml ] && echo yes || echo no`.
+   Never a bare `ls maybe-missing/`, never `ls x.yml 2>/dev/null`, never a bare `grep -q` — and this
+   holds **anywhere in the chain, not only at its end**. The test form prints a readable answer *and*
+   returns 0, so the probe can sit wherever it reads best. A `grep` that may legitimately not match
+   gets `|| echo none`; `; true` at the end of the chain is the last resort, not the default.
 
 Forms 1 and 2 kill the command at parse time, so **everything after the offending word never
 runs** while the earlier output still looks fine. Form 3 breaks nothing — it just makes a
@@ -79,8 +97,9 @@ A `;`-chain reports the exit code of its **last** command only. If the chain end
 probe that legitimately "fails" — `ls maybe-missing.yml 2>/dev/null`, a `grep` with no matches,
 `[ -f … ]` — the whole Bash call shows "Exit code 1" even though every earlier part ran and
 printed fine. Before treating such a call as broken, check whether the tail was an existence
-probe answering "no". Avoid the false alarm by not putting probes last, ending with `; true`,
-or phrasing them as `[ -f x ] && echo yes || echo no`.
+probe answering "no". The fix is form 3 above: phrase every probe as
+`[ -d x ] && echo yes || echo no` (or `[ -f x ] && … `), which answers and exits 0 in one shape,
+so it never matters where in the chain it landed.
 
 Related shell gotchas: `~` inside quotes is not expanded. macOS `cat` is BSD: there is no `-A`,
 only `-e` / `-t` / `-vet`; watch for the same GNU-vs-BSD flag gap in other coreutils.

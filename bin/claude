@@ -1,0 +1,35 @@
+#!/bin/bash
+# Start every Claude Code session on opus.
+#
+# /model persists the choice into ~/.claude/settings.json (in the picker enter is
+# "set as default"; `/model fable` with an argument persists unconditionally), so
+# a switch to Fable leaks into every session started afterwards. A SessionStart
+# hook cannot fix that: it runs after the session has already picked its model.
+#
+# --model is documented as "Model for the current session" and is never written
+# back to settings, so forcing it here pins the default at launch without taking
+# away the in-session /model switch.
+#
+# ~/dotfiles/bin comes before ~/.local/bin in PATH, so this also covers
+# `with-proxy claude`, which execs claude by name.
+#
+# Left alone: an explicit --model of your own, and the subcommands (claude
+# update, claude mcp, …), which would reject the flag.
+
+real="$HOME/.local/bin/claude"
+
+for arg in "$@"; do
+  case "$arg" in
+    --model | --model=*) exec "$real" "$@" ;;
+  esac
+done
+
+case "${1:-}" in
+  agents | auth | auto-mode | config | doctor | gateway | import | install | mcp | \
+  migrate-installer | plugin | plugins | project | remote-control | serve | setup-token | \
+  ssh | ultrareview | update | upgrade)
+    exec "$real" "$@"
+    ;;
+esac
+
+exec "$real" --model opus "$@"
