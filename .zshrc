@@ -95,6 +95,7 @@ alias cs="cd ~/develop/work/cardwiz-shared/"
 #-------------------------------------------------------------------------------
 alias dev="cd ~/develop"
 alias zxc="cd ~/develop/bevy/zxc"
+alias qwe="cd ~/develop/bevy/qwe"
 alias bevy="cd ~/develop/bevy"
 
 #-------------------------------------------------------------------------------
@@ -233,7 +234,9 @@ alias fix-spotlight="cd $HOME; find . -type d -path './.*' -prune -o -path './Pi
 #-------------------------------------------------------------------------------
 # zsh-completions
 #-------------------------------------------------------------------------------
-fpath=(path/to/zsh-completions/src $fpath)
+# own completions take precedence over oh-my-zsh's cache; ~/.zsh/completions/_cargo
+# patches `cargo --example` so it also finds examples in subdirectories
+fpath=(~/.zsh/completions $fpath)
 # ssh/scp/etc: complete from ~/.ssh/config only, ignore /etc/hosts & known_hosts
 # (avoids *.local aliases from /etc/hosts shadowing real config hosts)
 zstyle ':completion:*:(ssh|scp|sftp|slogin|rsync):*:hosts' hosts
