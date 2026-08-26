@@ -33,20 +33,12 @@ mode is not deciding it doesn't apply — it is drifting into the reminder's sty
 call and noticing only when the user points it out, so check which tool you reached for on
 the first file change of the session, not on the tenth.
 
-**Edit does not require reading the whole file.** The "must Read before Edit" gate is
-per *file*, not per *range* — a partial read unlocks it (verified: reading 6 lines of a
-3000-line file was enough). The cheap loop:
-
-1. `Grep -n "anchor" path/to/file.rs -C 5` — locates the spot and prints the exact text,
-   byte for byte, including indentation.
-2. `Read` with `offset` / `limit` — a ~30-line window around it.
-3. `Edit` against a line just seen.
-
-Two rules for it:
-
-- Only edit text inside the window actually read. Editing outside it is technically
-  allowed but carries exactly the `str.replace()` risk — matching text never seen.
-- Grep does not replace Read: it does not unlock the gate, it just lets the Read be narrow.
+**Edit does not require reading the whole file.** The "must Read before Edit" gate is per
+*file*, not per *range* — a partial read unlocks it. The cheap loop: `Grep -n` the anchor
+(prints the exact bytes, indentation included) → `Read` with `offset`/`limit`, a ~30-line
+window → `Edit` against a line just seen. Only edit text inside the window actually read —
+outside it you carry exactly the `str.replace()` risk, matching text never seen. Grep does
+not replace Read: it doesn't unlock the gate, it just keeps the Read narrow.
 
 The one case a script wins is a genuinely mechanical sweep — a regex across many call
 sites, where Edit has no equivalent (it does no regex, and fails on a non-unique string
@@ -73,36 +65,9 @@ runs** while the earlier output still looks fine. Form 3 breaks nothing — it j
 healthy call report "Exit code 1". All three read identically from the outside: output stops,
 exit 1. Before "fixing" one, check which it actually is.
 
----
-
-The Bash tool runs **zsh**, where the `EQUALS` option is on by default: a word starting with
-`=` is replaced by the full path to the command of that name (`echo =ls` → `/bin/ls`). So
-`echo ===` fails with `(eval):1: == not found` and exits 1. Worse, the expansion happens at
-parse time, so **the rest of the command line never runs** — it reads as "git worked, then
-grep silently printed nothing", and the failure becomes the exit code of the whole call.
-
-Write separators as `echo ---` (zsh leaves a leading hyphen alone) or quote them:
-`echo '==='`. Same rule for any bare argument with a leading `=`.
-
-A glob with no matches is an error (`no matches found`) rather than a literal, and it kills the
-whole command before it runs — quote it or use `ls`/`find`. **This bites hardest when the glob
-sits inside a flag value, where it doesn't read as a glob:** `grep -rn foo --include=*.rb app`
-dies with `(eval):1: no matches found: --include=*.rb`, because zsh expands `*.rb` against the
-*current* directory, not against grep's search target. Always quote the pattern —
-`--include='*.rb'`, `--exclude='*.log'`, `-name '*.yml'`. The symptom is identical to the
-`=`-expansion one above (output stops right after the preceding `echo ---`), so check which of
-the two it actually is before "fixing" the separator.
-
-A `;`-chain reports the exit code of its **last** command only. If the chain ends with a
-probe that legitimately "fails" — `ls maybe-missing.yml 2>/dev/null`, a `grep` with no matches,
-`[ -f … ]` — the whole Bash call shows "Exit code 1" even though every earlier part ran and
-printed fine. Before treating such a call as broken, check whether the tail was an existence
-probe answering "no". The fix is form 3 above: phrase every probe as
-`[ -d x ] && echo yes || echo no` (or `[ -f x ] && … `), which answers and exits 0 in one shape,
-so it never matters where in the chain it landed.
-
-Related shell gotchas: `~` inside quotes is not expanded. macOS `cat` is BSD: there is no `-A`,
-only `-e` / `-t` / `-vet`; watch for the same GNU-vs-BSD flag gap in other coreutils.
+The mechanics behind all three — why an `=`-word and an unmatched glob die at parse time, why a
+tail probe reports exit 1 — are in `~/.claude/docs/zsh-mechanics.md`. Read it when a call fails
+in a way you don't recognise; you don't need it to write a correct command.
 
 ## GitHub Issues / PRs
 
