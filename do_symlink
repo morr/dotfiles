@@ -17,6 +17,7 @@ files = %w[
   .claude/CLAUDE.md
   .claude/local-patches
   .mcp.json
+  .zsh/completions/_cargo
   Library/LaunchAgents/com.morr.ssh-tunnel.plist
 ]
 
@@ -35,6 +36,7 @@ def symlink(source, target)
     puts "  already symlinked: #{target}"
   else
     FileUtils.rm_f(target)
+    FileUtils.mkdir_p(File.dirname(target))
     FileUtils.ln_s(source, target)
     puts "  symlinked: #{target} -> #{source}"
   end

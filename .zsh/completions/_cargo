@@ -1,0 +1,60 @@
+#compdef cargo
+
+# Personal override of the toolchain's _cargo.
+#
+# Upstream `_cargo_example_names` is:
+#
+#     local -a files=(${(@f)$(echo examples/*.rs(:t:r))})
+#     _values 'example' "${files[@]}"
+#
+# Two problems with it. It globs only `examples/*.rs`, so a crate whose examples
+# live in subdirectories (examples/demos/foo/main.rs, wired up with
+# `[[example]] path = ...` in Cargo.toml) offers nothing. And when the glob
+# matches nothing, the empty array still reaches `_values`, which dies with
+#
+#     _values:compvalues:11: not enough arguments
+#
+# Fix below: take the names from the manifest's `[[example]] name = ...` blocks
+# (the same source cargo itself uses), add the ones cargo auto-discovers, and
+# never call the completion helper with an empty list.
+#
+# IMPORTANT: this file is only reached when ~/.zsh/completions is in $fpath —
+# see the `zsh-completions` section of .zshrc. A zsh started before that line
+# was added (2026-08-22) autoloads oh-my-zsh's cached _cargo instead, which
+# sources the broken upstream one; `exec zsh` in such a shell.
+
+local __cargo_sysroot __cargo_upstream
+__cargo_sysroot=$(rustc --print sysroot 2>/dev/null) || return 1
+__cargo_upstream=$__cargo_sysroot/share/zsh/site-functions/_cargo
+[[ -r $__cargo_upstream ]] || return 1
+
+# The upstream file ends with a bare `_cargo` invocation; strip it so that
+# evaluating the file only *defines* things.
+eval "${$(<$__cargo_upstream)%_cargo}"
+
+_cargo_example_names() {
+    local -a names
+    local manifest f
+
+    # explicit `[[example]] name = "..."` blocks
+    manifest=$(cargo locate-project --message-format plain 2>/dev/null)
+    if [[ -n $manifest && -r $manifest ]]; then
+        names=( ${(f)"$(awk '
+            /^[[:space:]]*\[\[example\]\]/ { in_block = 1; next }
+            /^[[:space:]]*\[/             { in_block = 0 }
+            in_block && /^[[:space:]]*name[[:space:]]*=/ {
+                if (match($0, /"[^"]*"/))
+                    print substr($0, RSTART + 1, RLENGTH - 2)
+            }
+        ' $manifest)"} )
+    fi
+
+    # plus what cargo auto-discovers: examples/<name>.rs and examples/<name>/main.rs
+    for f in examples/*.rs(N.); do names+=( ${f:t:r} ); done
+    for f in examples/*/main.rs(N.); do names+=( ${${f:h}:t} ); done
+
+    names=( ${(u)names} )
+    (( $#names )) && _describe -t examples 'example' names
+}
+
+_cargo "$@"
