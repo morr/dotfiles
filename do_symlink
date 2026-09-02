@@ -16,6 +16,8 @@ files = %w[
   .claude/statusline.sh
   .claude/CLAUDE.md
   .claude/local-patches
+  .claude/docs
+  .claude/hooks
   .claude/themes
   .mcp.json
   .zsh/completions/_cargo
