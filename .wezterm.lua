@@ -351,10 +351,37 @@ config.keys = {
 -- (passed), so a tab with several guard panes shows the worst state.
 local GUARD_STATUS_COLORS = {
   fail = "#ee5849",
-  running = "#d1b93b",
+  running = "#e0cd63",
   pass = "#75a774",
 }
 local GUARD_STATUS_PRIORITY = { "fail", "running", "pass" }
+
+local OVERMIND_TITLE_COLOR = "#c4a7e7"
+
+-- claude code prefixes the pane title with a rotating moon while it is working
+-- and with ✳ once it is idle, so the moon is the "busy" signal.
+local CLAUDE_BUSY_GLYPHS = { "◐", "◑", "◒", "◓" }
+local CLAUDE_BUSY_TITLE_COLOR = GUARD_STATUS_COLORS.running
+
+local function claude_busy(title)
+  for _, glyph in ipairs(CLAUDE_BUSY_GLYPHS) do
+    if title:find(glyph, 1, true) then
+      return true
+    end
+  end
+
+  return false
+end
+
+local function title_color(title)
+  if claude_busy(title) then
+    return CLAUDE_BUSY_TITLE_COLOR
+  end
+
+  if title:find("overmind", 1, true) then
+    return OVERMIND_TITLE_COLOR
+  end
+end
 
 local function tab_state(tab)
   local unseen_output = false
@@ -394,7 +421,15 @@ wezterm.on("format-tab-title", function(tab)
   title = string.format("%d: %s%s", tab.tab_index + 1, unseen_output and "* " or "", title)
 
   if guard_color == nil then
-    return title
+    local color = title_color(title)
+    if color == nil then
+      return title
+    end
+
+    return {
+      { Foreground = { Color = color } },
+      { Text = title },
+    }
   end
 
   return {
