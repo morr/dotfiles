@@ -34,6 +34,11 @@
       "/tmp/99"
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "~/dotfiles/.claude/statusline.sh",
+    "padding": 0
+  },
   "model": "opus",
   "hooks": {
     "PreToolUse": [
