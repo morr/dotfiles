@@ -15,12 +15,18 @@
 #
 # Left alone: an explicit --model of your own, and the subcommands (claude
 # update, claude mcp, …), which would reject the flag.
+#
+# Everything goes through with-proxy, so a plain `claude` is already proxied and
+# `with-proxy claude` stays harmless (the second pass just re-exports the same
+# variables). with-proxy is called with the absolute path of the real binary —
+# calling it with the name `claude` would resolve back to this binstub and loop.
 
 real="$HOME/.local/bin/claude"
+proxy="$HOME/dotfiles/bin/with-proxy5"
 
 for arg in "$@"; do
   case "$arg" in
-    --model | --model=*) exec "$real" "$@" ;;
+    --model | --model=*) exec "$proxy" "$real" "$@" ;;
   esac
 done
 
@@ -28,8 +34,8 @@ case "${1:-}" in
   agents | auth | auto-mode | config | doctor | gateway | import | install | mcp | \
   migrate-installer | plugin | plugins | project | remote-control | serve | setup-token | \
   ssh | ultrareview | update | upgrade)
-    exec "$real" "$@"
+    exec "$proxy" "$real" "$@"
     ;;
 esac
 
-exec "$real" --model opus "$@"
+exec "$proxy" "$real" --model opus "$@"
