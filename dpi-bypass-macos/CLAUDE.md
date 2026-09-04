@@ -36,6 +36,10 @@
 
 - Сервис: `sudo /opt/darkware-zapret/init.d/macos/zapret restart` — работает **без пароля**
   (правило в `/etc/sudoers.d/darkware-zapret`), так что перезапускать можно самому.
+- **`ERR_CONNECTION_REFUSED` на всех сайтах разом, а через прокси работает** — это не
+  блокировка, а упавший `tpws`: правило PF заворачивает 80/443 на мёртвый порт. Чинит
+  перезапуск сервиса, ловит сторож `local.zapret-watchdog`
+  (`sudo tail /var/log/zapret-watchdog.log`). Раздел «Сторож сервиса» в README.
 - Стратегия: `/opt/darkware-zapret/config_custom`, права 666 — правится **без sudo**.
   Рабочая для 443: `--split-pos=midsld --disorder`.
 - DNS: `dnscrypt-proxy` на `127.0.0.1:53`. Системный резолвер провайдер подменяет,

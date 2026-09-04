@@ -1,0 +1,89 @@
+#!/bin/bash
+#
+# Сторож обхода DPI. Раз в StartInterval проверяет, что трафик на 80/443 реально
+# попадает в tpws, и перезапускает сервис, если нет. Запускается под root из
+# /Library/LaunchDaemons/local.zapret-watchdog.plist, sudo ему не нужен.
+#
+# Зачем он вообще: в com.darkware.zapret стоит только RunAtLoad, так что упавший
+# tpws никто не поднимает, а правило PF продолжает заворачивать весь 80/443 на
+# мёртвый порт — браузер получает ERR_CONNECTION_REFUSED на каждый сайт, включая
+# незаблокированные. Ровно это и случилось 04.09.2026. Тем же способом ловится
+# второй сбой, которого KeepAlive на процессе не увидел бы: вычищенный якорь PF
+# (любой системный `pfctl -f /etc/pf.conf` сносит пользовательские якоря).
+#
+# Порт не зашит: он читается из загруженного якоря, поэтому смена TPPORT в
+# config_custom сторожа не ломает.
+set -uo pipefail
+
+ZAPRET_CTL=/opt/darkware-zapret/init.d/macos/zapret
+PF_ANCHOR=/etc/pf.anchors/zapret-v4
+LOG=/var/log/zapret-watchdog.log
+STATE=/var/run/zapret-watchdog.state
+BACKOFF=300
+
+log() { printf '%s  %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >>"$LOG"; }
+
+pf_enabled() { pfctl -s info 2>/dev/null | grep -q '^Status: Enabled'; }
+
+# Загружен ли якорь в работающий набор правил. Отдельная проверка от той, что ниже:
+# системный `pfctl -f /etc/pf.conf` вычищает пользовательские якоря, оставляя tpws живым.
+rdr_loaded() { pfctl -a zapret-v4 -s nat 2>/dev/null | grep -q 'rdr'; }
+
+# Порт назначения берём из файла якоря, а не из вывода pfctl: файл пишет сам zapret,
+# формат в нём предсказуем, а pfctl печатает правила нормализованными.
+target_port() {
+    sed -n 's/^rdr .*-> *127\.0\.0\.1 port \([0-9][0-9]*\).*/\1/p' "$PF_ANCHOR" 2>/dev/null | head -1
+}
+
+# Печатает, что именно сломалось; пустой вывод — всё в порядке.
+diagnose() {
+    pf_enabled || { echo "PF выключен"; return; }
+    rdr_loaded || { echo "в загруженном якоре zapret-v4 нет rdr-правила"; return; }
+    local port
+    port="$(target_port)"
+    [ -n "$port" ] || { echo "в $PF_ANCHOR не разобрать порт назначения"; return; }
+    nc -z -G 1 127.0.0.1 "$port" >/dev/null 2>&1 ||
+        echo "на порту $port никто не слушает — tpws не работает"
+}
+
+fails=0
+last=0
+if [ -f "$STATE" ]; then
+    read -r fails last <"$STATE" 2>/dev/null || true
+    case "$fails$last" in *[!0-9]* | "") fails=0; last=0 ;; esac
+fi
+
+fault="$(diagnose)"
+
+if [ -z "$fault" ]; then
+    if [ "$fails" -gt 0 ]; then
+        log "ОК: обход снова работает"
+        rm -f "$STATE"
+    fi
+    exit 0
+fi
+
+# Если перезапуск уже не помог, повторять его каждые полминуты бессмысленно:
+# сервис от этого не поднимется, а лог станет нечитаемым.
+now="$(date +%s)"
+if [ "$fails" -gt 0 ] && [ "$((now - last))" -lt "$BACKOFF" ]; then
+    exit 0
+fi
+
+log "СБОЙ: $fault — перезапускаю сервис"
+"$ZAPRET_CTL" restart >>"$LOG" 2>&1
+
+for _ in 1 2 3 4 5; do
+    sleep 3
+    fault="$(diagnose)"
+    [ -z "$fault" ] && break
+done
+
+if [ -z "$fault" ]; then
+    log "ОК: восстановлено перезапуском"
+    rm -f "$STATE"
+else
+    fails=$((fails + 1))
+    printf '%s %s\n' "$fails" "$now" >"$STATE"
+    log "СБОЙ: перезапуск не помог ($fault); попытка $fails, следующая не раньше чем через $BACKOFF с"
+fi

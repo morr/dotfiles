@@ -19,6 +19,9 @@ APP_SRC="$ZAPRET_SRC/darkware zapret.app"
 APP_DST="/Applications/darkware zapret.app"
 OPT_DIR="/opt/darkware-zapret"
 ZAPRET_CTL="$OPT_DIR/init.d/macos/zapret"
+WATCHDOG_LABEL="local.zapret-watchdog"
+WATCHDOG_BIN="/usr/local/sbin/zapret-watchdog"
+WATCHDOG_PLIST="/Library/LaunchDaemons/$WATCHDOG_LABEL.plist"
 CHROME_APP="/Applications/Google Chrome.app"
 CHROME_LOCAL_STATE="$HOME/Library/Application Support/Google/Chrome/Local State"
 LOG_FILE="$HOME/dpi-bypass-install-$(date +%Y%m%d-%H%M%S).log"
@@ -441,6 +444,39 @@ else
     warn "в якоре PF не вижу правила по udp/443 — проверь вручную: sudo pfctl -a zapret-v4 -sr"
 fi
 
+step "Сторож сервиса (перезапуск упавшего tpws)"
+info "У com.darkware.zapret только RunAtLoad: упавший tpws никто не поднимет,"
+info "а правило PF продолжит заворачивать 80/443 на мёртвый порт — весь HTTP умрёт."
+if sudo cmp -s "$DOTFILES_DIR/zapret-watchdog" "$WATCHDOG_BIN" 2>/dev/null; then
+    skip "скрипт сторожа уже установлен"
+else
+    run sudo mkdir -p "$(dirname "$WATCHDOG_BIN")"
+    run sudo cp "$DOTFILES_DIR/zapret-watchdog" "$WATCHDOG_BIN"
+    run sudo chown root:wheel "$WATCHDOG_BIN"
+    run sudo chmod 755 "$WATCHDOG_BIN"
+    ok "скрипт установлен: $WATCHDOG_BIN"
+fi
+if sudo cmp -s "$DOTFILES_DIR/local.zapret-watchdog.plist" "$WATCHDOG_PLIST" 2>/dev/null \
+   && sudo -n launchctl print "system/$WATCHDOG_LABEL" >/dev/null 2>&1; then
+    skip "демон сторожа уже загружен"
+else
+    run sudo cp "$DOTFILES_DIR/local.zapret-watchdog.plist" "$WATCHDOG_PLIST"
+    run sudo chown root:wheel "$WATCHDOG_PLIST"
+    run sudo chmod 644 "$WATCHDOG_PLIST"
+    sudo launchctl bootout "system/$WATCHDOG_LABEL" 2>/dev/null || true
+    run sudo launchctl bootstrap system "$WATCHDOG_PLIST" || die "launchd не принял демона сторожа" \
+        "проверь синтаксис: plutil -lint $WATCHDOG_PLIST"
+    ok "демон зарегистрирован: $WATCHDOG_LABEL (проверка раз в 30 с)"
+fi
+# Прогоняем сторожа руками: на здоровом стенде он обязан промолчать и выйти с нулём.
+# Если он вместо этого перезапустит сервис — значит его проверка ложно срабатывает,
+# и лучше узнать об этом здесь, чем через месяц по логу.
+if run sudo "$WATCHDOG_BIN"; then
+    ok "сторож отработал вхолостую — проверка не ложнит"
+else
+    warn "сторож завершился с ошибкой — посмотри /var/log/zapret-watchdog.log"
+fi
+
 # ═════════════════════════════ ФАЗА E — Chrome ══════════════════════════════
 
 step "Политика Chrome: запрет QUIC"
@@ -615,6 +651,11 @@ check() {
 
 check "процесс tpws работает" pgrep -f "$OPT_DIR/tpws/tpws"
 check "процесс dnscrypt-proxy работает" pgrep -f dnscrypt-proxy
+if sudo -n true 2>/dev/null; then
+    check "сторож зарегистрирован в launchd" sudo -n launchctl print "system/$WATCHDOG_LABEL"
+else
+    skip "регистрацию сторожа не проверить: сессия sudo истекла"
+fi
 
 info "DNS сетевых сервисов:"
 networksetup -listallnetworkservices | tail -n +2 | while IFS= read -r svc; do
@@ -651,6 +692,7 @@ if [ "${#FAILED_CHECKS[@]}" -eq 0 ]; then
     printf 'ГОТОВО. Все проверки пройдены.\n\n'
     printf 'Что стоит:\n'
     printf '  • tpws со стратегией --split-pos=midsld --disorder, автозапуск через LaunchDaemon\n'
+    printf '  • сторож %s: раз в 30 с проверяет обход и поднимает упавший сервис\n' "$WATCHDOG_LABEL"
     printf '  • QUIC закрыт: правило PF + политика Chrome + флаг\n'
     printf '  • dnscrypt-proxy на 127.0.0.1:53, системный DNS переключён на него\n\n'
     printf 'Работать должны YouTube, Instagram, Facebook.\n'

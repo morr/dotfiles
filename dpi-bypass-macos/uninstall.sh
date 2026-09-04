@@ -24,6 +24,11 @@ OPT_DIR="/opt/darkware-zapret"
 ZAPRET_CTL="$OPT_DIR/init.d/macos/zapret"
 LAUNCH_DAEMON="/Library/LaunchDaemons/com.darkware.zapret.plist"
 LAUNCH_LABEL="com.darkware.zapret"
+WATCHDOG_LABEL="local.zapret-watchdog"
+WATCHDOG_BIN="/usr/local/sbin/zapret-watchdog"
+WATCHDOG_PLIST="/Library/LaunchDaemons/$WATCHDOG_LABEL.plist"
+WATCHDOG_LOG="/var/log/zapret-watchdog.log"
+WATCHDOG_STATE="/var/run/zapret-watchdog.state"
 SUDOERS_FILE="/etc/sudoers.d/darkware-zapret"
 PF_MAIN="/etc/pf.conf"
 PF_ANCHOR_DIR="/etc/pf.anchors"
@@ -224,6 +229,7 @@ printf '\n'
 printf '  Системное:\n'
 printf '    • сервис и все файлы в %s\n' "$OPT_DIR"
 printf '    • LaunchDaemon %s\n' "$LAUNCH_DAEMON"
+printf '    • сторож %s и его LaunchDaemon %s\n' "$WATCHDOG_BIN" "$WATCHDOG_PLIST"
 printf '    • правило sudoers %s\n' "$SUDOERS_FILE"
 printf '    • якоря PF (%s/zapret, zapret-v4, zapret-v6) и их строки в %s\n' "$PF_ANCHOR_DIR" "$PF_MAIN"
 printf '    • приложение %s и его настройки\n' "$APP_DST"
@@ -249,7 +255,7 @@ printf '  Логи:\n'
 if [ "$KEEP_LOGS" -eq 1 ]; then
     printf '    • НЕ трогаю (--keep-logs)\n'
 else
-    printf '    • /tmp/darkware-zapret.*.log, /tmp/tpws.log, ~/dpi-bypass-install-*.log\n'
+    printf '    • /tmp/darkware-zapret.*.log, /tmp/tpws.log, %s, ~/dpi-bypass-install-*.log\n' "$WATCHDOG_LOG"
     printf '      (лог самого удаления остаётся)\n'
 fi
 printf '\n  Не трогаю: Homebrew, Command Line Tools, Google Chrome.\n'
@@ -393,6 +399,25 @@ else
 fi
 
 # ═══════════════════════ ФАЗА B — сервис и правила PF ═══════════════════════
+
+# Сторож снимается ПЕРВЫМ: он затем и написан, чтобы поднимать остановленный
+# сервис, и остановку из следующего шага он воспримет как аварию.
+step "Удаление сторожа сервиса"
+if [ -f "$WATCHDOG_PLIST" ]; then
+    sudo launchctl bootout "system/$WATCHDOG_LABEL" 2>/dev/null \
+        || warn "launchctl не смог выгрузить сторожа (возможно, он и не был загружен)"
+    run sudo rm -f "$WATCHDOG_PLIST"
+    ok "автозапуск сторожа снят"
+else
+    skip "LaunchDaemon сторожа уже удалён"
+fi
+if [ -f "$WATCHDOG_BIN" ]; then
+    run sudo rm -f "$WATCHDOG_BIN"
+    ok "скрипт сторожа удалён"
+else
+    skip "скрипта сторожа нет"
+fi
+run sudo rm -f "$WATCHDOG_STATE"
 
 step "Остановка сервиса zapret"
 info "Останавливаем штатно: скрипт сам снимает правила PF и убивает демонов."
@@ -582,7 +607,7 @@ if [ "$KEEP_LOGS" -eq 1 ]; then
     skip "запрошено ключом --keep-logs"
 else
     info "В /tmp/tpws.log могли попасть имена посещённых сайтов — удаляем в первую очередь."
-    for f in /tmp/darkware-zapret.out.log /tmp/darkware-zapret.error.log /tmp/tpws.log; do
+    for f in /tmp/darkware-zapret.out.log /tmp/darkware-zapret.error.log /tmp/tpws.log "$WATCHDOG_LOG"; do
         if [ -e "$f" ]; then
             run sudo rm -f "$f"
         else
@@ -625,6 +650,8 @@ check_absent() {
 
 check_absent "каталог $OPT_DIR удалён"        test -d "$OPT_DIR"
 check_absent "LaunchDaemon удалён"            test -f "$LAUNCH_DAEMON"
+check_absent "сторож сервиса удалён"          test -f "$WATCHDOG_BIN"
+check_absent "LaunchDaemon сторожа удалён"    test -f "$WATCHDOG_PLIST"
 if sudo -n true 2>/dev/null; then
     check_absent "правило sudoers удалено"    sudo -n test -f "$SUDOERS_FILE"
 else

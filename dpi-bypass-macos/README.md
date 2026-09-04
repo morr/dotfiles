@@ -151,6 +151,7 @@ UDP**, поэтому одного обхода TLS мало: без честн�
 | Компонент | Где | Автозапуск |
 |---|---|---|
 | `tpws` (обход DPI, только TCP) | `/opt/darkware-zapret/` | LaunchDaemon `/Library/LaunchDaemons/com.darkware.zapret.plist` |
+| Сторож сервиса | `/usr/local/sbin/zapret-watchdog` | LaunchDaemon `/Library/LaunchDaemons/local.zapret-watchdog.plist`, раз в 30 с |
 | GUI-пульт «darkware zapret» | `/Applications/darkware zapret.app` | не нужен, сервис живёт сам |
 | `dnscrypt-proxy` (DNS поверх HTTPS) | `/opt/homebrew/etc/dnscrypt-proxy.toml` | `sudo brew services start dnscrypt-proxy` |
 | Исходники (материал сборки) | `~/Library/Caches/dpi-bypass-macos/{darkware-zapret,byedpi}` | — |
@@ -166,6 +167,50 @@ UDP**, поэтому одного обхода TLS мало: без честн�
 ```bash
 sudo /opt/darkware-zapret/init.d/macos/zapret start|stop|restart|start-fw|stop-fw|restart-fw|start-daemons|stop-daemons|restart-daemons
 ```
+
+## Сторож сервиса
+
+**Симптом, ради которого он есть: интернета нет вообще, любой сайт отдаёт
+`ERR_CONNECTION_REFUSED`, а через прокси всё работает.** Это не блокировка — это
+упавший `tpws`.
+
+В `com.darkware.zapret` стоит только `RunAtLoad`, поэтому упавшего `tpws` никто не
+поднимает. Правило PF при этом остаётся на месте и продолжает заворачивать **весь**
+исходящий TCP на 80/443 на порт, где уже никто не слушает, — умирает не часть сайтов,
+а весь HTTP целиком, включая незаблокированные. Прокси при этом живёт, потому что
+ходит на свой порт, а `rdr` покрывает только 80 и 443. Так случилось 04.09.2026:
+`tpws` на 988 отвалился, SOCKS-экземпляр на 987 остался жив и всех запутал.
+
+`/usr/local/sbin/zapret-watchdog` раз в 30 секунд проверяет три вещи и при любой
+неудаче делает `zapret restart`:
+
+1. PF включён;
+2. в загруженном якоре `zapret-v4` есть `rdr`-правило (его вычищает любой системный
+   `pfctl -f /etc/pf.conf` — VPN-клиенты, Internet Sharing);
+3. на порту назначения из `/etc/pf.anchors/zapret-v4` кто-то слушает.
+
+Второй пункт — причина, по которой это отдельный сторож, а не `KeepAlive` на процессе:
+`KeepAlive` ловит только смерть `tpws` и не видит вычищенный якорь. Плюс к тому он
+потребовал бы продублировать в plist весь `TPWS_OPT` с хостлистами, а сторож про
+стратегию ничего не знает и переживает её смену.
+
+Лог — `/var/log/zapret-watchdog.log`, пишется только по событиям, в здоровом
+состоянии пустой:
+
+```bash
+sudo tail -20 /var/log/zapret-watchdog.log
+sudo launchctl print system/local.zapret-watchdog | head -20
+sudo /usr/local/sbin/zapret-watchdog          # прогнать проверку сейчас
+```
+
+Если перезапуск не помог, сторож не долбит сервис каждые полминуты: следующая попытка
+не раньше чем через 5 минут, счётчик неудач — в `/var/run/zapret-watchdog.state`.
+Поэтому лог ограничен сверху даже при полностью сломанном стенде.
+
+**По этому логу и надо смотреть, если сбой повторится**: сейчас неизвестно, почему
+`tpws` умер — краш-репортов macOS не оставил, `/tmp/darkware-zapret.error.log` пуст.
+Частота срабатываний в логе — единственный способ отличить разовый случай от
+регулярного и понять, надо ли копать дальше.
 
 ## Рабочая стратегия
 
@@ -327,6 +372,7 @@ could not be created», и с `ServerAddresses`, и без них. Поэтом�
 
 ```bash
 pgrep -fl tpws dnscrypt-proxy
+sudo /usr/local/sbin/zapret-watchdog                      # молча и с нулём = обход на месте
 networksetup -getdnsservers Ethernet                      # ждём 127.0.0.1
 dig +short rutracker.org                                  # сверить с ответом по DoH (раздел «DNS»)
 curl -s -o /dev/null -w '%{http_code}\n' --max-time 10 https://www.youtube.com   # 200
@@ -404,6 +450,9 @@ sudo sed -i '' "s/^ALL /$USER /" /etc/sudoers.d/darkware-zapret
 sudo networksetup -setdnsservers Ethernet Empty; sudo networksetup -setdnsservers Wi-Fi Empty
 dig +short example.com                                  # убедиться, что DNS жив
 sudo brew services stop dnscrypt-proxy
+# Сторож снимается ДО остановки сервиса — иначе он поднимет его обратно.
+sudo launchctl bootout system/local.zapret-watchdog
+sudo rm -f /Library/LaunchDaemons/local.zapret-watchdog.plist /usr/local/sbin/zapret-watchdog
 sudo /opt/darkware-zapret/init.d/macos/zapret stop      # снимает правила PF и демонов
 sudo launchctl unload /Library/LaunchDaemons/com.darkware.zapret.plist
 sudo rm /Library/LaunchDaemons/com.darkware.zapret.plist /etc/sudoers.d/darkware-zapret
