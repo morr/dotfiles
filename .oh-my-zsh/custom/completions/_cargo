@@ -18,10 +18,21 @@
 # (the same source cargo itself uses), add the ones cargo auto-discovers, and
 # never call the completion helper with an empty list.
 #
-# IMPORTANT: this file is only reached when ~/.zsh/completions is in $fpath —
-# see the `zsh-completions` section of .zshrc. A zsh started before that line
-# was added (2026-08-22) autoloads oh-my-zsh's cached _cargo instead, which
-# sources the broken upstream one; `exec zsh` in such a shell.
+# IMPORTANT: this file has to sit in $ZSH_CUSTOM/completions, not in a directory
+# .zshrc prepends to $fpath *after* oh-my-zsh has run. The rust plugin writes a
+# second `_cargo` into $ZSH_CACHE_DIR/completions (a one-liner that sources the
+# broken upstream file), and compinit binds every completer with `autoload -rUz`:
+# the `-r` resolves the file at compinit time and pins it, so whenever the
+# .zcompdump is rebuilt, whichever `_cargo` is first in $fpath *at that moment*
+# wins for the life of that shell, however $fpath is reordered later. A dir
+# prepended after `source oh-my-zsh.sh` is invisible to that resolution, and the
+# rebuild happens more often than it looks (any shell whose $fpath differs
+# from the recorded one — e.g. one started with an inherited FPATH — triggers
+# it, and the *next* shell rebuilds back). oh-my-zsh puts $ZSH_CUSTOM/completions
+# ahead of $ZSH_CACHE_DIR/completions itself, on both the rebuild and the
+# cached path, so here the override wins deterministically.
+#
+# A shell that had already pinned the cached one keeps it until `exec zsh`.
 
 local __cargo_sysroot __cargo_upstream
 __cargo_sysroot=$(rustc --print sysroot 2>/dev/null) || return 1

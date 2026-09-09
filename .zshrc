@@ -234,9 +234,8 @@ alias fix-spotlight="cd $HOME; find . -type d -path './.*' -prune -o -path './Pi
 #-------------------------------------------------------------------------------
 # zsh-completions
 #-------------------------------------------------------------------------------
-# own completions take precedence over oh-my-zsh's cache; ~/.zsh/completions/_cargo
-# patches `cargo --example` so it also finds examples in subdirectories
-fpath=(~/.zsh/completions $fpath)
+# own completion overrides live in ~/.oh-my-zsh/custom/completions (symlinked from
+# dotfiles); see the header of _cargo there for why that dir and not an $fpath prepend
 # ssh/scp/etc: complete from ~/.ssh/config only, ignore /etc/hosts & known_hosts
 # (avoids *.local aliases from /etc/hosts shadowing real config hosts)
 zstyle ':completion:*:(ssh|scp|sftp|slogin|rsync):*:hosts' hosts
