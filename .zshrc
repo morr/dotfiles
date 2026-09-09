@@ -51,6 +51,14 @@ export EDITOR="mvim"
 export ERL_AFLAGS="-kernel shell_history enabled"
 export NODE_OPTIONS=--openssl-legacy-provider
 
+# `brew shellenv` (.zprofile) exports FPATH, so every child process — a claude/nvim
+# terminal, a nested zsh — inherits this shell's final $fpath as its *starting* one.
+# oh-my-zsh records "#omz fpath: ..." in .zcompdump and rebuilds the dump whenever
+# that line differs, so such a child and the next plain shell keep rebuilding it in
+# turns (a 5-second startup each time, and a rebuild re-pins every completer — see
+# custom/completions/_cargo). Keep fpath a shell-local thing.
+typeset +x FPATH
+
 # oh-my-zsh
 source $ZSH/oh-my-zsh.sh
 # fish syntax highlight
