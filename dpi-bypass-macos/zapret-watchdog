@@ -1,24 +1,30 @@
 #!/bin/bash
 #
-# Сторож обхода DPI. Раз в StartInterval проверяет, что трафик на 80/443 реально
-# попадает в tpws, и перезапускает сервис, если нет. Запускается под root из
-# /Library/LaunchDaemons/local.zapret-watchdog.plist, sudo ему не нужен.
+# Сторож стенда обхода DPI. Раз в StartInterval проверяет два узла, без которых
+# браузер не открывает вообще ничего, и чинит тот, что отвалился. Запускается под
+# root из /Library/LaunchDaemons/local.zapret-watchdog.plist, sudo ему не нужен.
 #
-# Зачем он вообще: в com.darkware.zapret стоит только RunAtLoad, так что упавший
-# tpws никто не поднимает, а правило PF продолжает заворачивать весь 80/443 на
-# мёртвый порт — браузер получает ERR_CONNECTION_REFUSED на каждый сайт, включая
+# Узел «zapret»: в com.darkware.zapret стоит только RunAtLoad, так что упавший tpws
+# никто не поднимает, а правило PF продолжает заворачивать весь 80/443 на мёртвый
+# порт — браузер получает ERR_CONNECTION_REFUSED на каждый сайт, включая
 # незаблокированные. Ровно это и случилось 04.09.2026. Тем же способом ловится
 # второй сбой, которого KeepAlive на процессе не увидел бы: вычищенный якорь PF
 # (любой системный `pfctl -f /etc/pf.conf` сносит пользовательские якоря).
 #
-# Порт не зашит: он читается из загруженного якоря, поэтому смена TPPORT в
+# Узел «dns»: системный резолвер настроен на 127.0.0.1, и залипший dnscrypt-proxy
+# оставляет машину без DNS целиком — 10.09.2026 он держал сокет открытым, но не
+# отвечал ни по UDP, ни по TCP, и не резолвился ни один домен.
+#
+# Порт tpws не зашит: он читается из загруженного якоря, поэтому смена TPPORT в
 # config_custom сторожа не ломает.
 set -uo pipefail
 
 ZAPRET_CTL=/opt/darkware-zapret/init.d/macos/zapret
 PF_ANCHOR=/etc/pf.anchors/zapret-v4
+DNSCRYPT_LABEL=homebrew.mxcl.dnscrypt-proxy
+DNS_PROBE_HOST=example.com
 LOG=/var/log/zapret-watchdog.log
-STATE=/var/run/zapret-watchdog.state
+STATE_DIR=/var/run
 BACKOFF=300
 
 log() { printf '%s  %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >>"$LOG"; }
@@ -36,7 +42,7 @@ target_port() {
 }
 
 # Печатает, что именно сломалось; пустой вывод — всё в порядке.
-diagnose() {
+diagnose_zapret() {
     pf_enabled || { echo "PF выключен"; return; }
     rdr_loaded || { echo "в загруженном якоре zapret-v4 нет rdr-правила"; return; }
     local port
@@ -46,44 +52,83 @@ diagnose() {
         echo "на порту $port никто не слушает — tpws не работает"
 }
 
-fails=0
-last=0
-if [ -f "$STATE" ]; then
-    read -r fails last <"$STATE" 2>/dev/null || true
-    case "$fails$last" in *[!0-9]* | "") fails=0; last=0 ;; esac
-fi
+repair_zapret() { "$ZAPRET_CTL" restart >>"$LOG" 2>&1; }
 
-fault="$(diagnose)"
+# Без маршрута наружу резолвер не ответит и здоровым, так что в офлайне сторож молчит.
+online() { route -n get default >/dev/null 2>&1; }
 
-if [ -z "$fault" ]; then
-    if [ "$fails" -gt 0 ]; then
-        log "ОК: обход снова работает"
-        rm -f "$STATE"
+# Проверять открытый порт бессмысленно: залипший демон держит сокет и принимает
+# соединения, не отвечая на них, — сбой виден только по настоящему запросу. Пустоту
+# вывода на признак сбоя брать нельзя: свои communications error dig пишет в stdout,
+# так что непустым он остаётся и при мёртвом резолвере, — отсюда проверка по коду
+# возврата, а следом по самому адресу, отличающему ответ от SERVFAIL.
+diagnose_dns() {
+    online || return
+    local answer
+    if ! answer="$(dig +time=2 +tries=1 +short @127.0.0.1 "$DNS_PROBE_HOST" A 2>/dev/null)"; then
+        echo "резолвер 127.0.0.1:53 не отвечает на запрос"
+        return
     fi
-    exit 0
-fi
+    grep -qE '^[0-9]+(\.[0-9]+){3}$' <<<"$answer" ||
+        echo "резолвер 127.0.0.1:53 не отдал адрес $DNS_PROBE_HOST"
+}
 
-# Если перезапуск уже не помог, повторять его каждые полминуты бессмысленно:
-# сервис от этого не поднимется, а лог станет нечитаемым.
-now="$(date +%s)"
-if [ "$fails" -gt 0 ] && [ "$((now - last))" -lt "$BACKOFF" ]; then
-    exit 0
-fi
+# SIGTERM залипший процесс игнорирует: 10.09.2026 после kickstart он остался висеть,
+# а поднятый следом инстанс намертво встал в bind() на занятом порту. Освободил порт
+# только SIGKILL, а поднял демон заново KeepAlive из его plist.
+repair_dns() {
+    launchctl kickstart -k "system/$DNSCRYPT_LABEL" >>"$LOG" 2>&1
+    sleep 5
+    [ -z "$(diagnose_dns)" ] && return
+    pkill -9 -f 'sbin/dnscrypt-proxy'
+}
 
-log "СБОЙ: $fault — перезапускаю сервис"
-"$ZAPRET_CTL" restart >>"$LOG" 2>&1
+# У каждого узла своё состояние, иначе неподнимающийся сбой одного глушил бы попытки
+# починить другой. Повторять починку каждые полминуты бессмысленно — от этого узел не
+# поднимется, а лог станет нечитаемым; отсюда BACKOFF.
+guard() {
+    local name="$1" diagnose="$2" repair="$3"
+    local state="$STATE_DIR/zapret-watchdog.$name.state"
+    local fails=0 last=0 fault now
 
-for _ in 1 2 3 4 5; do
-    sleep 3
-    fault="$(diagnose)"
-    [ -z "$fault" ] && break
-done
+    if [ -f "$state" ]; then
+        read -r fails last <"$state" 2>/dev/null || true
+        case "$fails$last" in *[!0-9]* | "") fails=0; last=0 ;; esac
+    fi
 
-if [ -z "$fault" ]; then
-    log "ОК: восстановлено перезапуском"
-    rm -f "$STATE"
-else
-    fails=$((fails + 1))
-    printf '%s %s\n' "$fails" "$now" >"$STATE"
-    log "СБОЙ: перезапуск не помог ($fault); попытка $fails, следующая не раньше чем через $BACKOFF с"
-fi
+    fault="$($diagnose)"
+
+    if [ -z "$fault" ]; then
+        if [ "$fails" -gt 0 ]; then
+            log "[$name] ОК: снова работает"
+            rm -f "$state"
+        fi
+        return
+    fi
+
+    now="$(date +%s)"
+    if [ "$fails" -gt 0 ] && [ "$((now - last))" -lt "$BACKOFF" ]; then
+        return
+    fi
+
+    log "[$name] СБОЙ: $fault — чиню"
+    $repair
+
+    for _ in 1 2 3 4 5; do
+        sleep 3
+        fault="$($diagnose)"
+        [ -z "$fault" ] && break
+    done
+
+    if [ -z "$fault" ]; then
+        log "[$name] ОК: восстановлено"
+        rm -f "$state"
+    else
+        fails=$((fails + 1))
+        printf '%s %s\n' "$fails" "$now" >"$state"
+        log "[$name] СБОЙ: починка не помогла ($fault); попытка $fails, следующая не раньше чем через $BACKOFF с"
+    fi
+}
+
+guard zapret diagnose_zapret repair_zapret
+guard dns diagnose_dns repair_dns

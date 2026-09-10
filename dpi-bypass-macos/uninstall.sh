@@ -28,7 +28,9 @@ WATCHDOG_LABEL="local.zapret-watchdog"
 WATCHDOG_BIN="/usr/local/sbin/zapret-watchdog"
 WATCHDOG_PLIST="/Library/LaunchDaemons/$WATCHDOG_LABEL.plist"
 WATCHDOG_LOG="/var/log/zapret-watchdog.log"
-WATCHDOG_STATE="/var/run/zapret-watchdog.state"
+# Маской, а не именем: у сторожа состояние на каждый узел (zapret, dns), а на машине,
+# настроенной до их разделения, лежит ещё и единый zapret-watchdog.state.
+WATCHDOG_STATE_GLOB="/var/run/zapret-watchdog*.state"
 SUDOERS_FILE="/etc/sudoers.d/darkware-zapret"
 PF_MAIN="/etc/pf.conf"
 PF_ANCHOR_DIR="/etc/pf.anchors"
@@ -328,6 +330,7 @@ fi
 step "Остановка и удаление dnscrypt-proxy"
 BREW_PREFIX="$(brew --prefix 2>/dev/null || echo /opt/homebrew)"
 DNSCRYPT_TOML="$BREW_PREFIX/etc/dnscrypt-proxy.toml"
+DNSCRYPT_LOG="$BREW_PREFIX/var/log/dnscrypt-proxy.log"
 if [ "$KEEP_DNSCRYPT" -eq 1 ]; then
     skip "запрошено ключом --keep-dnscrypt"
 elif [ "$DNSCRYPT_MAY_STOP" -eq 0 ]; then
@@ -417,7 +420,7 @@ if [ -f "$WATCHDOG_BIN" ]; then
 else
     skip "скрипта сторожа нет"
 fi
-run sudo rm -f "$WATCHDOG_STATE"
+run sudo rm -f $WATCHDOG_STATE_GLOB
 
 step "Остановка сервиса zapret"
 info "Останавливаем штатно: скрипт сам снимает правила PF и убивает демонов."
@@ -607,7 +610,7 @@ if [ "$KEEP_LOGS" -eq 1 ]; then
     skip "запрошено ключом --keep-logs"
 else
     info "В /tmp/tpws.log могли попасть имена посещённых сайтов — удаляем в первую очередь."
-    for f in /tmp/darkware-zapret.out.log /tmp/darkware-zapret.error.log /tmp/tpws.log "$WATCHDOG_LOG"; do
+    for f in /tmp/darkware-zapret.out.log /tmp/darkware-zapret.error.log /tmp/tpws.log "$DNSCRYPT_LOG" "$WATCHDOG_LOG"; do
         if [ -e "$f" ]; then
             run sudo rm -f "$f"
         else

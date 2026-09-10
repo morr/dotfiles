@@ -38,12 +38,20 @@
   (правило в `/etc/sudoers.d/darkware-zapret`), так что перезапускать можно самому.
 - **`ERR_CONNECTION_REFUSED` на всех сайтах разом, а через прокси работает** — это не
   блокировка, а упавший `tpws`: правило PF заворачивает 80/443 на мёртвый порт. Чинит
-  перезапуск сервиса, ловит сторож `local.zapret-watchdog`
-  (`sudo tail /var/log/zapret-watchdog.log`). Раздел «Сторож сервиса» в README.
+  перезапуск сервиса.
+- **Не грузится вообще ничего, а `ping 8.8.8.8` идёт** — первым делом проверить резолвер:
+  `dig +time=2 @127.0.0.1 example.com`. Залипший `dnscrypt-proxy` держит порт открытым,
+  не отвечая, так что `nc -z` и `lsof` показывают здоровую картину. Чинит
+  `sudo launchctl kickstart -k system/homebrew.mxcl.dnscrypt-proxy`, а если не помогло —
+  `sudo pkill -9 -f 'sbin/dnscrypt-proxy'` (KeepAlive поднимет заново).
+- Оба сбоя ловит сторож `local.zapret-watchdog`, раз в 30 с
+  (`sudo tail /var/log/zapret-watchdog.log`, строки помечены `[zapret]` / `[dns]`).
+  Раздел «Сторож стенда» в README.
 - Стратегия: `/opt/darkware-zapret/config_custom`, права 666 — правится **без sudo**.
   Рабочая для 443: `--split-pos=midsld --disorder`.
-- DNS: `dnscrypt-proxy` на `127.0.0.1:53`. Системный резолвер провайдер подменяет,
-  публичные DNS по UDP тоже.
+- DNS: `dnscrypt-proxy` на `127.0.0.1:53`, свой лог — `/opt/homebrew/var/log/dnscrypt-proxy.log`
+  (в plist от Homebrew путей логов нет, строка `log_file` прописывается `install.sh`).
+  Системный резолвер провайдер подменяет, публичные DNS по UDP тоже.
 - Всё остальное в `/opt` принадлежит root — писать туда только через команду для пользователя.
 
 ## Правила работы с этим стендом

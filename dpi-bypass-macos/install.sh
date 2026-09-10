@@ -241,6 +241,7 @@ fi
 
 step "dnscrypt-proxy (шифрованный DNS)"
 DNSCRYPT_TOML="$BREW_PREFIX/etc/dnscrypt-proxy.toml"
+DNSCRYPT_LOG="$BREW_PREFIX/var/log/dnscrypt-proxy.log"
 if brew list dnscrypt-proxy >/dev/null 2>&1; then
     ok "уже установлен"
 else
@@ -537,6 +538,20 @@ fi
 grep -q "^listen_addresses = \['127.0.0.1:53'\]" "$DNSCRYPT_TOML" \
     && ok "слушает 127.0.0.1:53" \
     || warn "listen_addresses отличается от 127.0.0.1:53 — проверь $DNSCRYPT_TOML"
+
+# В plist от Homebrew нет ни StandardOutPath, ни StandardErrorPath, так что без этой
+# строки вывод демона уходит в /dev/null: 10.09.2026 он залип, и восстанавливать
+# первопричину было уже нечем. Ротацию делает сам dnscrypt-proxy (log_files_max_* там же).
+if grep -q "^log_file = '$DNSCRYPT_LOG'" "$DNSCRYPT_TOML"; then
+    skip "лог демона уже включён: $DNSCRYPT_LOG"
+else
+    TOML_CHANGED=1
+    [ -f "$DNSCRYPT_TOML.bak" ] || run cp "$DNSCRYPT_TOML" "$DNSCRYPT_TOML.bak"
+    run sed -i '' "s|^#*[[:space:]]*log_file = 'dnscrypt-proxy.log'|log_file = '$DNSCRYPT_LOG'|" "$DNSCRYPT_TOML"
+    grep -q "^log_file = '$DNSCRYPT_LOG'" "$DNSCRYPT_TOML" || die "не удалось прописать log_file в $DNSCRYPT_TOML" \
+        "открой файл и приведи строку к виду: log_file = '$DNSCRYPT_LOG'"
+    ok "лог демона включён: $DNSCRYPT_LOG"
+fi
 
 step "Запуск демона dnscrypt-proxy"
 # Резолвер отвечает — не трогаем его. Лишний перезапуск на уже настроенной машине
