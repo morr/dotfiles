@@ -115,6 +115,7 @@ alias ll='ls -lAh'
 #-------------------------------------------------------------------------------
 # rails aliases
 #-------------------------------------------------------------------------------
+export DISABLE_DATABASE_ENVIRONMENT_CHECK=1
 alias r='rails'
 alias rc='rails console'
 alias log='tail -f log/development.log'
