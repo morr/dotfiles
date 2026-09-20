@@ -48,6 +48,10 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/deny-zsh-parse-traps.sh"
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/deny-sleep-polling.sh"
           }
         ]
       }
