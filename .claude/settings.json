@@ -34,11 +34,6 @@
       "/tmp/99"
     ]
   },
-  "statusLine": {
-    "type": "command",
-    "command": "~/dotfiles/.claude/statusline.sh",
-    "padding": 0
-  },
   "model": "opus",
   "hooks": {
     "PreToolUse": [
@@ -77,9 +72,15 @@
       }
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "~/dotfiles/.claude/statusline.sh",
+    "padding": 0
+  },
   "enabledPlugins": {
     "rust-analyzer-lsp@claude-plugins-official": true
   },
+  "tui": "fullscreen",
   "theme": "custom:catppuccin-frappe",
   "autoMode": {
     "environment": [
