@@ -4,6 +4,8 @@
 
 Обращайся к пользователю на «ты», а не на «вы» — во всех ответах, вопросах, планах и отчётах.
 
+Все тексты для пользователя — ответы, планы, отчёты, HTML-артефакты — на русском; код, идентификаторы и коммиты — на английском.
+
 ## Code Intelligence
 
 Prefer LSP over Grep/Read for code navigation — it's faster, precise, and avoids reading entire files:
