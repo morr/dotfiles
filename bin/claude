@@ -13,8 +13,11 @@
 # ~/dotfiles/bin comes before ~/.local/bin in PATH, so this also covers
 # `with-proxy claude`, which execs claude by name.
 #
-# Left alone: an explicit --model of your own, and the subcommands (claude
-# update, claude mcp, …), which would reject the flag.
+# Left alone: an explicit --model of your own, and every subcommand (claude
+# update, claude mcp, claude attach, …) — a subcommand after --model is not
+# recognised as one at all, it is taken as the prompt of a fresh session, so a
+# missing name here turns `claude attach <id>` into a chat about the word
+# "attach". Keep the list in sync with `claude --help`.
 #
 # Everything goes through with-proxy, so a plain `claude` is already proxied and
 # `with-proxy claude` stays harmless (the second pass just re-exports the same
@@ -31,9 +34,9 @@ for arg in "$@"; do
 done
 
 case "${1:-}" in
-  agents | auth | auto-mode | config | doctor | gateway | import | install | mcp | \
-  migrate-installer | plugin | plugins | project | remote-control | serve | setup-token | \
-  ssh | ultrareview | update | upgrade)
+  agents | attach | auth | auto-mode | config | doctor | gateway | import | install | kill | \
+  logs | mcp | migrate-installer | plugin | plugins | project | remote-control | respawn | rm | \
+  serve | setup-token | ssh | stop | ultrareview | update | upgrade)
     exec "$proxy" "$real" "$@"
     ;;
 esac
