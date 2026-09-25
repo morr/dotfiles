@@ -1,0 +1,324 @@
+#!/bin/bash
+# Pull the audio out of a YouTube video as an MP3 with the video's thumbnail
+# embedded as cover art.
+#
+#     yt-mp3 https://www.youtube.com/watch?v=XXXXXXXXXXX
+#     → ~/Library/Mobile Documents/com~apple~CloudDocs/Downloads/
+#       2026-09-20 · Some Channel · Some Video Title.mp3
+#
+# The name is the upload date, the channel and the title joined by "·", and the
+# same string goes into the ID3 title tag: Telegram and the rest list the tag,
+# never the filename, so a date left out of the tag is a date nobody sees.
+#
+# The destination is iCloud Drive's Downloads folder, so the file syncs to the
+# phone by itself; -d puts it somewhere else.
+#
+# yt-dlp fetches the media and the thumbnail, and this script does the
+# conversion itself rather than leaving it to --extract-audio, because the
+# bitrate cannot be decided before the download: the answer depends on what the
+# source audio turns out to be, and yt-dlp reports abr=NA for exactly the muxed
+# formats YouTube keeps handing out. See the transcode function.
+#
+# A download that fails is retried once with the cookies from Chrome, which is
+# what "Sign in to confirm you're not a bot" wants. Reading them asks the
+# keychain for permission the first time.
+
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: yt-mp3 [options] URL [URL...]
+
+Options:
+  -d, --dir DIR         where to put the mp3
+                        (default: iCloud Drive's Downloads folder)
+  -b, --bitrate RATE    upper bound on the mp3 bitrate, as NNNK
+                        (default: 256K). Audio that is already worse than this
+                        is encoded at its own bitrate instead of being blown up
+      --cookies BROWSER take cookies from this browser right away
+                        (chrome, brave, edge, firefox, safari, ...)
+      --no-cookies      never fall back to browser cookies
+      --proxy URL       use this proxy instead of the default
+                        socks5://127.0.0.1:5555
+      --no-proxy        connect straight out, ignoring the proxy and any
+                        HTTP_PROXY / HTTPS_PROXY in the environment
+      --playlist        follow a playlist in the URL instead of taking the
+                        single video it points at
+  -h, --help            this text
+
+Several URLs are fetched one after another, either as separate arguments or as
+one quoted argument separated by spaces: yt-mp3 "URL1 URL2 URL3". A URL that
+fails does not stop the rest; the failed ones are listed at the end.
+EOF
+}
+
+need_value() {
+  [[ $# -ge 2 ]] || { echo "yt-mp3: $1 needs a value" >&2; exit 2; }
+}
+
+# Echo a command before running it, quoted well enough to be copied out of the
+# terminal and re-run by hand with an extra flag bolted on — which is how a
+# failing download gets diagnosed. printf %q would also be copy-safe, but it
+# escapes with backslashes, and the output template alone comes out as
+# %\(upload_date\>%Y-%m-%d\,... which nobody can read; a word that needs
+# quoting gets single quotes instead, and a plain one is left bare.
+#
+# It goes to stderr to stay out of a pipe carrying yt-dlp's own output, and the
+# dim colour is dropped when stderr is not a terminal, so a redirected log
+# stays plain text.
+run() {
+  local arg quoted=
+  for arg in "$@"; do
+    if [[ $arg =~ ^[A-Za-z0-9_@%^+=:,./-]+$ ]]; then
+      quoted+="$arg "
+    else
+      quoted+="'${arg//\'/\'\\\'\'}' "
+    fi
+  done
+  if [[ -t 2 ]]; then
+    printf '\033[2m+ %s\033[0m\n' "$quoted" >&2
+  else
+    printf '+ %s\n' "$quoted" >&2
+  fi
+  "$@"
+}
+
+note() { echo "yt-mp3: $*" >&2; }
+
+dir="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Downloads"
+bitrate=256K
+browser=
+# Everything goes through the local SOCKS5 tunnel: the ISP's DPI tears down
+# connections to googlevideo.com mid-download, which surfaces as
+# "[SSL: UNEXPECTED_EOF_WHILE_READING]" followed by a 403. An empty value means
+# a direct connection, which is also what yt-dlp reads it as.
+proxy=socks5://127.0.0.1:5555
+auto_cookies=1
+playlist=--no-playlist
+urls=()
+
+# A list pasted as one quoted argument — yt-mp3 "URL1 URL2" — is split on
+# whitespace, because in zsh a URL with ? has to be quoted anyway. read -a is
+# used rather than an unquoted $arg so the ? is not taken for a glob.
+add_urls() {
+  local arg words
+  for arg in "$@"; do
+    read -ra words <<<"$arg" || true
+    # bash 3.2 treats "${words[@]}" of an empty array as unbound under set -u.
+    if ((${#words[@]})); then
+      urls+=("${words[@]}")
+    fi
+  done
+}
+
+while (($#)); do
+  case $1 in
+    -d|--dir)     need_value "$@"; dir=$2; shift 2 ;;
+    -b|--bitrate) need_value "$@"; bitrate=$2; shift 2 ;;
+    --cookies)    need_value "$@"; browser=$2; shift 2 ;;
+    --proxy)      need_value "$@"; proxy=$2; shift 2 ;;
+    --no-proxy)   proxy=; shift ;;
+    --no-cookies) auto_cookies=0; shift ;;
+    --playlist)   playlist=--yes-playlist; shift ;;
+    -h|--help)    usage; exit 0 ;;
+    --)           shift; add_urls "$@"; break ;;
+    -*)           echo "yt-mp3: unknown option $1" >&2; usage >&2; exit 2 ;;
+    *)            add_urls "$1"; shift ;;
+  esac
+done
+
+((${#urls[@]})) || { usage >&2; exit 2; }
+
+cap=${bitrate%[Kk]}
+[[ $cap =~ ^[0-9]+$ ]] ||
+  { echo "yt-mp3: --bitrate wants something like 256K, got $bitrate" >&2; exit 2; }
+
+for cmd in yt-dlp ffmpeg ffprobe; do
+  command -v "$cmd" >/dev/null ||
+    { echo "yt-mp3: $cmd not found — brew install $cmd" >&2; exit 1; }
+done
+
+mkdir -p "$dir"
+
+# The download, the thumbnail and the mp3 being encoded all live in scratch
+# space rather than in the destination: iCloud would otherwise sync a
+# half-downloaded video, and a .part left behind by a broken download would sit
+# in Downloads forever. Only the finished mp3 is moved out.
+#
+# The directory is fresh per run and deleted on the way out, rather than shared
+# between runs so that a .part could be resumed. Sharing it is actively wrong
+# here: the .part is named after the video, not the format, and the format is
+# not stable — YouTube hands out 251, 18 or an HLS variant depending on the
+# cookies and on its mood — so a .part left by one format is offered as a
+# resume point for a different, often smaller one, and the download dies on
+# "HTTP Error 416: Requested range not satisfiable". Nothing of value is lost:
+# through the tunnel a 200 MB format arrives in under half a minute.
+scratch=$(mktemp -d "${TMPDIR:-/tmp}/yt-mp3.XXXXXXXX")
+trap 'rm -rf "$scratch"' EXIT
+
+# A run killed outright (SIGKILL, a power cut) skips the trap and strands its
+# directory, so sweep the ones nobody can be using any more. -mtime +1 keeps
+# this clear of a long download running in another terminal right now.
+find "${TMPDIR:-/tmp}" -maxdepth 1 -type d -name 'yt-mp3.*' -mtime +1 \
+  -exec rm -rf {} + 2>/dev/null || true
+
+# %(a,b)s takes the first field that exists, so a video without an upload_date
+# falls back to its release_date and a channel-less one to the uploader. The
+# >%Y-%m-%d has to be repeated on both date fields: written once at the end of
+# the list it is read as part of the last field's name and silently does
+# nothing, leaving a bare 20151122 in the filename.
+# --trim-filenames keeps a long title inside the 255-byte limit of APFS.
+#
+# The format selector has a middle step because a plain bestaudio/best can cost
+# 700 MB for an hour of talking: when YouTube answers with an HLS manifest
+# instead of the usual DASH formats there is no audio-only stream at all, and
+# the /best fallback then grabs the 720p muxed variant. Every HLS variant of a
+# video carries the same audio track, so dropping to <=480p costs nothing in
+# sound and saves most of the download. The bare /best at the end is there for
+# a video that has nothing below 480p.
+#
+# The thumbnail is converted to JPEG on the way in. That step is not optional —
+# YouTube serves WebP these days, and an ID3 APIC frame holding WebP is ignored
+# by most players.
+args=(
+  "$playlist"
+  --output '%(upload_date>%Y-%m-%d,release_date>%Y-%m-%d)s · %(channel,uploader)s · %(title)s.%(ext)s'
+  --trim-filenames 200
+  --format 'bestaudio/best*[height<=?480]/best'
+  --write-thumbnail
+  --convert-thumbnails jpg
+  # Passed unconditionally, empty value included: an empty --proxy is yt-dlp's
+  # way of saying "direct connection", and it also overrides an HTTP_PROXY
+  # inherited from the environment, so --no-proxy means what it says.
+  --proxy "$proxy"
+)
+
+# The bitrate of the source, in kbit/s, or nothing when it cannot be read.
+source_bitrate() {
+  local media=$1 bits
+  bits=$(ffprobe -v error -select_streams a:0 -show_entries stream=bit_rate \
+    -of default=nw=1:nk=1 "$media" 2>/dev/null) || true
+  # An audio-only container (opus in webm, say) often leaves the stream's
+  # bit_rate empty and reports the number at container level instead, where it
+  # is the same figure because there is nothing else in the file. For a muxed
+  # download that container figure counts the video too, so it is only trusted
+  # when there is no video stream.
+  if [[ ! $bits =~ ^[0-9]+$ ]] &&
+     ! ffprobe -v error -select_streams v:0 -show_entries stream=index \
+       -of default=nw=1:nk=1 "$media" 2>/dev/null | grep -q .; then
+    bits=$(ffprobe -v error -show_entries format=bit_rate \
+      -of default=nw=1:nk=1 "$media" 2>/dev/null) || true
+  fi
+  [[ $bits =~ ^[0-9]+$ ]] && echo $((bits / 1000)) || true
+}
+
+# Encode one downloaded file into the destination mp3.
+#
+# The bitrate is min(cap, source): re-encoding lossy audio upwards buys nothing
+# — the detail thrown away by YouTube's encoder does not come back — while a
+# 96 kbit/s talk show stored at 256 kbit/s is three times the file for the same
+# sound. The cap still applies downwards, so a good source is not degraded.
+transcode() {
+  local media=$1 base cover out rate abr meta_title artist year ff=()
+  base=${media##*/}
+  base=${base%.*}
+  cover="${media%.*}.jpg"
+  out="$dir/$base.mp3"
+
+  # The filename was built from the same three fields, so it doubles as the
+  # metadata source and no second round trip to YouTube is needed. A title
+  # containing " · " itself is why the channel is cut from the left rather than
+  # the name being split into three.
+  meta_title=$base
+  year=${base%% · *}; year=${year%%-*}
+  artist=${base#* · }; artist=${artist%% · *}
+
+  abr=$(source_bitrate "$media")
+  rate=$cap
+  if [[ -n $abr ]] && ((abr < cap)); then
+    rate=$abr
+    note "source audio is ${abr}k, encoding at ${rate}k instead of ${cap}k"
+  fi
+
+  # Written as ifs, not as [[ -f $cover ]] && ff+=(...): a false test there is a
+  # command returning 1, and set -e kills the script on it.
+  ff=(ffmpeg -y -loglevel warning -stats -i "$media")
+  if [[ -f $cover ]]; then
+    ff+=(-i "$cover")
+  fi
+  ff+=(-map 0:a:0)
+  if [[ -f $cover ]]; then
+    # attached_pic is what marks the stream as cover art rather than a video
+    # track; without it players show a one-frame movie instead of a poster.
+    ff+=(-map 1:v:0 -c:v copy -disposition:v:0 attached_pic
+         -metadata:s:v:0 title="Album cover"
+         -metadata:s:v:0 comment="Cover (front)")
+  else
+    note "no thumbnail for $base, writing the mp3 without cover art"
+  fi
+  ff+=(
+    -c:a libmp3lame -b:a "${rate}k"
+    -id3v2_version 3
+    -metadata title="$meta_title"
+    -metadata artist="$artist"
+    -metadata date="$year"
+    "$out"
+  )
+  run "${ff[@]}"
+  note "wrote $out"
+}
+
+process_url() {
+  local url=$1 work media
+  # One directory per URL, so a playlist's files and two URLs' files never get
+  # mixed up when the encoder goes looking for what was just downloaded.
+  work=$(mktemp -d "$scratch/url.XXXXXX")
+
+  if [[ -n $browser ]]; then
+    run yt-dlp "${args[@]}" --paths "$work" --cookies-from-browser "$browser" -- "$url"
+  elif run yt-dlp "${args[@]}" --paths "$work" -- "$url"; then
+    :
+  elif ((auto_cookies)); then
+    note "retrying with Chrome cookies"
+    run yt-dlp "${args[@]}" --paths "$work" --cookies-from-browser chrome -- "$url"
+  else
+    exit 1
+  fi
+
+  # Everything in here that is not the cover art or the wreckage of a failed
+  # download is a media file to encode — one for a single video, several for a
+  # playlist.
+  shopt -s nullglob
+  for media in "$work"/*; do
+    case $media in *.jpg|*.webp|*.part|*.ytdl) continue ;; esac
+    transcode "$media"
+  done
+  shopt -u nullglob
+}
+
+# Each URL runs in a subshell of its own with set -e back on inside it: a
+# function called from an if or a || runs with set -e silently switched off,
+# so that is the only way a failed download stops its own URL and not the
+# whole queue.
+failed=()
+total=${#urls[@]}
+for i in "${!urls[@]}"; do
+  url=${urls[$i]}
+  if ((total > 1)); then
+    note "[$((i + 1))/$total] $url"
+  fi
+  set +e
+  (set -e; process_url "$url")
+  status=$?
+  set -e
+  if ((status)); then
+    note "failed: $url"
+    failed+=("$url")
+  fi
+done
+
+if ((${#failed[@]})); then
+  note "${#failed[@]} of $total failed:"
+  printf '  %s\n' "${failed[@]}" >&2
+  exit 1
+fi
