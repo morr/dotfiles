@@ -82,6 +82,7 @@
   },
   "tui": "fullscreen",
   "theme": "custom:catppuccin-frappe",
+  "agentPushNotifEnabled": true,
   "autoMode": {
     "environment": [
       "### Org-wide",
