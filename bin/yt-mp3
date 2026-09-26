@@ -22,6 +22,11 @@
 # A download that fails is retried once with the cookies from Chrome, which is
 # what "Sign in to confirm you're not a bot" wants. Reading them asks the
 # keychain for permission the first time.
+#
+# The finished mp3 is also sent to Telegram's Saved Messages through tdl
+# (brew install telegram-downloader), which talks to Telegram as the user
+# rather than as a bot — a bot cannot post into anyone's Saved Messages. It
+# needs a one-time `tdl login -T qr`; --no-telegram skips the upload.
 
 set -euo pipefail
 
@@ -44,6 +49,7 @@ Options:
                         HTTP_PROXY / HTTPS_PROXY in the environment
       --playlist        follow a playlist in the URL instead of taking the
                         single video it points at
+      --no-telegram     do not send the mp3 to Telegram's Saved Messages
   -h, --help            this text
 
 Several URLs are fetched one after another, either as separate arguments or as
@@ -95,6 +101,7 @@ browser=
 proxy=socks5://127.0.0.1:5555
 auto_cookies=1
 playlist=--no-playlist
+telegram=1
 urls=()
 
 # A list pasted as one quoted argument — yt-mp3 "URL1 URL2" — is split on
@@ -120,6 +127,7 @@ while (($#)); do
     --no-proxy)   proxy=; shift ;;
     --no-cookies) auto_cookies=0; shift ;;
     --playlist)   playlist=--yes-playlist; shift ;;
+    --no-telegram) telegram=0; shift ;;
     -h|--help)    usage; exit 0 ;;
     --)           shift; add_urls "$@"; break ;;
     -*)           echo "yt-mp3: unknown option $1" >&2; usage >&2; exit 2 ;;
@@ -133,10 +141,40 @@ cap=${bitrate%[Kk]}
 [[ $cap =~ ^[0-9]+$ ]] ||
   { echo "yt-mp3: --bitrate wants something like 256K, got $bitrate" >&2; exit 2; }
 
-for cmd in yt-dlp ffmpeg ffprobe; do
-  command -v "$cmd" >/dev/null ||
-    { echo "yt-mp3: $cmd not found — brew install $cmd" >&2; exit 1; }
+# Every program the run needs, as command:formula — the formula is not always
+# the command's name (ffprobe ships with ffmpeg, tdl is telegram-downloader).
+# All of them are checked before anything is reported, so a fresh machine gets
+# one brew install line instead of a round trip per missing tool.
+deps=(yt-dlp:yt-dlp ffmpeg:ffmpeg ffprobe:ffmpeg)
+if ((telegram)); then
+  deps+=(tdl:telegram-downloader)
+fi
+missing=() formulae=()
+for dep in "${deps[@]}"; do
+  cmd=${dep%%:*} formula=${dep#*:}
+  if ! command -v "$cmd" >/dev/null; then
+    missing+=("$cmd")
+    # ffmpeg and ffprobe share a formula; it is listed once.
+    [[ " ${formulae[*]-} " == *" $formula "* ]] || formulae+=("$formula")
+  fi
 done
+if ((${#missing[@]})); then
+  note "not found: ${missing[*]}"
+  note "install with: brew install ${formulae[*]}"
+  if [[ " ${missing[*]} " == *" tdl "* ]]; then
+    note "(or pass --no-telegram to go without tdl)"
+  fi
+  exit 1
+fi
+
+# Checked up front so a missing login is found before the downloads rather
+# than after each of them. The directory ~/.tdl/data is made by any tdl
+# command, --help included, so it proves nothing; the session lives in the
+# file named after the namespace inside it, which only a login creates.
+if ((telegram)); then
+  [[ -s $HOME/.tdl/data/default ]] ||
+    { echo "yt-mp3: tdl is not logged in — run tdl login -T qr, or pass --no-telegram" >&2; exit 1; }
+fi
 
 mkdir -p "$dir"
 
@@ -212,6 +250,36 @@ source_bitrate() {
   [[ $bits =~ ^[0-9]+$ ]] && echo $((bits / 1000)) || true
 }
 
+# Send an mp3 to Saved Messages. tdl sends an audio/* file as music, titled
+# with the filename minus the extension — the same string as the ID3 title.
+#
+# The cover goes as a separate thumbnail because Telegram does not pull the
+# APIC frame out of the file; tdl picks it up from a .thumb file lying next to
+# the mp3. Telegram drops a thumbnail over 320px or 200 KB, and YouTube's is
+# 1280x720, hence the downscale. The .thumb name is worked out the way tdl
+# does it — strings.TrimRight(path, ".mp3") — which strips any trailing run of
+# the characters . m p 3 rather than the suffix, so a title ending in "p" or
+# "3" loses those too and a plain ${mp3%.mp3} would put the thumb where tdl
+# never looks.
+#
+# The default caption is the filename and the MIME type in <code>; "" is an
+# expression evaluating to no caption at all.
+send_to_telegram() {
+  local mp3=$1 cover=$2 thumb=$1 tdl=(tdl)
+  while [[ $thumb == *[.mp3] ]]; do thumb=${thumb%?}; done
+  thumb+=.thumb
+  if [[ -f $cover ]]; then
+    run ffmpeg -y -loglevel error -i "$cover" \
+      -vf 'scale=320:320:force_original_aspect_ratio=decrease' \
+      -q:v 4 -f image2 -c:v mjpeg "$thumb" ||
+      note "could not make a thumbnail, sending without one"
+  fi
+  if [[ -n $proxy ]]; then
+    tdl+=(--proxy "$proxy")
+  fi
+  run "${tdl[@]}" up --path "$mp3" --caption '""'
+}
+
 # Encode one downloaded file into the destination mp3.
 #
 # The bitrate is min(cap, source): re-encoding lossy audio upwards buys nothing
@@ -219,11 +287,15 @@ source_bitrate() {
 # 96 kbit/s talk show stored at 256 kbit/s is three times the file for the same
 # sound. The cap still applies downwards, so a good source is not degraded.
 transcode() {
-  local media=$1 base cover out rate abr meta_title artist year ff=()
+  local media=$1 base cover out staged rate abr meta_title artist year ff=()
   base=${media##*/}
   base=${base%.*}
   cover="${media%.*}.jpg"
   out="$dir/$base.mp3"
+  # Encoded in a directory of its own, so that neither iCloud syncs a half
+  # written mp3 nor tdl finds anything next to it but its thumbnail.
+  staged=$(mktemp -d "$scratch/out.XXXXXX") || return 1
+  staged+="/$base.mp3"
 
   # The filename was built from the same three fields, so it doubles as the
   # metadata source and no second round trip to YouTube is needed. A title
@@ -262,10 +334,24 @@ transcode() {
     -metadata title="$meta_title"
     -metadata artist="$artist"
     -metadata date="$year"
-    "$out"
+    "$staged"
   )
-  run "${ff[@]}"
+  # Every step checks itself: transcode is called under ||, which switches
+  # set -e off for everything inside it.
+  run "${ff[@]}" || return 1
+
+  # The mp3 is kept whatever happens to the upload, so a failed one is only
+  # reported once the file is safely in the destination.
+  local sent=1
+  if ((telegram)) && ! send_to_telegram "$staged" "$cover"; then
+    sent=0
+  fi
+  mv "$staged" "$out" || return 1
   note "wrote $out"
+  if ((!sent)); then
+    note "sending to Telegram failed (logged out? tdl login -T qr); the mp3 is still in $dir"
+    return 1
+  fi
 }
 
 process_url() {
@@ -288,12 +374,16 @@ process_url() {
   # Everything in here that is not the cover art or the wreckage of a failed
   # download is a media file to encode — one for a single video, several for a
   # playlist.
+  # A failed upload does not stop the rest of a playlist: it only makes the URL
+  # count as failed once every file has been through.
+  local unsent=0
   shopt -s nullglob
   for media in "$work"/*; do
     case $media in *.jpg|*.webp|*.part|*.ytdl) continue ;; esac
-    transcode "$media"
+    transcode "$media" || unsent=1
   done
   shopt -u nullglob
+  return "$unsent"
 }
 
 # Each URL runs in a subshell of its own with set -e back on inside it: a
