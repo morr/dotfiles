@@ -1,0 +1,159 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["telethon>=1.40,<2", "python-socks[asyncio]>=2.4", "qrcode[pil]>=7"]
+# ///
+"""Send an audio file to Telegram's Saved Messages as music.
+
+    tg-send-audio login
+    tg-send-audio check
+    tg-send-audio send --title T --performer P --duration SECONDS \\
+                       [--thumb COVER.jpg] FILE.mp3
+
+It talks to Telegram as the user rather than as a bot, since a bot cannot post
+into anyone's Saved Messages.
+
+The audio attributes are set here, on the client side, the way the desktop app
+does it when a file is dropped into its window. Left to the server, they are
+filled in from the file only for a small one: an mp3 of a few tens of MB comes
+out as 00:00 with no performer. The cover goes as the document's thumbnail,
+because Telegram never looks at the APIC frame inside the file; it has to be a
+JPEG of at most 320px and 200 KB, or Telegram drops it without a word.
+
+The session lives in ~/.local/share/yt-mp3/telegram.session. The api id is
+tdl's built-in one; TG_API_ID and TG_API_HASH override it.
+"""
+
+import argparse
+import asyncio
+import getpass
+import os
+import subprocess
+import sys
+import time
+from pathlib import Path
+from urllib.parse import urlparse
+
+import qrcode
+from telethon import TelegramClient
+from telethon.errors import SessionPasswordNeededError
+from telethon.tl.types import DocumentAttributeAudio
+
+API_ID = int(os.environ.get("TG_API_ID", "15055931"))
+API_HASH = os.environ.get("TG_API_HASH", "021d433426cbb920eeb95164498fe3d3")
+SESSION = Path.home() / ".local/share/yt-mp3/telegram.session"
+
+
+def proxy_tuple(url):
+    """socks5://host:port → the tuple Telethon wants; an empty url is direct."""
+    if not url:
+        return None
+    u = urlparse(url)
+    return (u.scheme, u.hostname, u.port, True, u.username, u.password)
+
+
+def client(proxy):
+    SESSION.parent.mkdir(parents=True, exist_ok=True)
+    return TelegramClient(str(SESSION.with_suffix("")), API_ID, API_HASH,
+                          proxy=proxy_tuple(proxy))
+
+
+async def login(args):
+    """Log in by QR code, scanned in the phone app under Settings → Devices.
+
+    The code is also written to a PNG and opened in Preview, because a login
+    run through something without a terminal — Claude Code's ! prefix — shows
+    its output only after the command is over, too late to scan anything.
+    Only a two-step verification password needs a terminal.
+    """
+    c = client(args.proxy)
+    await c.connect()
+    try:
+        if not await c.is_user_authorized():
+            png = SESSION.parent / "login-qr.png"
+            while True:
+                qr = await c.qr_login()
+                # A full quiet zone and dark on light: a phone camera reads
+                # neither a thin margin nor an inverted code.
+                code = qrcode.QRCode(border=4, box_size=12)
+                code.add_data(qr.url)
+                code.make_image(fill_color="black", back_color="white").save(png)
+                if sys.stderr.isatty():
+                    code.print_ascii(out=sys.stderr, tty=True)
+                subprocess.run(["open", str(png)], check=False)
+                print("scan this in Telegram → Settings → Devices → Link Desktop Device",
+                      file=sys.stderr)
+                try:
+                    await qr.wait(timeout=qr.expires.timestamp() - time.time())
+                    break
+                except asyncio.TimeoutError:
+                    print("the code expired, here is a new one", file=sys.stderr)
+                except SessionPasswordNeededError:
+                    await c.sign_in(password=getpass.getpass("2FA password: "))
+                    break
+            png.unlink(missing_ok=True)
+        me = await c.get_me()
+        print(f"logged in as {me.first_name} ({me.id})", file=sys.stderr)
+    finally:
+        await c.disconnect()
+    SESSION.chmod(0o600)
+
+
+async def check(args):
+    c = client(args.proxy)
+    await c.connect()
+    try:
+        return 0 if await c.is_user_authorized() else 1
+    finally:
+        await c.disconnect()
+
+
+async def send(args):
+    def progress(sent, total):
+        print(f"\rtelegram: {sent * 100 // total}%", end="", file=sys.stderr)
+
+    # connect(), not async with: the latter runs start(), which would sit
+    # waiting for a phone number on a session that has been logged out.
+    c = client(args.proxy)
+    await c.connect()
+    try:
+        if not await c.is_user_authorized():
+            print("tg-send-audio: not logged in — run tg-send-audio login",
+                  file=sys.stderr)
+            return 1
+        await c.send_file(
+            "me",
+            args.file,
+            thumb=args.thumb,
+            attributes=[DocumentAttributeAudio(
+                duration=round(args.duration),
+                title=args.title,
+                performer=args.performer,
+            )],
+            progress_callback=progress,
+        )
+        print(file=sys.stderr)
+    finally:
+        await c.disconnect()
+    return 0
+
+
+def main():
+    p = argparse.ArgumentParser(prog="tg-send-audio")
+    p.add_argument("--proxy", default="",
+                   help="socks5://host:port; empty means a direct connection")
+    sub = p.add_subparsers(dest="cmd", required=True)
+    sub.add_parser("login", help="log in once, by QR code")
+    sub.add_parser("check", help="exit 0 when the session is logged in")
+    s = sub.add_parser("send", help="send FILE to Saved Messages")
+    s.add_argument("--title", required=True)
+    s.add_argument("--performer", default="")
+    s.add_argument("--duration", type=float, required=True)
+    s.add_argument("--thumb")
+    s.add_argument("file")
+    args = p.parse_args()
+    return asyncio.run({"login": login, "check": check, "send": send}[args.cmd](args)) or 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

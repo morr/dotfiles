@@ -23,10 +23,10 @@
 # what "Sign in to confirm you're not a bot" wants. Reading them asks the
 # keychain for permission the first time.
 #
-# The finished mp3 is also sent to Telegram's Saved Messages through tdl
-# (brew install telegram-downloader), which talks to Telegram as the user
-# rather than as a bot — a bot cannot post into anyone's Saved Messages. It
-# needs a one-time `tdl login -T qr`; --no-telegram skips the upload.
+# The finished mp3 is also sent to Telegram's Saved Messages through
+# tg-send-audio, which lies next to this script and runs under uv (brew install
+# uv). It needs a one-time `tg-send-audio login`; --no-telegram skips the
+# upload.
 
 set -euo pipefail
 
@@ -142,12 +142,12 @@ cap=${bitrate%[Kk]}
   { echo "yt-mp3: --bitrate wants something like 256K, got $bitrate" >&2; exit 2; }
 
 # Every program the run needs, as command:formula — the formula is not always
-# the command's name (ffprobe ships with ffmpeg, tdl is telegram-downloader).
-# All of them are checked before anything is reported, so a fresh machine gets
-# one brew install line instead of a round trip per missing tool.
+# the command's name (ffprobe ships with ffmpeg). All of them are checked
+# before anything is reported, so a fresh machine gets one brew install line
+# instead of a round trip per missing tool.
 deps=(yt-dlp:yt-dlp ffmpeg:ffmpeg ffprobe:ffmpeg)
 if ((telegram)); then
-  deps+=(tdl:telegram-downloader)
+  deps+=(uv:uv)
 fi
 missing=() formulae=()
 for dep in "${deps[@]}"; do
@@ -161,19 +161,18 @@ done
 if ((${#missing[@]})); then
   note "not found: ${missing[*]}"
   note "install with: brew install ${formulae[*]}"
-  if [[ " ${missing[*]} " == *" tdl "* ]]; then
-    note "(or pass --no-telegram to go without tdl)"
+  if [[ " ${missing[*]} " == *" uv "* ]]; then
+    note "(or pass --no-telegram to go without the upload)"
   fi
   exit 1
 fi
 
-# Checked up front so a missing login is found before the downloads rather
-# than after each of them. The directory ~/.tdl/data is made by any tdl
-# command, --help included, so it proves nothing; the session lives in the
-# file named after the namespace inside it, which only a login creates.
+# Checked up front, by asking Telegram itself, so a missing or revoked login is
+# found before the downloads rather than after each of them.
+tg_send=("${BASH_SOURCE[0]%/*}/tg-send-audio" --proxy "$proxy")
 if ((telegram)); then
-  [[ -s $HOME/.tdl/data/default ]] ||
-    { echo "yt-mp3: tdl is not logged in — run tdl login -T qr, or pass --no-telegram" >&2; exit 1; }
+  "${tg_send[@]}" check ||
+    { echo "yt-mp3: not logged in to Telegram — run tg-send-audio login, or pass --no-telegram" >&2; exit 1; }
 fi
 
 mkdir -p "$dir"
@@ -250,34 +249,29 @@ source_bitrate() {
   [[ $bits =~ ^[0-9]+$ ]] && echo $((bits / 1000)) || true
 }
 
-# Send an mp3 to Saved Messages. tdl sends an audio/* file as music, titled
-# with the filename minus the extension — the same string as the ID3 title.
+# Send an mp3 to Saved Messages as music, with the title, the performer and the
+# duration spelled out: Telegram reads them out of the file by itself only for
+# a small one, and a 35 MB talk show comes out as 00:00 with no performer.
 #
 # The cover goes as a separate thumbnail because Telegram does not pull the
-# APIC frame out of the file; tdl picks it up from a .thumb file lying next to
-# the mp3. Telegram drops a thumbnail over 320px or 200 KB, and YouTube's is
-# 1280x720, hence the downscale. The .thumb name is worked out the way tdl
-# does it — strings.TrimRight(path, ".mp3") — which strips any trailing run of
-# the characters . m p 3 rather than the suffix, so a title ending in "p" or
-# "3" loses those too and a plain ${mp3%.mp3} would put the thumb where tdl
-# never looks.
-#
-# The default caption is the filename and the MIME type in <code>; "" is an
-# expression evaluating to no caption at all.
+# APIC frame out of the file. Telegram drops a thumbnail over 320px or 200 KB,
+# and YouTube's is 1280x720, hence the downscale.
 send_to_telegram() {
-  local mp3=$1 cover=$2 thumb=$1 tdl=(tdl)
-  while [[ $thumb == *[.mp3] ]]; do thumb=${thumb%?}; done
-  thumb+=.thumb
+  local mp3=$1 cover=$2 title=$3 artist=$4 thumb duration send
+  thumb="${mp3%.mp3}.thumb.jpg"
+  duration=$(ffprobe -v error -show_entries format=duration \
+    -of default=nw=1:nk=1 "$mp3") || return 1
+  send=("${tg_send[@]}" send --title "$title" --performer "$artist" --duration "$duration")
   if [[ -f $cover ]]; then
-    run ffmpeg -y -loglevel error -i "$cover" \
-      -vf 'scale=320:320:force_original_aspect_ratio=decrease' \
-      -q:v 4 -f image2 -c:v mjpeg "$thumb" ||
+    if run ffmpeg -y -loglevel error -i "$cover" \
+         -vf 'scale=320:320:force_original_aspect_ratio=decrease' \
+         -q:v 4 "$thumb"; then
+      send+=(--thumb "$thumb")
+    else
       note "could not make a thumbnail, sending without one"
+    fi
   fi
-  if [[ -n $proxy ]]; then
-    tdl+=(--proxy "$proxy")
-  fi
-  run "${tdl[@]}" up --path "$mp3" --caption '""'
+  run "${send[@]}" "$mp3"
 }
 
 # Encode one downloaded file into the destination mp3.
@@ -293,7 +287,7 @@ transcode() {
   cover="${media%.*}.jpg"
   out="$dir/$base.mp3"
   # Encoded in a directory of its own, so that neither iCloud syncs a half
-  # written mp3 nor tdl finds anything next to it but its thumbnail.
+  # written mp3 nor its thumbnail gets mixed up with another URL's.
   staged=$(mktemp -d "$scratch/out.XXXXXX") || return 1
   staged+="/$base.mp3"
 
@@ -343,13 +337,13 @@ transcode() {
   # The mp3 is kept whatever happens to the upload, so a failed one is only
   # reported once the file is safely in the destination.
   local sent=1
-  if ((telegram)) && ! send_to_telegram "$staged" "$cover"; then
+  if ((telegram)) && ! send_to_telegram "$staged" "$cover" "$meta_title" "$artist"; then
     sent=0
   fi
   mv "$staged" "$out" || return 1
   note "wrote $out"
   if ((!sent)); then
-    note "sending to Telegram failed (logged out? tdl login -T qr); the mp3 is still in $dir"
+    note "sending to Telegram failed (logged out? tg-send-audio login); the mp3 is still in $dir"
     return 1
   fi
 }
