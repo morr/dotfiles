@@ -1,0 +1,67 @@
+#!/bin/bash
+# Claude Code on the GLM Coding Plan (api.z.ai) — same CLI, GLM models, no proxy.
+#
+# Model mapping (env vars, no /model leaks into settings):
+#   opus   -> glm-5.3-flash[1m]   (the pinned default, see --model below)
+#   fable  -> glm-5.3[1m]         (the /model fable upgrade)
+#   sonnet, haiku -> glm-5.3-flash[1m] — everything Claude Code runs on the
+#   cheap aliases internally (summarisation, classifiers, subagent defaults)
+#   stays on GLM too. Their SUPPORTED_CAPABILITIES list omits xhigh_effort /
+#   max_effort, so effort for those calls is clamped below the session level.
+#
+# [1m] is Claude Code's suffix for the 1M-context variant — per
+# https://docs.z.ai/devpack/tool/claude. If the plan tier rejects it, drop the
+# suffix and CLAUDE_CODE_AUTO_COMPACT_WINDOW.
+#
+# Runs WITHOUT with-proxy: api.z.ai is reachable directly, and the parent
+# shell's *_PROXY vars are stripped so no GLM request can detour through one.
+# The base-URL override plus CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC keep
+# every request — model calls, telemetry, error reports, update checks — on
+# Z.AI or nowhere; nothing ever goes to Anthropic.
+#
+# --model pinning copies bin/claude (see its header for why): plain
+# interactive launches are forced onto opus, an explicit --model of your own
+# and every subcommand are left alone. Keep the subcommand list in sync with
+# bin/claude and `claude --help`.
+#
+# The Z.AI API key lives in ~/dotfiles/.zai_api_key.secret, like the other
+# .secret files (gitignored).
+
+keyfile="$HOME/dotfiles/.zai_api_key.secret"
+real="$HOME/.local/bin/claude"
+
+if [ ! -s "$keyfile" ]; then
+  echo "Error: $keyfile is missing or empty — put your Z.AI API key there:" >&2
+  echo "  echo <zai-api-key> > $keyfile" >&2
+  exit 1
+fi
+
+unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy ALL_PROXY all_proxy
+
+export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
+export ANTHROPIC_AUTH_TOKEN="$(cat "$keyfile")"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="glm-5.3-flash[1m]"
+export ANTHROPIC_DEFAULT_FABLE_MODEL="glm-5.3[1m]"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="glm-5.3-flash[1m]"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-5.3-flash[1m]"
+export ANTHROPIC_DEFAULT_SONNET_MODEL_SUPPORTED_CAPABILITIES="effort"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL_SUPPORTED_CAPABILITIES="effort"
+export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+export CLAUDE_CODE_AUTO_COMPACT_WINDOW="1000000"
+export API_TIMEOUT_MS="3000000"
+
+for arg in "$@"; do
+  case "$arg" in
+    --model | --model=*) exec "$real" "$@" ;;
+  esac
+done
+
+case "${1:-}" in
+  agents | attach | auth | auto-mode | config | doctor | gateway | import | install | kill | \
+  logs | mcp | migrate-installer | plugin | plugins | project | remote-control | respawn | rm | \
+  serve | setup-token | ssh | stop | ultrareview | update | upgrade)
+    exec "$real" "$@"
+    ;;
+esac
+
+exec "$real" --model opus "$@"

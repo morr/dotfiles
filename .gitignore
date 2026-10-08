@@ -5,3 +5,4 @@ iterm2_venv
 .google_client.secret
 .google_service_account.secret.json
 .proxy_url*.secret
+.zai_api_key.secret

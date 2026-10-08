@@ -106,25 +106,27 @@
   аргумента, хотя шаг 1 и так умеет её спросить. Автоопределение (master / база PR)
   обсуждалось и отклонено: неверно угаданная точка стоит целого ревью не того дифа,
   а вопрос — одна строка.
+- **Описание ограничено 1024 символами (07.10.2026).** Скилл теперь кормит и Claude, и ZCode
+  (один файл в `~/.agents/skills`, куда смотрят оба инструмента), а ZCode молча отбрасывает
+  скилл, чьё описание длиннее: `code-review` (1143 символа) исчез из списка скиллов ZCode
+  именно поэтому. Длинное описание наращивалось кусками в первой версии патча и само по себе
+  в Claude ничего не стоило — теперь стоит: подробности аргументов живут в шаге 0.
 
 ## Правки
 
 ### Фронтматтер
 
 `description`: `Runs both reviews in parallel sub-agents and reports them side by side.`
-→ `Runs both reviews in parallel sub-agents, then walks the findings one by one — detail,
-suggested fix, and a fix / don't-fix resolution from the user for each.`
+→ одной цельной строкой, дословно:
 
-Там же в скобках после оси Spec: `(does the code match what the originating issue/spec asked
-for, as amended by the decisions recorded in the PR description?)`.
+```md
+description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes — Standards (the repo's documented coding standards) and Spec (the originating issue/spec plus the decisions recorded in the PR description). Runs both reviews in parallel sub-agents, then walks the findings one by one for a fix / don't-fix resolution from the user. Optional args, any order: the review point (asked for when omitted), the planner model (`opus` | `fable`), the decision mode (`manual` | `auto`), `worktree:<branch>`. Ends by committing the fixes, then pushing and updating the PR description when the branch has a PR. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\"."
+```
 
-Дальше в ту же строку — предложение про аргументы и предложение про закрытие ветки:
-`Takes four optional arguments, in any order:` — первым назван **review point**
-(коммит, ветка, тег, merge-base; спрашивается, если опущен), затем модель планировщика
-(`opus` | `fable`), режим (`manual` | `auto`, где обход резолвит issue сам и
-останавливается только там, где резолюция критически важна) и `worktree:<branch>`
-(ревью этой ветки в собственном worktree, удаляемом по окончании); и
-`Ends by committing the fixes, then pushing the branch and updating the PR description whenever the branch has a PR.`
+Жёсткое ограничение: **вся строка `description:` — не длиннее 1024 символов** (префикс
+`description: ` считается), иначе ZCode молча отбрасывает скилл целиком — файл общий
+для Claude и ZCode, длина проверяется `awk '/^description:/{print length($0)}' SKILL.md`.
+Детали аргументов в описание не возвращать — их место в шаге 0.
 
 ### Вступление (абзац «Both axes run as parallel sub-agents…»)
 
@@ -157,9 +159,11 @@ user — one issue at a time, each with a resolution`, и следом отде�
   (все четыре опущены), а не ошибка. Не задана — её спрашивает шаг 1; **дефолта нет**, и
   причина названа прямо в тексте: неверно угаданная точка стоит целого ревью не того дифа,
   а вопрос — одна строка.
-- **planner model** — `opus` | `fable`; заполняет слот 8 `issue-walk`, тот **пропускает свой
-  вопрос о модели**. `opus` — такой же ответ, как `fable`: оператор уже выбрал, второй раз
-  не спрашиваем. Не задана — про модель молчим, вопрос задаёт `issue-walk`.
+- **planner model** — `opus` | `fable` — имена относительно инструмента: дешёвый дефолт
+  и подъём для сложного ревью (Claude — Opus / Fable, ZCode — `GLM-5.3-Flash` / `GLM-5.3`);
+  заполняет слот 8 `issue-walk`, тот **пропускает свой вопрос о модели**. `opus` — такой же
+  ответ, как `fable`: оператор уже выбрал, второй раз не спрашиваем. Не задана — про модель
+  молчим, вопрос задаёт `issue-walk`.
 - **decision mode** — `manual` (дефолт) | `auto`; заполняет слот 9. `manual` — вопрос
   «фиксить / не фиксить» на каждую issue; `auto` — обход резолвит сам и останавливается
   только там, где резолюция критически важна.
@@ -449,7 +453,8 @@ PR**; на PR завязаны только пуш и обновление оп�
 - Слоты **1–4 заполняет вызывающий** (индексная строка, источник секции `Почему`, что
   добавляется на закрытии issue, колонки ledger'а). Слоты **5–9 имеют дефолт**, и вызывающий
   переопределяет их только явно.
-- **Слот 8 «Planner model»** — дефолт «не задан» (`issue-walk` сам спрашивает Fable/Opus);
+- **Слот 8 «Planner model»** — дефолт «не задан» (`issue-walk` сам спрашивает: дешёвый дефолт
+  или подъём — в Claude это Opus/Fable, в ZCode `GLM-5.3-Flash`/`GLM-5.3`);
   задан — вопрос пропускается, модель уходит на каждый спавн планировщика.
 - **Слот 9 «Decision mode»** — дефолт `manual`. `auto` целиком живёт в `auto.md` рядом
   со скиллом и в каталоге `auto/` (протоколы агентов, доходят до них путями); он
@@ -514,12 +519,22 @@ PR**; на PR завязаны только пуш и обновление оп�
   а не голым словом: ревьюится `HEAD`, и ветку, выгруженную в основном чекауте, в worktree не
   взять) — абзац «The worktree comes first» в шаге 1 и новый шаг 7 «Remove the worktree».
   Пуш ветки с PR отвязан от обхода: делается всегда, и при ревью без фиксов.
+- **07.10.2026** — описание в фронтматтере сокращено с 1143 до 749 символов: ZCode отбрасывает
+  скиллы с `description` длиннее 1024 (в Claude лимита нет, поэтому до миграции не проявлялось).
+  Секция «Фронтматтер» переписана с наращивания по кускам на цельную строку.
+- **07.10.2026 (2)** — ключевые слова модели планировщика стали имена-относительными:
+  `opus` / `fable` в ZCode означают `GLM-5.3-Flash` / `GLM-5.3` (та же пара «дешёвый дефолт —
+  подъём»); маппинг прописан в шаге 0 и слоте 8 `issue-walk` и в глобальном CLAUDE.md
+  (`~/dotfiles/.claude/CLAUDE.md`, он же `AGENTS.md` для ZCode). В ZCode у `Agent`-вызова нет
+  параметра модели — сабагенты бегают на модели сессии, дефолт и так совпадает, подъём
+  просит оператора сменить модель сессии.
 
 ## Проверка
 
 `code-review` — что должно быть в нём:
 
 ```sh
+awk '/^description:/{print length($0)}' ~/.claude/skills/code-review/SKILL.md       # ≤ 1024, иначе ZCode скилл молча отбрасывает
 grep -n -E '### 0\. Read the arguments|### 6\. Close the branch out' ~/.claude/skills/code-review/SKILL.md
 grep -n -E 'review point|three optional|Only committed work is reviewed|status --porcelain' ~/.claude/skills/code-review/SKILL.md
 grep -n -E 'gh pr view|outranks the issue|снято описанием PR' ~/.claude/skills/code-review/SKILL.md

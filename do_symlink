@@ -20,6 +20,8 @@ files = %w[
   .claude/hooks
   .claude/themes
   .mcp.json
+  .zcode/AGENTS.md
+  .agents/mcp.json
   .oh-my-zsh/custom/completions/_cargo
   Library/LaunchAgents/com.morr.ssh-tunnel.plist
 ]

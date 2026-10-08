@@ -6,6 +6,10 @@
 
 Все тексты для пользователя — ответы, планы, отчёты, HTML-артефакты — на русском; код, идентификаторы и коммиты — на английском.
 
+## Model names
+
+**opus** и **fable** в моих запросах — это два уровня модели планировщика (дешёвый дефолт и «подъём» для сложной задачи), а не литеральные id моделей. Разрешаются по инструменту: в ZCode `opus` → `GLM-5.3-Flash`, `fable` → `GLM-5.3`; в Claude — Opus и Fable как есть; в zclaude (Claude Code на GLM Coding Plan, `~/dotfiles/bin/zclaude`) `opus` → `glm-5.3-flash[1m]`, `fable` → `glm-5.3[1m]`. Скиллы, принимающие модель планировщика (`code-review`, `issue-walk`), используют те же ключевые слова.
+
 ## Code Intelligence
 
 Prefer LSP over Grep/Read for code navigation — it's faster, precise, and avoids reading entire files:
