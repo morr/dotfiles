@@ -88,3 +88,7 @@ This preserves `![image](url)` and `[file](url)` markdown that the rendered text
 ## Library/API documentation
 
 Prioritize use of Context7 MCP instead of web searching for Library/API documentation access.
+
+## Artifacts
+
+Когда я прошу сделать «артефакт», опубликовать страницу/дашборд/отчёт/визуализацию с публичной ссылкой, либо обновить, откатить или удалить существующий артефакт — работай по скилу `artifact-builder` (источник `~/develop/work/artifacts/skills/artifact-builder/`, подключён симлинками в каталоги скилов): публикуй через MCP-сервер `artifacts` (`mcp__artifacts__*`), а не сохраняй HTML-файлы в репозитории или dotfiles, и выдавай мне публичную ссылку (`<base>/a/<name>`). Визуальный стиль артефактов по умолчанию — фирменный стиль Claude (см. `claude-brand.md` в скиле): применяй его всегда, без явной просьбы с моей стороны; другой стиль — только когда я явно попрошу. Дизайн-крафт — по гайдам скила (симлинки на anthropics/skills в submodule `vendor/anthropic-skills` репо artifacts; обновление гайдов — `git submodule update --remote vendor/anthropic-skills` в репо artifacts с коммитом указателя).

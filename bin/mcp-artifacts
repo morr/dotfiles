@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# MCP-сервер хранилища артефактов (github.com/morr/artifacts).
+# Токен не коммитится: лежит в ~/.artifacts_token.secret (тот же секрет — в
+# ~/develop/work/minisklad-artifacts/.kamal/secrets), сервер до деплоя может
+# быть недоступен — MCP отвечает ошибкой только при вызове инструментов.
+set -euo pipefail
+
+: "${ARTIFACTS_BASE_URL:=https://artifacts.kladovkin.ru}"
+TOKEN_FILE="${ARTIFACTS_TOKEN_FILE:-$HOME/.artifacts_token.secret}"
+MCP_JS="${ARTIFACTS_MCP_JS:-$HOME/develop/work/artifacts/mcp/dist/index.js}"
+
+if [ ! -f "$TOKEN_FILE" ]; then
+  echo "mcp-artifacts: token file $TOKEN_FILE is missing" >&2
+  exit 1
+fi
+if [ ! -f "$MCP_JS" ]; then
+  echo "mcp-artifacts: $MCP_JS is missing; build it: cd ~/develop/work/artifacts/mcp && npm install && npm run build" >&2
+  exit 1
+fi
+
+export ARTIFACTS_BASE_URL
+export ARTIFACTS_TOKEN
+ARTIFACTS_TOKEN="$(cat "$TOKEN_FILE")" exec node "$MCP_JS"
