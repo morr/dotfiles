@@ -24,10 +24,16 @@
 # and every subcommand are left alone. Keep the subcommand list in sync with
 # bin/claude and `claude --help`.
 #
+# zclaude-settings.json is layered via --settings on session launches (shared
+# settings.json stays untouched for plain claude): no spinner/startup tips,
+# no claude.ai connectors — kills the "connectors are disabled" warning that
+# API-key auth would otherwise print on every start.
+#
 # The Z.AI API key lives in ~/dotfiles/.zai_api_key.secret, like the other
-# .secret files (gitignored).
+# .secret files (gitignored). ZCLAUDE_KEY_FILE overrides the path — test runs
+# must point it at a throwaway file, never at the real one.
 
-keyfile="$HOME/dotfiles/.zai_api_key.secret"
+keyfile="${ZCLAUDE_KEY_FILE:-$HOME/dotfiles/.zai_api_key.secret}"
 real="$HOME/.local/bin/claude"
 
 if [ ! -s "$keyfile" ]; then
@@ -52,7 +58,7 @@ export API_TIMEOUT_MS="3000000"
 
 for arg in "$@"; do
   case "$arg" in
-    --model | --model=*) exec "$real" "$@" ;;
+    --model | --model=*) exec "$real" --settings "$HOME/dotfiles/.claude/zclaude-settings.json" "$@" ;;
   esac
 done
 
@@ -64,4 +70,4 @@ case "${1:-}" in
     ;;
 esac
 
-exec "$real" --model opus "$@"
+exec "$real" --model opus --settings "$HOME/dotfiles/.claude/zclaude-settings.json" "$@"
