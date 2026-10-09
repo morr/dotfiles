@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Weekly refresh of the Anthropic design guides behind the artifact-builder
+# skill: bump vendor/anthropic-skills to the remote default branch and commit
+# the moved gitlink. Run by the com.morr.update-artifact-guides launchd agent;
+# safe to run by hand any time.
+set -euo pipefail
+
+repo="$HOME/develop/work/artifacts"
+submodule="vendor/anthropic-skills"
+log="$HOME/.local/state/update-artifact-guides.log"
+
+mkdir -p "$(dirname "$log")"
+{
+  echo "--- $(date '+%Y-%m-%d %H:%M:%S')"
+  git -C "$repo" submodule update --remote "$submodule"
+  if git -C "$repo" diff --quiet -- "$submodule"; then
+    echo "guides already up to date"
+  else
+    git -C "$repo" add "$submodule"
+    git -C "$repo" commit -m "chore: bump anthropics/skills design guides"
+    echo "updated: $(git -C "$repo" log -1 --format='%h %s')"
+  fi
+} >>"$log" 2>&1
