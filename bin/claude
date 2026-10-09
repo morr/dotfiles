@@ -27,6 +27,16 @@
 real="$HOME/.local/bin/claude"
 proxy="$HOME/dotfiles/bin/with-proxy5"
 
+# Inside a zclaude session ANTHROPIC_BASE_URL points at api.z.ai, and every
+# nested spawn — a skill's `claude --bg --name …`, skill-creator's `claude -p`,
+# a manual one — must come up on the same GLM backend, not on this Anthropic
+# one. Hand off to the zclaude shim: it strips the proxy, re-applies its env
+# and settings and execs the real binary by absolute path, so this cannot
+# loop. Outside zclaude the variable is unset and nothing changes here.
+case "${ANTHROPIC_BASE_URL:-}" in
+  *api.z.ai*) exec "$HOME/dotfiles/bin/zclaude" "$@" ;;
+esac
+
 for arg in "$@"; do
   case "$arg" in
     --model | --model=*) exec "$proxy" "$real" "$@" ;;
