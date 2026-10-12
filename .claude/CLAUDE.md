@@ -51,6 +51,31 @@ sites, where Edit has no equivalent (it does no regex, and fails on a non-unique
 instead of replacing all). Then: `assert` on *every* replacement, not just the first, and
 `git diff` afterwards to show what actually landed.
 
+## Context budget — re-reads, subagent scope, compaction
+
+Token spend is dominated by re-reading accumulated context every turn, not by tool output.
+Measured across real sessions: 96–97% of tokens are cache reads; a file that entered the
+context is paid for by every following turn. Three rules follow from that.
+
+1. **No full re-reads of large files.** After the first full `Read` of a file larger than
+   ~30K characters, every further look goes through `Read` with `offset`/`limit` or `Grep`
+   with an anchor — never a second full `Read`. A full re-read is a deliberate decision,
+   made when the work changes phase (before committing, after a compaction), not a way to
+   "refresh" the file.
+2. **One subagent — one task.** A background or spawned agent gets a single issue, a single
+   item of a plan, or a single family of related errors — not a list. Its report back to the
+   parent context is at most ~50 lines (verdicts, decisions, file paths); the full report
+   goes to a file, and the parent gets the path with it. A queue of tasks is a loop of
+   subagents, not one marathon agent.
+3. **Compact between logical units.** Finishing an issue, a plan item, or a drill wave in a
+   long session, the next unit starts clean: hand it to a fresh agent, or — when it must
+   run in place — ask the user for `/compact` (a CLI command of the user's; the agent has
+   no tool that runs it). Never carry a finished task's context into the next one.
+
+The same arithmetic applies to skills: a skill whose SKILL.md exceeds ~30K characters is
+split into stages — SKILL.md keeps the map and the constants, the stages live in
+`references/` and are loaded when the session reaches them.
+
 ## Shell is zsh — three mandatory forms when writing a Bash command
 
 Not prohibitions to recall, but the only shapes to type. Everything below them is mechanics —

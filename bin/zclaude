@@ -10,8 +10,10 @@
 #   max_effort, so effort for those calls is clamped below the session level.
 #
 # [1m] is Claude Code's suffix for the 1M-context variant — per
-# https://docs.z.ai/devpack/tool/claude. If the plan tier rejects it, drop the
-# suffix and CLAUDE_CODE_AUTO_COMPACT_WINDOW.
+# https://docs.z.ai/devpack/tool/claude. Keep it even with the compact window
+# below: the auto-compact trigger (0.9 × window) plus one turn of overshoot
+# exceeds a hard 200K API limit, so requests must stay accepted past it.
+# If the plan tier rejects [1m], drop the suffix and CLAUDE_CODE_AUTO_COMPACT_WINDOW.
 #
 # Runs WITHOUT with-proxy: api.z.ai is reachable directly, and the parent
 # shell's *_PROXY vars are stripped so no GLM request can detour through one.
@@ -53,7 +55,12 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-5.3-flash[1m]"
 export ANTHROPIC_DEFAULT_SONNET_MODEL_SUPPORTED_CAPABILITIES="effort"
 export ANTHROPIC_DEFAULT_HAIKU_MODEL_SUPPORTED_CAPABILITIES="effort"
 export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
-export CLAUDE_CODE_AUTO_COMPACT_WINDOW="1000000"
+# 250K, not the model's 1M: with the full window auto-compact never fires, and a
+# long session re-reads its whole accumulated context every turn (measured: one
+# session grew to 570K context over 409 turns and burned 114.6M tokens, 97% of
+# them cache reads). At 250K the same workload compacted 3× and cost ~43M. The
+# compact itself loses detail — that is what the [1m] headroom above 200K buys.
+export CLAUDE_CODE_AUTO_COMPACT_WINDOW="250000"
 export API_TIMEOUT_MS="3000000"
 
 for arg in "$@"; do
