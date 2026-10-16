@@ -55,12 +55,12 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-5.3-flash[1m]"
 export ANTHROPIC_DEFAULT_SONNET_MODEL_SUPPORTED_CAPABILITIES="effort"
 export ANTHROPIC_DEFAULT_HAIKU_MODEL_SUPPORTED_CAPABILITIES="effort"
 export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
-# 250K, not the model's 1M: with the full window auto-compact never fires, and a
+# 300K, not the model's 1M: with the full window auto-compact never fires, and a
 # long session re-reads its whole accumulated context every turn (measured: one
 # session grew to 570K context over 409 turns and burned 114.6M tokens, 97% of
 # them cache reads). At 250K the same workload compacted 3× and cost ~43M. The
 # compact itself loses detail — that is what the [1m] headroom above 200K buys.
-export CLAUDE_CODE_AUTO_COMPACT_WINDOW="250000"
+export CLAUDE_CODE_AUTO_COMPACT_WINDOW="300000"
 export API_TIMEOUT_MS="3000000"
 
 for arg in "$@"; do
