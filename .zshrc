@@ -123,7 +123,8 @@ alias foreman='honcho'
 alias os='overmind start'
 alias ys='yarn start'
 alias ww='if [ -f ./bin/watch ]; then ./bin/watch; elif [ -f ./bin/shakapacker-dev-server ]; then ./bin/shakapacker-dev-server; elif [ -f ./bin/webpacker-dev-server ]; then ./bin/webpacker-dev-server; else ./bin/webpack-dev-server; fi'
-alias fspec='env -u HTTP_PROXY -u HTTPS_PROXY ./bin/flatware'
+# function, not alias: zsh expands aliases at parse time, so they never fire in non-interactive shells (agents' Bash tools)
+fspec() { env -u HTTP_PROXY -u HTTPS_PROXY ./bin/flatware "$@" }
 
 #-------------------------------------------------------------------------------
 # elixir aliases
