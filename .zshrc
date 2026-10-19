@@ -18,7 +18,7 @@ CASE_SENSITIVE="true"
 COMPLETION_WAITING_DOTS="true"
 
 plugins=(ruby bundler capistrano gem macos npm rbenv ssh-agent rake brew \
-  command-not-found compleat cp history history-substring-search \
+  compleat cp history history-substring-search \
   git git-extras pow npm yarn docker rust)
 
 HISTSIZE=10000000
