@@ -58,7 +58,7 @@ while [[ $# -gt 0 ]]; do
     --cooldown)    COOLDOWN=$2; shift 2 ;;
     --prompt)      PROMPT=$2; shift 2 ;;
     --once)        ONCE=1; shift ;;
-    -h|--help)     sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help)     awk 'NR==1{next} /^#/{sub(/^# ?/,"");print;next} {exit}' "$0"; exit 0 ;;
     *)             SESSIONS+=("$1"); shift ;;
   esac
 done
@@ -114,11 +114,15 @@ pass() {
     fi
 
     # one pass over the session's log lines: last turn event, last request
-    # age, and the model it last ran on (the authoritative "current model")
+    # age, and the model it is configured/last ran on. model.request.started
+    # events carry NO model fields; the model lives in session.model.updated
+    # (context.model, an "account:<plan>/<model>" picker string — the current
+    # configuration) and in completed/failed/retry events (modelId+providerId).
     probe=$(grep "\"sessionId\":\"$sid\"" "$LOG" 2>/dev/null | python3 -I -c "
 import sys, json, time
 last_turn = ''
 last_req_age = -1
+picker = ''
 model = ''
 provider = ''
 for line in sys.stdin:
@@ -127,23 +131,27 @@ for line in sys.stdin:
     except Exception:
         continue
     ev = d.get('event', '')
+    c = d.get('context', {})
     if ev in ('turn.started', 'turn.failed'):
         last_turn = ev
-    if ev == 'model.request.started':
-        c = d.get('context', {})
+    if ev == 'session.model.updated' and c.get('model'):
+        picker = c['model']
+    if ev in ('model.request.completed', 'model.request.failed', 'model.retry.scheduled'):
         if c.get('modelId'):
             model = c['modelId']
         if c.get('providerId'):
             provider = c['providerId']
+    if ev == 'model.request.started':
         ts = d.get('timestamp', '')
         try:
             last_req_age = int(time.time() - time.mktime(time.strptime(ts[:19], '%Y-%m-%dT%H:%M:%S')) - time.timezone)
         except Exception:
             pass
-print(f'{last_turn}|{last_req_age}|{model}|{provider}')
+print(f'{last_turn}|{last_req_age}|{picker}|{model}|{provider}')
 ")
     last_turn="${probe%%|*}"; rest="${probe#*|}"
     req_age="${rest%%|*}";    rest="${rest#*|}"
+    picker="${rest%%|*}";     rest="${rest#*|}"
     log_model="${rest%%|*}";  log_provider="${rest#*|}"
 
     if [[ "$last_turn" != "turn.failed" ]]; then
@@ -165,8 +173,14 @@ print(f'{last_turn}|{last_req_age}|{model}|{provider}')
       continue
     fi
 
-    # pin the current model: log first, tasks row as fallback
-    provider="$log_provider"; modelid="$log_model"
+    # pin the current model: session.model.updated picker first, then the
+    # last completed/failed request's model, tasks row as the last resort
+    if [[ -n "$picker" && "$picker" == */* ]]; then
+      provider="${picker%%/*}"
+      modelid="${picker#*/}"
+    else
+      provider="$log_provider"; modelid="$log_model"
+    fi
     if [[ -z "$modelid" || -z "$provider" ]]; then
       model=$(sqlite3 -readonly "$DB" "SELECT model FROM tasks WHERE task_id='$sid' AND deleted=0" 2>/dev/null)
       if [[ -n "$model" && "$model" == */* ]]; then
