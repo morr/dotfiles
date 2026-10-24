@@ -63,8 +63,27 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-log()  { echo "$(date '+%H:%M:%S') $*" }
-warn() { echo "$(date '+%H:%M:%S') WARN: $*" >&2 }
+clear_line() { [[ -t 1 ]] && printf '\r%*s\r' "${_COLS:-80}" '' ; return 0 }
+
+log()  { clear_line; echo "$(date '+%H:%M:%S') $*" }
+warn() { clear_line; echo "$(date '+%H:%M:%S') WARN: $*" >&2 }
+
+# sleep while drawing a countdown bar to the next pass (tty only)
+progress_sleep() {
+  local total=$1 left width=30 filled bar empty
+  left=$total
+  [[ -t 1 ]] || { sleep "$total"; return }
+  _COLS=${COLUMNS:-$(tput cols 2>/dev/null || echo 80)}
+  while (( left > 0 )); do
+    filled=$(( (total - left) * width / total ))
+    bar=$(printf '%*s' "$filled" '' | tr ' ' '#')
+    empty=$(printf '%*s' "$((width - filled))" '' | tr ' ' '.')
+    printf '\rnext check in %3ds [%s%s]' "$left" "$bar" "$empty"
+    sleep 1
+    (( left-- ))
+  done
+  clear_line
+}
 
 # one watch pass over all sessions; 0 = fine, 1 = a DB write failed
 pass() {
@@ -209,5 +228,5 @@ while true; do
     warn "pass failed, retrying in ${INTERVAL}s"
   fi
   (( ONCE )) && break
-  sleep "$INTERVAL"
+  progress_sleep "$INTERVAL"
 done
