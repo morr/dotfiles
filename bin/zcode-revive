@@ -22,13 +22,18 @@
 #
 # Usage:
 #   zcode-revive [options] [session_id ...]
+#   By default watches EVERY non-archived session currently in
+#   task_status='error' that fell within --fresh-hours; the set is
+#   re-discovered every pass. Named session_ids are watched as a fixed list,
+#   without the freshness limit.
+#     --fresh-hours H  discovery window in hours (default 24) —
+#                      long-abandoned errors stay dead
 #     --interval SEC   poll interval (default 60)
 #     --quiet SEC      min seconds since the last model request (default 60)
 #     --cooldown SEC   min seconds between revives of one session (default 90)
 #     --prompt TEXT    message to deliver (default "continue")
 #     --once           one pass, then exit
 #     -h, --help
-#   With no session ids, watches the two qwe sessions this tool was built for.
 # Stop with Ctrl-C.
 
 emulate -L zsh
@@ -42,23 +47,21 @@ QUIET=60
 COOLDOWN=90
 PROMPT="continue"
 ONCE=0
+FRESH_HOURS=24
 SESSIONS=()
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --interval) INTERVAL=$2; shift 2 ;;
-    --quiet)    QUIET=$2; shift 2 ;;
-    --cooldown) COOLDOWN=$2; shift 2 ;;
-    --prompt)   PROMPT=$2; shift 2 ;;
-    --once)     ONCE=1; shift ;;
-    -h|--help)  sed -n '2,37p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
-    *)          SESSIONS+=("$1"); shift ;;
+    --fresh-hours) FRESH_HOURS=$2; shift 2 ;;
+    --interval)    INTERVAL=$2; shift 2 ;;
+    --quiet)       QUIET=$2; shift 2 ;;
+    --cooldown)    COOLDOWN=$2; shift 2 ;;
+    --prompt)      PROMPT=$2; shift 2 ;;
+    --once)        ONCE=1; shift ;;
+    -h|--help)     sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *)             SESSIONS+=("$1"); shift ;;
   esac
 done
-(( ${#SESSIONS} )) || SESSIONS=(
-  session_d7905cd4c567309882767a4ff895c305
-  session_c9cd76729868570f43c9619ccd622bc3
-)
 
 log()  { echo "$(date '+%H:%M:%S') $*" }
 warn() { echo "$(date '+%H:%M:%S') WARN: $*" >&2 }
@@ -70,11 +73,20 @@ pass() {
   local LOG="$HOME/.zcode/cli/log/zcode-$(date +%F).jsonl"
   local sid st probe last_turn rest req_age log_model log_provider
   local last age model think provider modelid sel aid proj wskey wspath host
+  local ids
+
+  # fixed list from args, or discover every fresh error session
+  if (( ${#SESSIONS} )); then
+    ids=($SESSIONS)
+  else
+    ids=($(sqlite3 -readonly "$DB" "SELECT task_id FROM tasks WHERE deleted=0 AND archived=0 AND task_status='error' AND updated_at > $(( now_ms - FRESH_HOURS * 3600000 ))" 2>/dev/null))
+    (( ${#ids} )) || { log "no error sessions"; return 0 }
+  fi
 
   # housekeeping: drop settled revive rows older than 10 minutes
   sqlite3 "$DB" "DELETE FROM automations WHERE automation_id LIKE 'ext-revive-%' AND lifecycle_status='completed' AND updated_at < $((now_ms - 600000))" >/dev/null 2>&1
 
-  for sid in $SESSIONS; do
+  for sid in $ids; do
     st=$(sqlite3 -readonly "$DB" "SELECT task_status FROM tasks WHERE task_id='$sid' AND deleted=0" 2>/dev/null)
     if [[ "$st" != "error" ]]; then
       [[ -f "$STATE_DIR/$sid.sent" ]] && log "$sid left error state"
@@ -187,7 +199,11 @@ print(f'{last_turn}|{last_req_age}|{model}|{provider}')
 
 trap 'echo; log "stopped"; exit 0' INT TERM
 
-log "watching ${#SESSIONS} session(s): interval=${INTERVAL}s quiet=${QUIET}s cooldown=${COOLDOWN}s prompt='${PROMPT}'"
+if (( ${#SESSIONS} )); then
+  log "watching ${#SESSIONS} named session(s): interval=${INTERVAL}s quiet=${QUIET}s cooldown=${COOLDOWN}s prompt='${PROMPT}'"
+else
+  log "watching every error session of the last ${FRESH_HOURS}h: interval=${INTERVAL}s quiet=${QUIET}s cooldown=${COOLDOWN}s prompt='${PROMPT}'"
+fi
 while true; do
   if ! pass; then
     warn "pass failed, retrying in ${INTERVAL}s"
