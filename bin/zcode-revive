@@ -1,0 +1,197 @@
+#!/bin/zsh
+# zcode-revive — keep error-stopped ZCode sessions running.
+#
+# Watches the ZCode task index (~/.zcode/v2/tasks-index.sqlite) and, when a
+# session's turn has died with an API error, queues a one-shot row into the
+# app's own automation queue; ZCode's scheduler (20 s DB poll) then delivers
+# "continue" into that session (resumeTask + sendPrompt). No UI automation,
+# no second agent process — the app itself types the message.
+#
+# A session is revived only when ALL hold:
+#   1. tasks.task_status = 'error'          (the index's "stopped with error";
+#                                            can be stale, so also 2 and 3)
+#   2. the session's LAST turn.started/turn.failed event in today's
+#      ~/.zcode/cli/log/zcode-<date>.jsonl is turn.failed
+#   3. its last model.request.started is older than --quiet seconds
+#
+# The revive row pins the session's CURRENT model — derived from its last
+# model.request events in the log (the tasks row can lag behind a switch).
+# model_selection='null' ("follow workspace default") is never used: it forces
+# the workspace's preferred plan onto the session (observed: Flash Start Plan
+# -> GLM-5.3 Individual Plan); SQL NULL makes the dispatch fail outright.
+#
+# Usage:
+#   zcode-revive [options] [session_id ...]
+#     --interval SEC   poll interval (default 60)
+#     --quiet SEC      min seconds since the last model request (default 60)
+#     --cooldown SEC   min seconds between revives of one session (default 90)
+#     --prompt TEXT    message to deliver (default "continue")
+#     --once           one pass, then exit
+#     -h, --help
+#   With no session ids, watches the two qwe sessions this tool was built for.
+# Stop with Ctrl-C.
+
+emulate -L zsh
+
+DB="$HOME/.zcode/v2/tasks-index.sqlite"
+STATE_DIR="${TMPDIR:-/tmp}/zcode-revive-state"
+mkdir -p "$STATE_DIR"
+
+INTERVAL=60
+QUIET=60
+COOLDOWN=90
+PROMPT="continue"
+ONCE=0
+SESSIONS=()
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --interval) INTERVAL=$2; shift 2 ;;
+    --quiet)    QUIET=$2; shift 2 ;;
+    --cooldown) COOLDOWN=$2; shift 2 ;;
+    --prompt)   PROMPT=$2; shift 2 ;;
+    --once)     ONCE=1; shift ;;
+    -h|--help)  sed -n '2,37p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *)          SESSIONS+=("$1"); shift ;;
+  esac
+done
+(( ${#SESSIONS} )) || SESSIONS=(
+  session_d7905cd4c567309882767a4ff895c305
+  session_c9cd76729868570f43c9619ccd622bc3
+)
+
+log()  { echo "$(date '+%H:%M:%S') $*" }
+warn() { echo "$(date '+%H:%M:%S') WARN: $*" >&2 }
+
+# one watch pass over all sessions; 0 = fine, 1 = a DB write failed
+pass() {
+  local now_s=$(date +%s) now_ms
+  now_ms=$(python3 -c "import time; print(int(time.time()*1000))")
+  local LOG="$HOME/.zcode/cli/log/zcode-$(date +%F).jsonl"
+  local sid st probe last_turn rest req_age log_model log_provider
+  local last age model think provider modelid sel aid proj wskey wspath host
+
+  # housekeeping: drop settled revive rows older than 10 minutes
+  sqlite3 "$DB" "DELETE FROM automations WHERE automation_id LIKE 'ext-revive-%' AND lifecycle_status='completed' AND updated_at < $((now_ms - 600000))" >/dev/null 2>&1
+
+  for sid in $SESSIONS; do
+    st=$(sqlite3 -readonly "$DB" "SELECT task_status FROM tasks WHERE task_id='$sid' AND deleted=0" 2>/dev/null)
+    if [[ "$st" != "error" ]]; then
+      [[ -f "$STATE_DIR/$sid.sent" ]] && log "$sid left error state"
+      rm -f "$STATE_DIR/$sid.sent"
+      continue
+    fi
+
+    # one pass over the session's log lines: last turn event, last request
+    # age, and the model it last ran on (the authoritative "current model")
+    probe=$(grep "\"sessionId\":\"$sid\"" "$LOG" 2>/dev/null | python3 -I -c "
+import sys, json, time
+last_turn = ''
+last_req_age = -1
+model = ''
+provider = ''
+for line in sys.stdin:
+    try:
+        d = json.loads(line)
+    except Exception:
+        continue
+    ev = d.get('event', '')
+    if ev in ('turn.started', 'turn.failed'):
+        last_turn = ev
+    if ev == 'model.request.started':
+        c = d.get('context', {})
+        if c.get('modelId'):
+            model = c['modelId']
+        if c.get('providerId'):
+            provider = c['providerId']
+        ts = d.get('timestamp', '')
+        try:
+            last_req_age = int(time.time() - time.mktime(time.strptime(ts[:19], '%Y-%m-%dT%H:%M:%S')) - time.timezone)
+        except Exception:
+            pass
+print(f'{last_turn}|{last_req_age}|{model}|{provider}')
+")
+    last_turn="${probe%%|*}"; rest="${probe#*|}"
+    req_age="${rest%%|*}";    rest="${rest#*|}"
+    log_model="${rest%%|*}";  log_provider="${rest#*|}"
+
+    if [[ "$last_turn" != "turn.failed" ]]; then
+      log "$sid status=error but last turn event is '${last_turn:-none}' — alive, skipping"
+      rm -f "$STATE_DIR/$sid.sent"
+      continue
+    fi
+    if (( req_age >= 0 && req_age < QUIET )); then
+      log "$sid last model request ${req_age}s ago — active, skipping"
+      rm -f "$STATE_DIR/$sid.sent"
+      continue
+    fi
+
+    last=0
+    [[ -f "$STATE_DIR/$sid.sent" ]] && last=$(<"$STATE_DIR/$sid.sent")
+    age=$(( now_s - last ))
+    if (( age < COOLDOWN )); then
+      log "$sid dead, cooldown ${age}s/${COOLDOWN}s"
+      continue
+    fi
+
+    # pin the current model: log first, tasks row as fallback
+    provider="$log_provider"; modelid="$log_model"
+    if [[ -z "$modelid" || -z "$provider" ]]; then
+      model=$(sqlite3 -readonly "$DB" "SELECT model FROM tasks WHERE task_id='$sid' AND deleted=0" 2>/dev/null)
+      if [[ -n "$model" && "$model" == */* ]]; then
+        provider="${model%%/*}"
+        modelid="${model#*/}"
+      fi
+    fi
+    if [[ -z "$modelid" || -z "$provider" ]]; then
+      log "$sid dead but no model on wire or in tasks row — skipping"
+      continue
+    fi
+    think=$(sqlite3 -readonly "$DB" "SELECT json_extract(meta_json,'\$.thoughtLevel') FROM tasks WHERE task_id='$sid' AND deleted=0" 2>/dev/null)
+    [[ -z "$think" || "$think" == "NULL" ]] && think="max"
+
+    wskey=$(sqlite3 -readonly "$DB" "SELECT workspace_key FROM tasks WHERE task_id='$sid' AND deleted=0" 2>/dev/null)
+    wspath=$(sqlite3 -readonly "$DB" "SELECT workspace_path FROM tasks WHERE task_id='$sid' AND deleted=0" 2>/dev/null)
+    proj=$(sqlite3 -readonly "$DB" "SELECT project_id FROM tasks WHERE task_id='$sid' AND deleted=0" 2>/dev/null)
+    host=$(sqlite3 -readonly "$DB" "SELECT host_id FROM tasks WHERE task_id='$sid' AND deleted=0" 2>/dev/null)
+    [[ -z "$host" ]] && host="local"
+    if [[ -z "$wskey" || -z "$wspath" ]]; then
+      log "$sid dead but no workspace in tasks row — skipping"
+      continue
+    fi
+    [[ -z "$proj" || "$proj" == "NULL" ]] && proj=""
+
+    sel=$(printf '{"providerId":"%s","modelId":"%s","options":{"reasoningLevel":"%s"}}' "$provider" "$modelid" "$think")
+    aid="ext-revive-${sid#session_}-$now_ms"
+    if sqlite3 "$DB" "INSERT INTO automations (
+          automation_id, title, cron_expr, prompt, workspace_key, workspace_path,
+          target_task_id, location_kind, recurring, run_count, scheduled_run_count,
+          enabled, lifecycle_status, next_run_at, schedule_edited_by_user, model_selection,
+          dispatch_status, dispatch_attempts, created_at, updated_at, project_id, host_id
+        ) VALUES (
+          '$aid', 'auto-revive (${PROMPT})', '* * * * *', '${PROMPT}',
+          '$wskey', '$wspath',
+          '$sid', 'local', 0, 0, 0,
+          1, 'active', $(( now_ms - 20000 )), 0, '$sel',
+          'idle', 0, $now_ms, $now_ms, '$proj', '$host'
+        );" 2>/dev/null; then
+      echo "$now_s" > "$STATE_DIR/$sid.sent"
+      log "queued revive for $sid on $modelid ($provider, thought=$think) — ZCode will deliver within ~20 s"
+    else
+      warn "INSERT failed for $sid"
+      return 1
+    fi
+  done
+  return 0
+}
+
+trap 'echo; log "stopped"; exit 0' INT TERM
+
+log "watching ${#SESSIONS} session(s): interval=${INTERVAL}s quiet=${QUIET}s cooldown=${COOLDOWN}s prompt='${PROMPT}'"
+while true; do
+  if ! pass; then
+    warn "pass failed, retrying in ${INTERVAL}s"
+  fi
+  (( ONCE )) && break
+  sleep "$INTERVAL"
+done
