@@ -15,6 +15,7 @@ import { join } from 'node:path';
 import { homedir } from 'node:os';
 
 const DB = join(homedir(), '.zcode/cli/db/db.sqlite');
+const TASKS_DB = join(homedir(), '.zcode/v2/tasks-index.sqlite');
 const ROLLOUT_DIR = join(homedir(), '.zcode/cli/rollout');
 
 const SKIP_PART_TYPES = new Set(['step-start', 'step-finish', 'timeline']);
@@ -206,6 +207,59 @@ function renameSession(args) {
     '\n(the app session list may not repaint instantly; the value is written)';
 }
 
+// Queue a one-shot prompt into ZCode's automation table; the app's scheduler
+// (20 s DB poll) delivers it into the target session (resumeTask + sendPrompt)
+// — same mechanism bin/zcode-revive uses, which proved the row shape. The
+// message lands as a user input; a busy session queues it until its turn ends.
+function sendMessage(args) {
+  const message = String(args.message || '').trim();
+  if (!message) throw new Error('message is required');
+  const id = String(args.session_id || '').trim();
+  if (!id) throw new Error('session_id is required');
+  const db = new DatabaseSync(TASKS_DB);
+  try {
+    const task = db.prepare(
+      'SELECT model, json_extract(meta_json, \'$.thoughtLevel\') thought,' +
+      ' workspace_key, workspace_path, project_id, host_id FROM tasks' +
+      ' WHERE task_id = ? AND deleted = 0 ORDER BY updated_at DESC LIMIT 1'
+    ).get(id);
+    if (!task) throw new Error(`session not found in the task index: ${id}`);
+    if (!task.model || !task.model.includes('/')) {
+      throw new Error(`no pinned model on the task row — refusing to queue (would force the workspace default plan): ${id}`);
+    }
+    const [providerId, modelId] = task.model.split('/');
+    const selection = {
+      providerId, modelId,
+      options: { reasoningLevel: task.thought || 'max' },
+    };
+    // housekeeping: drop settled one-shot rows of ours older than 10 minutes
+    db.prepare(
+      "DELETE FROM automations WHERE automation_id LIKE 'ext-msg-%'" +
+      " AND lifecycle_status = 'completed' AND updated_at < ?"
+    ).run(Date.now() - 600000);
+    const now = Date.now();
+    const aid = `ext-msg-${id.replace(/^session_/, '').slice(0, 12)}-${now}`;
+    db.prepare(
+      'INSERT INTO automations (' +
+      ' automation_id, title, cron_expr, prompt, workspace_key, workspace_path,' +
+      ' target_task_id, location_kind, recurring, run_count, scheduled_run_count,' +
+      ' enabled, lifecycle_status, next_run_at, schedule_edited_by_user, model_selection,' +
+      ' dispatch_status, dispatch_attempts, created_at, updated_at, project_id, host_id' +
+      ') VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+    ).run(
+      aid, `send: ${message.slice(0, 60)}`, '* * * * *', message,
+      task.workspace_key, task.workspace_path,
+      id, 'local', 0, 0, 0,
+      1, 'active', now - 20000, 0, JSON.stringify(selection),
+      'idle', 0, now, now, task.project_id || null, task.host_id || 'local'
+    );
+    return `queued: ${aid}\nto: ${id} (model ${modelId}, thought ${selection.options.reasoningLevel})` +
+      '\nZCode delivers it as a user input within ~20 s (a busy session queues it until its turn ends).';
+  } finally {
+    db.close();
+  }
+}
+
 // ---------- tool metadata ----------
 
 const sessionIdArg = {
@@ -286,6 +340,20 @@ const TOOLS = [
       required: ['title'],
     },
   },
+  {
+    name: 'send_message',
+    description: 'Send a message (prompt) to another ZCode session by id — cross-session messaging. ' +
+      'Queues into the app automation table; the scheduler delivers it as a user input within ~20 s ' +
+      '(a busy session queues it until its turn ends). Works for idle and error-stopped sessions.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        session_id: sessionIdArg,
+        message: { type: 'string', description: 'text to deliver as a user input' },
+      },
+      required: ['session_id', 'message'],
+    },
+  },
 ];
 
 const HANDLERS = {
@@ -294,6 +362,7 @@ const HANDLERS = {
   get_transcript: getTranscript,
   find_in_transcript: findInTranscript,
   rename_session: renameSession,
+  send_message: sendMessage,
 };
 
 // ---------- stdio JSON-RPC ----------

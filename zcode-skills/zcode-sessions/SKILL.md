@@ -30,6 +30,13 @@ write anywhere is `rename_session`.
   so the app's generator leaves it alone. Without `session_id` renames the
   current session (newest rollout file; if several windows stream at once, the
   newest wins — the accepted ambiguity).
+- `send_message(session_id, message)` — cross-session messaging: queues the text
+  into ZCode's automation table (`~/.zcode/v2/tasks-index.sqlite`); the app's
+  scheduler delivers it as a user input within ~20 s (one-shot row, housekeeping
+  is automatic). A busy session queues the message until its turn ends; idle and
+  error-stopped sessions are resumed for delivery. The tool pins the target's
+  current model and refuses to queue when the task row has none (a missing pin
+  would force the workspace default plan onto the session).
 
 ## Typical flows
 
@@ -46,6 +53,13 @@ Rename (absorbs the old rename-session skill):
   language (short, no truncation) and confirm before calling.
 - The app's session list may not repaint instantly; the value is written
   regardless.
+
+Send a message to another session:
+- Check the target with `get_session` first (exists, right workspace), then
+  `send_message`. Deliver the sender's intent verbatim — don't paraphrase; the
+  message arrives as a user input on the other side. Remember delivery is
+  asynchronous (~20 s, later if the target is mid-turn) — tell the user it's
+  queued, not applied.
 
 ## Fallback when the MCP server is down or not loaded
 
