@@ -1,0 +1,71 @@
+#!/bin/bash
+# worktree-hosts <branch> [remove]
+#
+# Adds (default) or removes the /etc/hosts entries of a worktree's local
+# domains — https://<branch>.kladovkin.local/ and https://<branch>.spacehub.local/.
+#
+# /etc/resolver does not reach Chromium-based browsers for the .local TLD
+# (they route it to mDNS and ignore the resolver file), so a worktree domain
+# opened in such a browser dies with ERR_NAME_NOT_RESOLVED. An exact
+# /etc/hosts line is the one resolution path every browser honours.
+#
+# Run with sudo:
+#   sudo worktree-hosts 8763-franchise
+#   sudo worktree-hosts 8763-franchise remove
+
+set -euo pipefail
+
+usage() {
+  echo "usage: worktree-hosts <branch> [remove]" >&2
+  exit 2
+}
+
+[ $# -ge 1 ] && [ $# -le 2 ] || usage
+branch="$1"
+action="${2:-add}"
+
+case "$branch" in
+  '' | *[!a-z0-9-]* | -*)
+    echo "invalid branch name: $branch (lowercase letters, digits, dashes)" >&2
+    exit 2
+    ;;
+esac
+
+[ "$(id -u)" -eq 0 ] || { echo "run with sudo: sudo worktree-hosts $branch" >&2; exit 1; }
+
+hosts=/etc/hosts
+marker="# worktree-hosts: $branch"
+entry="127.0.0.1	$branch.kladovkin.local $branch.spacehub.local"
+
+flush_dns() {
+  dscacheutil -flushcache 2>/dev/null || true
+  killall -HUP mDNSResponder 2>/dev/null || true
+}
+
+case "$action" in
+  add)
+    if grep -qF "$marker" "$hosts"; then
+      echo "hosts entries for $branch already present"
+      exit 0
+    fi
+    printf '%s\n%s\n' "$marker" "$entry" >> "$hosts"
+    flush_dns
+    echo "added: $branch.kladovkin.local $branch.spacehub.local"
+    ;;
+  remove)
+    if ! grep -qF "$marker" "$hosts"; then
+      echo "no hosts entries for $branch"
+      exit 0
+    fi
+    tmp=$(mktemp)
+    grep -v -F -e "$marker" -e "$branch.kladovkin.local" -e "$branch.spacehub.local" \
+      "$hosts" > "$tmp" || true
+    cat "$tmp" > "$hosts"
+    rm -f "$tmp"
+    flush_dns
+    echo "removed: $branch.kladovkin.local $branch.spacehub.local"
+    ;;
+  *)
+    usage
+    ;;
+esac
