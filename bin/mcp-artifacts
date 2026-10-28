@@ -5,7 +5,7 @@
 # быть недоступен — MCP отвечает ошибкой только при вызове инструментов.
 set -euo pipefail
 
-: "${ARTIFACTS_BASE_URL:=https://artifacts.kladovkin.ru}"
+: "${ARTIFACTS_BASE_URL:=https://artifacts.spacehubstore.com}"
 TOKEN_FILE="${ARTIFACTS_TOKEN_FILE:-$HOME/.artifacts_token.secret}"
 MCP_JS="${ARTIFACTS_MCP_JS:-$HOME/develop/work/artifacts/mcp/dist/index.js}"
 
@@ -16,6 +16,17 @@ fi
 if [ ! -f "$MCP_JS" ]; then
   echo "mcp-artifacts: $MCP_JS is missing; build it: cd ~/develop/work/artifacts/mcp && npm install && npm run build" >&2
   exit 1
+fi
+
+# spacehub-хосты с этой машины напрямую душатся: fetch ходит через локальный
+# прокси proxy-5 (тот же, что и в обёртке Sentry MCP). undici (встроенный fetch
+# ноды) читает HTTPS_PROXY только при NODE_USE_ENV_PROXY=1, поэтому одной
+# переменной окружения недостаточно.
+PROXY_URL="$(cat "$HOME/dotfiles/.proxy_url-5.secret" 2>/dev/null || true)"
+if [ -n "$PROXY_URL" ]; then
+  export HTTPS_PROXY="$PROXY_URL"
+  export HTTP_PROXY="$PROXY_URL"
+  export NODE_USE_ENV_PROXY=1
 fi
 
 export ARTIFACTS_BASE_URL
