@@ -120,29 +120,14 @@ This preserves `![image](url)` and `[file](url)` markdown that the rendered text
 
 ## Прошлые сессии ZCode — доступ по ID
 
-«Copy session ID» (ПКМ по сессии в списке ZCode) даёт id вида `session_<hex>`. Инструмент
-`ReadSessionContext` такой id не принимает: его валидатор требует `current` или `sess_*`
-(внутренняя нумерация дочерних/сабагентских сессий), а подмена префикса на `sess_<hex>`
-даёт «not found» — desktop-сессии в БД ключуются как `session_*`. Полного транскрипта
-закрытой сессии не существует: переписка живёт в rollout-файле, только пока сессия открыта,
-и удаляется при закрытии; в БД сообщений нет. По id `<id>` доступны:
-
-- `~/.zcode/cli/db/db.sqlite` (sqlite3, только чтение): `session` — title,
-  `time_created`/`time_updated`, workspace; `input_history` — вводы пользователя;
-  `session_entry` — только runtime-факты, не сообщения. Дата из `time_created` задаёт
-  файл лога.
-- `~/.zcode/cli/rollout/model-io-<id>.jsonl` — полные запросы к модели (включая то, что
-  модель получала на вход); существует только у открытой сессии.
-- `~/.zcode/cli/artifacts/<id>/` — media-результаты инструментов (картинки из Read и MCP,
-  base64 data-URL).
-- `~/.zcode/cli/agents/<id>/<agent>/` — субагенты: `metadata.json` (prompt, статус, токены),
-  `output.txt` — итоговый отчёт.
-- `~/.zcode/cli/log/zcode-YYYY-MM-DD.jsonl` — все события сессии (вызовы инструментов,
-  стримы модели, warn'ы) с полем `sessionId`; фильтровать grep'ом.
-- `~/.zcode/cli/image-cache/<id>/` — вставленные пользователем картинки.
-
-Диагноз «что случилось в сессии» строится из вводов + артефактов + лога; самих сообщений
-модели у закрытой сессии нет — рассчитывай на косвенные следы.
+«Copy session ID» (ПКМ по сессии в списке ZCode) даёт id вида `session_<hex>`; встроенный
+`ReadSessionContext` такие id не принимает (только `current`/`sess_*`) — не пробовать.
+Данные сессий — через MCP-сервер `zcode-sessions`: `list_sessions` (поиск по заголовку/
+каталогу), `get_session` (метаданные + вводы), `get_transcript` (полный транскрипт,
+включая вызовы инструментов), `find_in_transcript` (поиск по тексту), `rename_session`
+(переименование, без id — текущая сессия). Диагностика «что случилось в сессии» и
+переименование — скилл `zcode-sessions`; там же fallback на случай лежащего MCP
+(карта таблиц БД и каталогов `~/.zcode/cli/`).
 
 ## Изображения в ZCode
 

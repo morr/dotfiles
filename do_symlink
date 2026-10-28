@@ -57,6 +57,13 @@ end
 
 symlink("#{current_dir}/lazygit/config.yml", "#{Dir.home}/Library/Application Support/lazygit/config.yml")
 
+# ZCode desktop skills live in the repo, symlinked into the app's skills dir
+%w[
+  zcode-sessions
+].each do |skill|
+  symlink("#{current_dir}/zcode-skills/#{skill}", "#{Dir.home}/.zcode/skills/#{skill}")
+end
+
 conf = '.gnupg/gpg.conf'
 symlink("#{current_dir}/#{conf}", "#{Dir.home}/#{conf}")
 puts 'dont forget to write passphrase to /Users/morr/.gnupg/passphrase'
