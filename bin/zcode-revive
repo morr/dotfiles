@@ -14,11 +14,13 @@
 #      ~/.zcode/cli/log/zcode-<date>.jsonl is turn.failed
 #   3. its last model.request.started is older than --quiet seconds
 #
-# The revive row pins the session's CURRENT model — derived from its last
-# model.request events in the log (the tasks row can lag behind a switch).
-# model_selection='null' ("follow workspace default") is never used: it forces
-# the workspace's preferred plan onto the session (observed: Flash Start Plan
-# -> GLM-5.3 Individual Plan); SQL NULL makes the dispatch fail outright.
+# The revive row pins the model the session actually ran on — from its last
+# model.request.completed/failed event. The session.model.updated picker is
+# only a fallback: it carries the app's GLOBAL picker at session creation,
+# not this session's plan (observed: a Start Plan session logged Individual
+# Plan and revived onto the paid plan). model_selection='null' ("follow
+# workspace default") is never used: it forces the workspace's preferred
+# plan onto the session; SQL NULL makes the dispatch fail outright.
 #
 # Usage:
 #   zcode-revive [options] [session_id ...]
@@ -114,10 +116,11 @@ pass() {
     fi
 
     # one pass over the session's log lines: last turn event, last request
-    # age, and the model it is configured/last ran on. model.request.started
-    # events carry NO model fields; the model lives in session.model.updated
-    # (context.model, an "account:<plan>/<model>" picker string — the current
-    # configuration) and in completed/failed/retry events (modelId+providerId).
+    # age, and the model it ran on. model.request.started events carry NO
+    # model fields; a model appears in session.model.updated (context.model,
+    # an "account:<plan>/<model>" picker string — the app's GLOBAL picker at
+    # session creation, not necessarily this session's plan) and in
+    # completed/failed/retry events (modelId+providerId — what actually ran).
     probe=$(grep "\"sessionId\":\"$sid\"" "$LOG" 2>/dev/null | python3 -I -c "
 import sys, json, time
 last_turn = ''
@@ -173,13 +176,15 @@ print(f'{last_turn}|{last_req_age}|{picker}|{model}|{provider}')
       continue
     fi
 
-    # pin the current model: session.model.updated picker first, then the
-    # last completed/failed request's model, tasks row as the last resort
-    if [[ -n "$picker" && "$picker" == */* ]]; then
+    # pin the model the session actually ran on: the last completed/failed
+    # request's provider+model first, session.model.updated picker as a
+    # fallback for sessions that died before any request, tasks row last.
+    provider=""; modelid=""
+    if [[ -n "$log_provider" && -n "$log_model" ]]; then
+      provider="$log_provider"; modelid="$log_model"
+    elif [[ -n "$picker" && "$picker" == */* ]]; then
       provider="${picker%%/*}"
       modelid="${picker#*/}"
-    else
-      provider="$log_provider"; modelid="$log_model"
     fi
     if [[ -z "$modelid" || -z "$provider" ]]; then
       model=$(sqlite3 -readonly "$DB" "SELECT model FROM tasks WHERE task_id='$sid' AND deleted=0" 2>/dev/null)
