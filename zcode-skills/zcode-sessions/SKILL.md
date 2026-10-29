@@ -12,9 +12,15 @@ write anywhere is `rename_session`.
 
 ## Tools
 
-- `list_sessions(query, directory, since, until, limit)` — sessions newest-first:
-  id, title, timestamps, working directory. Find a session when only a title
-  fragment or repo path is known.
+- `list_sessions(query, directory, title_source, outcome, since, until, include_subagents, limit)` —
+  sessions newest-first: id, title, title_source, timestamps, working directory,
+  last outcome. Main sessions only by default (`include_subagents: true` adds
+  subagent children — they outnumber the main ones). Find a session when only a
+  title fragment or repo path is known.
+- `search_sessions(query, directory, title_source, since, until, include_subagents, limit)` —
+  case-insensitive substring across every session's user inputs and title; the
+  way in when no id is known and the words sit beyond the (clipped) title.
+  Returns sessions with the matching input lines.
 - `get_session(session_id)` — metadata + every user input with timestamps and
   attachment counts + per-type part counts. The entry point: read this before
   the transcript.
@@ -26,6 +32,9 @@ write anywhere is `rename_session`.
 - `find_in_transcript(session_id, query, context, limit)` — substring search
   across texts, tool inputs and outputs with context windows. The fastest way
   to locate an error or a specific command.
+- `query(sql)` — read-only SQL against the sessions database, a single
+  SELECT/WITH only (tables are in the fallback section below). For aggregations
+  and one-off filters no fixed tool covers.
 - `rename_session(title, session_id?)` — sets the title and marks it `custom`
   so the app's generator leaves it alone. Without `session_id` renames the
   current session (newest rollout file; if several windows stream at once, the
@@ -68,7 +77,9 @@ The server is `~/dotfiles/bin/mcp-zcode-sessions.mjs` (test: `echo '{"jsonrpc":"
 - `sqlite3 -readonly ~/.zcode/cli/db/db.sqlite` —
   `session`: id, title, `title_source`, `directory`, `workspace_id`
   (there is **no `workspace` column**), `time_created`/`time_updated`,
-  `last_outcome`, `time_deleted`;
+  `last_outcome`, `time_deleted`; `parent_id` is set on subagent child
+  sessions (`sess_subagent_agent_*`), and `task_type` tells `interactive`
+  from selection-side chats and the like;
   `input_history`: user inputs (kind `prompt` / `steered_input`) + attachments;
   `part`: the **full transcript of closed sessions** keyed by `session_id` —
   JSON per row, `type` = `text` | `reasoning` | `tool` (tool rows hold

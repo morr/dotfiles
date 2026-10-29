@@ -51,12 +51,16 @@ function requireSession(id) {
 // ---------- tools ----------
 
 function listSessions(args) {
-  const { query = null, directory = null, limit = 20, since = null, until = null } = args || {};
+  const { query = null, directory = null, title_source = null, outcome = null,
+    since = null, until = null, include_subagents = false, limit = 20 } = args || {};
   let sql = 'SELECT id, title, title_source, task_type, directory, workspace_id,' +
     ' time_created, time_updated, last_outcome FROM session WHERE time_deleted IS NULL';
   const params = [];
+  if (!include_subagents) sql += ' AND parent_id IS NULL';
   if (query) { sql += ' AND title LIKE ?'; params.push(`%${query}%`); }
   if (directory) { sql += ' AND directory LIKE ?'; params.push(`%${directory}%`); }
+  if (title_source) { sql += ' AND title_source = ?'; params.push(title_source); }
+  if (outcome) { sql += ' AND last_outcome = ?'; params.push(outcome); }
   if (since) { sql += ' AND time_updated >= ?'; params.push(Date.parse(since) || since); }
   if (until) { sql += ' AND time_updated <= ?'; params.push(Date.parse(until) || until); }
   sql += ' ORDER BY time_updated DESC LIMIT ?';
@@ -152,6 +156,51 @@ function d0f(d) {
   return d.path || d.name || JSON.stringify(d).slice(0, 120);
 }
 
+// Filtered in JS, not SQL LIKE/lower(): those are ASCII-only and would miss
+// Cyrillic matches; input_history is small enough to scan whole.
+function searchSessions(args) {
+  const q = String(args.query || '').trim();
+  if (!q) throw new Error('query is required');
+  const { directory = null, title_source = null, since = null, until = null,
+    include_subagents = false, limit = 20 } = args || {};
+  let sql = 'SELECT id, title, title_source, directory, time_updated, last_outcome' +
+    ' FROM session WHERE time_deleted IS NULL';
+  const params = [];
+  if (!include_subagents) sql += ' AND parent_id IS NULL';
+  if (directory) { sql += ' AND directory LIKE ?'; params.push(`%${directory}%`); }
+  if (title_source) { sql += ' AND title_source = ?'; params.push(title_source); }
+  if (since) { sql += ' AND time_updated >= ?'; params.push(Date.parse(since) || since); }
+  if (until) { sql += ' AND time_updated <= ?'; params.push(Date.parse(until) || until); }
+  sql += ' ORDER BY time_updated DESC';
+  const needle = q.toLowerCase();
+  const inputsBySession = {};
+  for (const r of ro().prepare('SELECT session_id, text, time_created FROM input_history').all()) {
+    (inputsBySession[r.session_id] ??= []).push(r);
+  }
+  const lines = [];
+  let n = 0;
+  for (const s of ro().prepare(sql).all(...params)) {
+    const hits = [];
+    if (s.title.toLowerCase().includes(needle)) hits.push(`title: ${clip(s.title, 200)}`);
+    for (const i of inputsBySession[s.id] || []) {
+      const at = i.text.toLowerCase().indexOf(needle);
+      if (at < 0) continue;
+      const start = Math.max(0, at - 60);
+      const snippet = (start > 0 ? '…' : '') + i.text.slice(start, at + q.length + 120) + '…';
+      hits.push(`${iso(i.time_created)}  ${snippet.replace(/\n/g, ' ⏎ ')}`);
+    }
+    if (!hits.length) continue;
+    n++;
+    lines.push(`\n${s.id}\n  ${clip(s.title, 100)} [${s.title_source}]\n` +
+      `  ${iso(s.time_updated)}  ${s.directory}` +
+      (s.last_outcome ? `  outcome: ${s.last_outcome}` : '') + '\n' +
+      hits.slice(0, 3).map(h => `  > ${clip(h, 260)}`).join('\n') +
+      (hits.length > 3 ? `\n  (+${hits.length - 3} more matches)` : ''));
+    if (n >= Math.min(Number(limit) || 20, 100)) break;
+  }
+  return n ? `${n} session(s) matching "${q}":\n${lines.join('\n')}` : `no sessions match: ${q}`;
+}
+
 function findInTranscript(args) {
   const s = requireSession(args.session_id);
   const q = String(args.query || '');
@@ -177,6 +226,15 @@ function findInTranscript(args) {
       `\n  ${snippet.replace(/\n/g, ' ⏎ ')}`);
   }
   return `${n} match(es) for "${q}":\n${lines.join('\n')}`;
+}
+
+// Read-only escape hatch for one-off shapes no fixed tool covers (GROUP BY,
+// odd filters). The connection is readOnly — SQLite refuses writes there.
+function runQuery(args) {
+  const sql = String(args.sql || '').trim();
+  if (!/^(select|with)\b/i.test(sql)) throw new Error('only a single SELECT/WITH statement is allowed');
+  const rows = ro().prepare(sql).all();
+  return `${rows.length} row(s)\n` + clip(rows.map(r => JSON.stringify(r)).join('\n'), 10000);
 }
 
 function renameSession(args) {
@@ -270,18 +328,43 @@ const sessionIdArg = {
 const TOOLS = [
   {
     name: 'list_sessions',
-    description: 'List ZCode desktop sessions, newest first. Filter by title substring (query), ' +
-      'directory substring (directory), and updated time range (since/until, ISO or epoch ms). ' +
-      'Returns id, title, timestamps, working directory per session.',
+    description: 'List ZCode desktop sessions, newest first. Main sessions only by default ' +
+      '(include_subagents for subagent children). Filters: title substring (query), directory ' +
+      'substring (directory), title_source (first_input/generated/custom), outcome ' +
+      '(completed/interrupted/error), updated time range (since/until, ISO or epoch ms). ' +
+      'Returns id, title, title_source, timestamps, working directory, last outcome.',
     inputSchema: {
       type: 'object',
       properties: {
         query: { type: 'string', description: 'substring of the title' },
         directory: { type: 'string', description: 'substring of the working directory' },
+        title_source: { type: 'string', description: 'exact match: first_input, generated or custom' },
+        outcome: { type: 'string', description: 'exact match on last_outcome: completed, interrupted, error' },
         since: { type: 'string', description: 'updated after this (ISO or epoch ms)' },
         until: { type: 'string', description: 'updated before this (ISO or epoch ms)' },
+        include_subagents: { type: 'boolean', description: 'include subagent child sessions (default false)' },
         limit: { type: 'number', description: 'max rows, default 20, cap 100' },
       },
+    },
+  },
+  {
+    name: 'search_sessions',
+    description: 'Find sessions by content: case-insensitive substring across every session\'s user ' +
+      'inputs and title — no session id needed (get_session/find_in_transcript require one). ' +
+      'Returns sessions with the matching input lines. Filters: directory, title_source, ' +
+      'since/until, include_subagents (default false), limit.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'case-insensitive substring of user inputs or title' },
+        directory: { type: 'string', description: 'substring of the working directory' },
+        title_source: { type: 'string', description: 'exact match: first_input, generated or custom' },
+        since: { type: 'string', description: 'updated after this (ISO or epoch ms)' },
+        until: { type: 'string', description: 'updated before this (ISO or epoch ms)' },
+        include_subagents: { type: 'boolean', description: 'include subagent child sessions (default false)' },
+        limit: { type: 'number', description: 'max sessions, default 20, cap 100' },
+      },
+      required: ['query'],
     },
   },
   {
@@ -327,6 +410,19 @@ const TOOLS = [
     },
   },
   {
+    name: 'query',
+    description: 'Read-only SQL against the sessions database (~/.zcode/cli/db/db.sqlite — tables: ' +
+      'session, input_history, part, message) for aggregations and one-off filters no fixed tool ' +
+      'covers. Single SELECT/WITH statement only; the connection is read-only.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        sql: { type: 'string', description: 'a single SELECT/WITH statement' },
+      },
+      required: ['sql'],
+    },
+  },
+  {
     name: 'rename_session',
     description: 'Rename a session title (sets title_source=custom so the app stops auto-generating). ' +
       'Without session_id renames the current session. Returns was:/now:. When the user gave no ' +
@@ -358,9 +454,11 @@ const TOOLS = [
 
 const HANDLERS = {
   list_sessions: listSessions,
+  search_sessions: searchSessions,
   get_session: getSession,
   get_transcript: getTranscript,
   find_in_transcript: findInTranscript,
+  query: runQuery,
   rename_session: renameSession,
   send_message: sendMessage,
 };
@@ -397,7 +495,7 @@ createInterface({ input: process.stdin }).on('line', (line) => {
         jsonrpc: '2.0', id, result: {
           protocolVersion: params?.protocolVersion || '2024-11-05',
           capabilities: { tools: {} },
-          serverInfo: { name: 'zcode-sessions', version: '1.0.0' },
+          serverInfo: { name: 'zcode-sessions', version: '1.1.0' },
         },
       });
     } else if (method === 'tools/list') {
