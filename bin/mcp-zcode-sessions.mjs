@@ -1,12 +1,18 @@
 #!/usr/bin/env node
 // stdio MCP server exposing ZCode desktop session data (read-only) plus a
-// narrow rename tool. Backed by the app's SQLite database:
-// ~/.zcode/cli/db/db.sqlite (WAL; short writes while the app runs are safe).
+// narrow set of write tools. Backed by the app's SQLite databases:
+// ~/.zcode/cli/db/db.sqlite (sessions, transcripts; WAL — short writes while
+// the app runs are safe) and ~/.zcode/v2/tasks-index.sqlite (task index and
+// the automation queue).
 //
 // Read tools run on a readOnly connection — SQLite refuses writes there, so a
-// bug in a read tool cannot touch data. The only write is rename_session:
-// title, title_source='custom', time_title_updated — same fields the stock
-// rename-session.sh script wrote.
+// bug in a read tool cannot touch data. Writes: rename_session (title), and
+// the automation queue — send_message (deliver a prompt into an existing
+// session) and spawn_session (create a NEW session running a prompt). Both
+// queue one-shot rows into `automations`; the app's scheduler (20 s DB poll)
+// does the delivery — for spawn_session it calls createTask (new session with
+// the given workspace path, model pin and mode) + sendPrompt, the same path
+// cron automations take when they start a fresh session.
 
 import { createInterface } from 'node:readline';
 import { DatabaseSync } from 'node:sqlite';
@@ -395,6 +401,24 @@ function renameSession(args) {
     '\n(the app session list may not repaint instantly; the value is written)';
 }
 
+// Interactive sessions carry no model pin in the task index; model_usage has
+// the model the session actually runs on. Pinning that on resume is a no-op,
+// while the missing pin would make the host fall back to the workspace
+// default plan and switch the session off its model.
+function sessionModel(id) {
+  const db = new DatabaseSync(DB, { readOnly: true });
+  try {
+    const u = db.prepare(
+      'SELECT provider_id, model_id FROM model_usage' +
+      ' WHERE session_id = ? AND model_id IS NOT NULL' +
+      ' ORDER BY started_at DESC LIMIT 1'
+    ).get(id);
+    return u ? `${u.provider_id}/${u.model_id}` : null;
+  } finally {
+    db.close();
+  }
+}
+
 // Queue a one-shot prompt into ZCode's automation table; the app's scheduler
 // (20 s DB poll) delivers it into the target session (resumeTask + sendPrompt)
 // — same mechanism bin/zcode-revive uses, which proved the row shape. The
@@ -412,13 +436,14 @@ function sendMessage(args) {
       ' WHERE task_id = ? AND deleted = 0 ORDER BY updated_at DESC LIMIT 1'
     ).get(id);
     if (!task) throw new Error(`session not found in the task index: ${id}`);
-    if (!task.model || !task.model.includes('/')) {
-      throw new Error(`no pinned model on the task row — refusing to queue (would force the workspace default plan): ${id}`);
+    let model = task.model && task.model.includes('/') ? task.model : sessionModel(id);
+    if (!model) {
+      throw new Error(`no model for target session (no pin in the task index and nothing in model_usage): ${id}`);
     }
-    const [providerId, modelId] = task.model.split('/');
+    const [providerId, modelId] = model.split('/');
     const selection = {
       providerId, modelId,
-      options: { reasoningLevel: task.thought || 'max' },
+      options: { reasoningLevel: thought || 'max' },
     };
     // housekeeping: drop settled one-shot rows of ours older than 10 minutes
     db.prepare(
@@ -446,6 +471,170 @@ function sendMessage(args) {
   } finally {
     db.close();
   }
+}
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+function renameTitle(id, title) {
+  const db = new DatabaseSync(DB);
+  try {
+    return db.prepare(
+      "UPDATE session SET title = ?, title_source = 'custom'," +
+      " time_title_updated = ? WHERE id = ? AND time_deleted IS NULL"
+    ).run(title, Date.now(), id).changes > 0;
+  } finally {
+    db.close();
+  }
+}
+
+// Spawn a NEW ZCode session running a prompt — a real app session (visible in
+// the session list, resumable, able to outlive this call), not a subagent.
+// Mechanism: same automation queue send_message uses, but with
+// target_task_id NULL — the app's scheduler then runs createTask (new session
+// in `directory`, model pinned, permission `mode`) + sendPrompt, the path cron
+// automations take for a fresh session. One-shot: the row completes itself.
+// Waits for the run row to report the created session id (the scheduler polls
+// the DB every ~20 s), then applies `title` if given.
+// `mode` is honored end-to-end (2026-10-29: guarded survives to
+// session.permission.mode); the tasks.mode column is not — verify via the
+// session store or the runtime log, never via tasks.mode.
+async function spawnSession(args) {
+  const prompt = String(args.prompt || '').trim();
+  if (!prompt) throw new Error('prompt is required');
+  const directory = String(args.directory || '').trim();
+  if (!directory || !directory.startsWith('/')) throw new Error('directory is required (absolute path — the new session\'s working directory)');
+  if (!existsSync(directory)) throw new Error(`directory does not exist: ${directory}`);
+  const model = String(args.model || '').trim();
+  // A missing pin would force the workspace default plan onto the new session.
+  if (!model.includes('/')) {
+    throw new Error("model is required as 'provider/model' (e.g. 'account:zai-individual-coding-plan/GLM-5.3-Flash') — a missing pin forces the workspace default plan");
+  }
+  const mode = String(args.mode || 'build').trim();
+  if (!['build', 'edit', 'plan', 'yolo', 'guarded'].includes(mode)) {
+    throw new Error(`unknown mode: ${mode} (build | edit | plan | yolo | guarded)`);
+  }
+  const thoughtLevel = String(args.thought_level || 'max').trim();
+  const title = args.title ? String(args.title).trim() : null;
+  const [providerId, modelId] = model.split('/');
+  const selection = { providerId, modelId, options: { reasoningLevel: thoughtLevel } };
+
+  const db = new DatabaseSync(TASKS_DB);
+  let aid;
+  try {
+    db.prepare(
+      "DELETE FROM automations WHERE automation_id LIKE 'ext-spawn-%'" +
+      " AND lifecycle_status = 'completed' AND updated_at < ?"
+    ).run(Date.now() - 600000);
+    const now = Date.now();
+    aid = `ext-spawn-${now}`;
+    db.prepare(
+      'INSERT INTO automations (' +
+      ' automation_id, title, cron_expr, prompt, workspace_key, workspace_path,' +
+      ' location_kind, recurring, run_count, scheduled_run_count,' +
+      ' enabled, lifecycle_status, next_run_at, schedule_edited_by_user, model_selection,' +
+      ' mode, dispatch_status, dispatch_attempts, created_at, updated_at, host_id' +
+      ') VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+    ).run(
+      aid, `spawn: ${prompt.slice(0, 60)}`, '* * * * *', prompt,
+      directory, directory,
+      'local', 0, 0, 0,
+      1, 'active', now - 20000, 0, JSON.stringify(selection),
+      mode, 'idle', 0, now, now, 'local'
+    );
+  } finally {
+    db.close();
+  }
+
+  // The scheduler polls every ~20 s; give it a generous window, then report
+  // either way — the row stays queued and fires when the app gets to it.
+  let run = null;
+  const deadline = Date.now() + 60000;
+  while (Date.now() < deadline) {
+    await sleep(2000);
+    const q = new DatabaseSync(TASKS_DB, { readOnly: true });
+    try {
+      run = q.prepare(
+        'SELECT session_id, outcome, error FROM automation_runs' +
+        ' WHERE automation_id = ? ORDER BY created_at DESC LIMIT 1'
+      ).get(aid);
+    } finally {
+      q.close();
+    }
+    if (run && (run.session_id || run.error)) break;
+  }
+
+  if (!run || !run.session_id) {
+    const why = run?.error ? `\nerror: ${run.error}` : '';
+    return `queued: ${aid}\ndirectory: ${directory} (model ${modelId}, mode ${mode})` +
+      `\nno session id yet after 60 s${why}` +
+      '\nThe row stays queued — check `query` on automation_runs later, or list_sessions for a new session in that directory. If the ZCode app is not running, the scheduler delivers when it starts.';
+  }
+
+  let renamed = '';
+  if (title) {
+    for (let i = 0; i < 3; i++) {
+      if (renameTitle(run.session_id, title)) { renamed = `\ntitle: ${title}`; break; }
+      await sleep(1500);
+    }
+  }
+  return `spawned: ${run.session_id}${renamed}` +
+    `\nautomation: ${aid}\ndirectory: ${directory}  model: ${modelId}  thought: ${thoughtLevel}  mode: ${mode}` +
+    '\nThe session starts working on the prompt on its own (first response within ~20-60 s); it is a regular app session — visible in the session list, resumable, and reachable via send_message.';
+}
+
+// Best-effort id of the CALLING session — the one the user is talking to.
+// Only open sessions stream rollout files; among main sessions (subagents
+// excluded via parent_id) whose directory matches, the newest rollout wins.
+// Ambiguity (two open main sessions in one directory) is reported, not hidden.
+function currentSession(args) {
+  const dir = String(args.directory || process.cwd()).trim();
+  const open = readdirSync(ROLLOUT_DIR)
+    .filter(f => /^model-io-session_.+\.jsonl$/.test(f))
+    .map(f => ({
+      id: f.replace(/^model-io-|\.jsonl$/g, ''),
+      mtime: statSync(join(ROLLOUT_DIR, f)).mtimeMs,
+    }))
+    .sort((a, b) => b.mtime - a.mtime);
+  const rows = open
+    .map(o => ({ ...o, s: ro().prepare(
+      'SELECT id, title, title_source, directory, parent_id,' +
+      " json_extract(permission, '$.mode') AS mode FROM session WHERE id = ?"
+    ).get(o.id) }))
+    .filter(o => o.s && !o.s.parent_id && o.s.directory === dir);
+  if (!rows.length) {
+    const any = ro().prepare(
+      'SELECT id, title, directory FROM session WHERE directory = ? AND time_deleted IS NULL' +
+      ' AND parent_id IS NULL ORDER BY time_updated DESC LIMIT 5'
+    ).all(dir);
+    return `no OPEN main session found in ${dir}` +
+      (any.length ? `\nclosed sessions there (for reference):\n${any.map(s => `  ${s.id}  ${clip(s.title, 80)}`).join('\n')}` : '') +
+      '\nAn open session streams a rollout file (only open ones do); a spawned child session in another directory does not match. Pass the directory of the session you are running in.';
+  }
+  if (rows.length > 1) {
+    return `several open main sessions in ${dir} — newest first, pick by title:\n` +
+      rows.map(r => `  ${r.id}  ${clip(r.s.title, 80)} [${r.s.title_source}]`).join('\n');
+  }
+  const r = rows[0];
+  // The task row carries the model pin (provider/model) for spawned sessions;
+  // interactive sessions have none there, so fall back to the model they
+  // actually run on (model_usage) — that pin is what spawn_session wants when
+  // the spawned session should follow this one.
+  const task = (() => {
+    const db = new DatabaseSync(TASKS_DB, { readOnly: true });
+    try {
+      return db.prepare(
+        'SELECT model, json_extract(meta_json, \'$.thoughtLevel\') thought FROM tasks' +
+        ' WHERE task_id = ? AND deleted = 0 ORDER BY updated_at DESC LIMIT 1'
+      ).get(r.id);
+    } finally {
+      db.close();
+    }
+  })();
+  const model = task?.model && task.model.includes('/') ? task.model : sessionModel(r.id);
+  return `${r.id}\ntitle: ${clip(r.s.title, 100)} [${r.s.title_source}]\ndirectory: ${r.s.directory}` +
+    (r.s.mode ? `\nmode: ${r.s.mode} — pass as spawn_session mode to make the spawned session inherit this one's permission mode` : '') +
+    (model ? `\nmodel: ${model}${task?.thought ? ` (thought ${task.thought})` : ''} — pass as spawn_session model to follow this session` : '') +
+    '\nThis is the newest open main session in that directory — treat it as the current one.';
 }
 
 // ---------- tool metadata ----------
@@ -605,6 +794,41 @@ const TOOLS = [
       required: ['session_id', 'message'],
     },
   },
+  {
+    name: 'spawn_session',
+    description: 'Spawn a NEW background ZCode session running a prompt — a full app session ' +
+      '(own context, visible in the session list, resumable, reachable via send_message afterwards), ' +
+      'not a subagent. The app scheduler creates the session in `directory` with the model pin and ' +
+      'permission mode, then delivers the prompt; the session starts working on its own. ' +
+      'Returns the new session id (waits up to 60 s for it). Use for background workers that must ' +
+      'outlive the caller and report back.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        prompt: { type: 'string', description: 'the prompt the new session runs (e.g. \'/sentry_fix <handoff path>\')' },
+        directory: { type: 'string', description: 'absolute path — the new session\'s working directory (e.g. the worktree path)' },
+        model: { type: 'string', description: "'provider/model' pin, e.g. 'account:zai-individual-coding-plan/GLM-5.3-Flash' — required; a missing pin forces the workspace default plan" },
+        mode: { type: 'string', enum: ['build', 'edit', 'plan', 'yolo', 'guarded'], description: 'permission mode of the new session, default build' },
+        thought_level: { type: 'string', description: 'reasoning level of the model pin, default max' },
+        title: { type: 'string', description: 'optional session title (title_source=custom), applied once the session exists' },
+      },
+      required: ['prompt', 'directory', 'model'],
+    },
+  },
+  {
+    name: 'current_session',
+    description: 'Id of the CALLING session — the newest OPEN main session in `directory` (default: ' +
+      'process cwd), plus its title, permission mode and model pin. Call it once, early, before ' +
+      'spawning parallel sessions, and pass the id to them so they can send_message their reports ' +
+      'back; pass the mode and model to spawn_session to make the child inherit this session. ' +
+      'Subagent sessions are excluded.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        directory: { type: 'string', description: 'absolute path of the calling session\'s working directory (default: process cwd)' },
+      },
+    },
+  },
 ];
 
 const HANDLERS = {
@@ -617,6 +841,8 @@ const HANDLERS = {
   search_log: searchLog,
   rename_session: renameSession,
   send_message: sendMessage,
+  spawn_session: spawnSession,
+  current_session: currentSession,
 };
 
 // ---------- stdio JSON-RPC ----------
@@ -657,7 +883,7 @@ createInterface({ input: process.stdin }).on('line', (line) => {
         jsonrpc: '2.0', id, result: {
           protocolVersion: params?.protocolVersion || '2024-11-05',
           capabilities: { tools: {} },
-          serverInfo: { name: 'zcode-sessions', version: '1.2.0' },
+          serverInfo: { name: 'zcode-sessions', version: '1.4.0' },
         },
       });
     } else if (method === 'tools/list') {
