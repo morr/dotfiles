@@ -10,13 +10,14 @@
 
 import { createInterface } from 'node:readline';
 import { DatabaseSync } from 'node:sqlite';
-import { readdirSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
 const DB = join(homedir(), '.zcode/cli/db/db.sqlite');
 const TASKS_DB = join(homedir(), '.zcode/v2/tasks-index.sqlite');
 const ROLLOUT_DIR = join(homedir(), '.zcode/cli/rollout');
+const LOG_DIR = join(homedir(), '.zcode/cli/log');
 
 const SKIP_PART_TYPES = new Set(['step-start', 'step-finish', 'timeline']);
 
@@ -42,6 +43,23 @@ function iso(ms) {
 function clip(s, n) {
   s = String(s ?? '');
   return s.length <= n ? s : s.slice(0, n) + ` …[${s.length - n} chars more]`;
+}
+
+// User-role texts the app injects rather than the user typing. Both real inputs
+// and injections carry the same part shape (time included), so only the
+// wrapper prefixes tell them apart.
+const INJECTED_USER_PREFIXES = [
+  'Available agent types',
+  'The TodoWrite tool',
+  'This session is being continued',
+  'The user sent a new message while you were working',
+  '<system-reminder>',
+  '<untrusted_gen_ui_state>',
+  '<task-notification>',
+];
+
+function looksInjected(text) {
+  return INJECTED_USER_PREFIXES.some(p => text.startsWith(p));
 }
 
 function requireSession(id) {
@@ -82,10 +100,28 @@ function listSessions(args) {
 
 function getSession(args) {
   const s = requireSession(args.session_id);
-  const inputs = ro().prepare(
+  let inputs = ro().prepare(
     'SELECT kind, text, time_created, attachments FROM input_history' +
     ' WHERE session_id = ? ORDER BY time_created'
   ).all(s.id);
+  let rebuilt = false;
+  if (!inputs.length) {
+    // input_history is a pruned recency cache, not a per-session store — old
+    // sessions fall back to their user parts, wrapper injections filtered out.
+    rebuilt = true;
+    inputs = ro().prepare(
+      `SELECT p.time_created, p.data FROM part p` +
+      ' LEFT JOIN message m ON m.id = p.message_id' +
+      ` WHERE p.session_id = ? AND json_extract(m.data, '$.role') = 'user'` +
+      ` AND json_extract(p.data, '$.type') = 'text' ORDER BY p.time_created`
+    ).all(s.id).reduce((acc, r) => {
+      const d = JSON.parse(r.data);
+      if (d.text && !looksInjected(d.text) && !acc.some(i => i.text === d.text)) {
+        acc.push({ kind: 'prompt', text: d.text, time_created: r.time_created, attachments: null });
+      }
+      return acc;
+    }, []).slice(0, 10);
+  }
   const counts = {};
   for (const r of ro().prepare(
     `SELECT json_extract(data, '$.type') t, count(*) c FROM part WHERE session_id = ? GROUP BY t`
@@ -94,18 +130,23 @@ function getSession(args) {
     `${s.id} [${s.title_source}]`,
     `title: ${s.title}`,
     `created: ${iso(s.time_created)}   updated: ${iso(s.time_updated)}` +
-      (s.last_outcome ? `   outcome: ${clip(s.last_outcome, 60)}` : ''),
+      (s.last_outcome ? `   outcome: ${s.last_outcome}` : ''),
     `directory: ${s.directory}${s.parent_id ? `\nparent: ${s.parent_id}` : ''}`,
     `parts: ${JSON.stringify(counts)}`,
     '',
     'user inputs:',
   ];
   if (!inputs.length) lines.push('  (none)');
-  for (const i of inputs) {
+  if (rebuilt && inputs.length) {
+    lines.push('  (rebuilt from the transcript: input_history pruned this session; wrapper injections filtered by prefix)');
+  }
+  const shown = inputs;
+  for (const i of shown) {
     const nAttach = i.attachments ? JSON.parse(i.attachments).length : 0;
     lines.push(`  ${iso(i.time_created)} [${i.kind}] ${clip(i.text, 300)}` +
       (nAttach ? ` (+${nAttach} attachment${nAttach > 1 ? 's' : ''})` : ''));
   }
+  if (rebuilt && inputs.length === 10) lines.push('  (+more — narrow with get_transcript)');
   return lines.join('\n');
 }
 
@@ -134,7 +175,7 @@ function getTranscript(args) {
   );
   const isRealInput = (text) => {
     for (const t of realInputs) if (t && text.startsWith(t.slice(0, 60))) return true;
-    return false;
+    return !realInputs.size && !looksInjected(text);
   };
   const lines = [`session ${s.id}: ${slice.length} of ${picked.length} parts (types ${[...want].join(',')})`];
   for (const p of slice) {
@@ -257,6 +298,73 @@ function runQuery(args) {
   if (!/^(select|with)\b/i.test(sql)) throw new Error('only a single SELECT/WITH statement is allowed');
   const rows = ro().prepare(sql).all();
   return `${rows.length} row(s)\n` + clip(rows.map(r => JSON.stringify(r)).join('\n'), 10000);
+}
+
+// One JSON event per line (timestamp UTC, level, event, message, sessionId,
+// context{...}), 25-120 MB per day — streamed, never loaded whole. Cheap
+// substring prefilters run per line; JSON.parse runs only on candidates.
+async function searchLog(args) {
+  const { day = null, days = 1, session_id = null, query = null, level = null,
+    since = null, until = null, limit = 30 } = args || {};
+  const list = [];
+  if (day) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new Error('day must be YYYY-MM-DD');
+    list.push(day);
+  } else {
+    const n = Math.min(Math.max(Number(days) || 1, 1), 7);
+    const p = (x) => String(x).padStart(2, '0');
+    for (let i = n - 1; i >= 0; i--) {
+      const dt = new Date(Date.now() - i * 86400000);
+      list.push(`${dt.getFullYear()}-${p(dt.getMonth() + 1)}-${p(dt.getDate())}`);
+    }
+  }
+  const when = (v) => {
+    const m = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(String(v).trim());
+    if (m) return { tod: (+m[1] * 3600 + +m[2] * 60 + +(m[3] || 0)) * 1000 };
+    const t = Date.parse(v);
+    if (Number.isNaN(t)) throw new Error(`bad time: ${v} (expect HH:MM or an ISO datetime)`);
+    return { abs: t };
+  };
+  const lo = since ? when(since) : null;
+  const hi = until ? when(until) : null;
+  const needle = query ? query.toLowerCase() : null;
+  const maxLines = Math.min(Number(limit) || 30, 200);
+  const out = [];
+  let total = 0;
+  let truncated = false;
+  outer:
+  for (const d of list) {
+    const file = join(LOG_DIR, `zcode-${d}.jsonl`);
+    if (!existsSync(file)) { out.push(`(no log file for ${d})`); continue; }
+    const dayStart = Date.parse(`${d}T00:00:00`);
+    const resolve = (w) => (w ? (w.abs !== undefined ? w.abs : dayStart + w.tod) : null);
+    const loT = resolve(lo);
+    const hiT = resolve(hi);
+    const rl = createInterface({ input: createReadStream(file) });
+    try {
+      for await (const line of rl) {
+        if (!line) continue;
+        if (session_id && !line.includes(session_id)) continue;
+        if (level && !line.includes(`"level":"${level}"`)) continue;
+        if (needle && !line.toLowerCase().includes(needle)) continue;
+        let rec;
+        try { rec = JSON.parse(line); } catch { rec = {}; }
+        const t = rec.timestamp ? Date.parse(rec.timestamp) : null;
+        if ((loT != null || hiT != null) && t == null) continue;
+        if (loT != null && t < loT) continue;
+        if (hiT != null && t > hiT) continue;
+        total++;
+        out.push(`\n${iso(t).slice(11)} ${rec.level || '?'} ${rec.event || rec.message || ''}` +
+          `\n  ${clip(line, 260)}`);
+        if (total >= maxLines) { truncated = true; break outer; }
+      }
+    } finally {
+      rl.close();
+    }
+  }
+  const head = `${total} match(es) in ${list.join(', ')}${truncated ? ' (stopped at limit — narrow the query)' : ''}`;
+  if (!total) out.push('no matching log lines');
+  return `${head}\n${out.join('\n')}`;
 }
 
 function renameSession(args) {
@@ -394,7 +502,9 @@ const TOOLS = [
   {
     name: 'get_session',
     description: 'Session metadata + all user inputs (prompts, steers) with timestamps, ' +
-      'and per-type part counts. The compact entry point before reading the transcript.',
+      'and per-type part counts. The compact entry point before reading the transcript. ' +
+      'input_history is a pruned recency cache — for old sessions the inputs are ' +
+      'rebuilt from the transcript (wrapper injections filtered by prefix).',
     inputSchema: {
       type: 'object',
       properties: { session_id: sessionIdArg },
@@ -447,6 +557,27 @@ const TOOLS = [
     },
   },
   {
+    name: 'search_log',
+    description: 'Search ZCode app event logs (~/.zcode/cli/log/zcode-YYYY-MM-DD.jsonl — one ' +
+      'JSON event per line: timestamp, level, event, message, sessionId, context). For ' +
+      '«what happened inside the app» questions a transcript cannot answer: title generation, ' +
+      'model network calls, turn phases, background jobs. Filters: session id, case-insensitive ' +
+      'substring of the raw line, exact level, local time window (HH:MM or ISO). Streams the files.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        day: { type: 'string', description: 'YYYY-MM-DD, a single day (default: today)' },
+        days: { type: 'number', description: 'scan the last N days including today (default 1, cap 7); ignored when day is given' },
+        session_id: { type: 'string', description: 'only lines carrying this session id' },
+        query: { type: 'string', description: 'case-insensitive substring of the raw line' },
+        level: { type: 'string', description: 'exact level as written in the log: info, warn, error, debug' },
+        since: { type: 'string', description: 'local HH:MM or ISO datetime, from' },
+        until: { type: 'string', description: 'local HH:MM or ISO datetime, until' },
+        limit: { type: 'number', description: 'max lines, default 30, cap 200' },
+      },
+    },
+  },
+  {
     name: 'rename_session',
     description: 'Rename a session title (sets title_source=custom so the app stops auto-generating). ' +
       'Without session_id renames the current session. Returns was:/now:. When the user gave no ' +
@@ -483,6 +614,7 @@ const HANDLERS = {
   get_transcript: getTranscript,
   find_in_transcript: findInTranscript,
   query: runQuery,
+  search_log: searchLog,
   rename_session: renameSession,
   send_message: sendMessage,
 };
@@ -500,6 +632,12 @@ function ok(id, text) {
 function fail(id, error) {
   emit({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: String(error?.message || error) }], isError: true } });
 }
+
+// Async handlers (searchLog streams big files) must finish before exit —
+// stdin closes as soon as the client is done writing, not when we are done.
+let inFlight = 0;
+let stdinClosed = false;
+const maybeExit = () => { if (stdinClosed && inFlight === 0) process.exit(0); };
 
 createInterface({ input: process.stdin }).on('line', (line) => {
   const trimmed = line.trim();
@@ -519,7 +657,7 @@ createInterface({ input: process.stdin }).on('line', (line) => {
         jsonrpc: '2.0', id, result: {
           protocolVersion: params?.protocolVersion || '2024-11-05',
           capabilities: { tools: {} },
-          serverInfo: { name: 'zcode-sessions', version: '1.1.0' },
+          serverInfo: { name: 'zcode-sessions', version: '1.2.0' },
         },
       });
     } else if (method === 'tools/list') {
@@ -528,7 +666,11 @@ createInterface({ input: process.stdin }).on('line', (line) => {
       const name = params?.name;
       const handler = HANDLERS[name];
       if (!handler) throw new Error(`unknown tool: ${name}`);
-      ok(id, handler(params?.arguments || {}));
+      inFlight++;
+      Promise.resolve().then(() => handler(params?.arguments || {})).then(
+        (text) => ok(id, text),
+        (error) => fail(id, error)
+      ).finally(() => { inFlight--; maybeExit(); });
     } else if (method === 'ping') {
       emit({ jsonrpc: '2.0', id, result: {} });
     } else {
@@ -537,4 +679,4 @@ createInterface({ input: process.stdin }).on('line', (line) => {
   } catch (error) {
     fail(id, error);
   }
-}).on('close', () => process.exit(0));
+}).on('close', () => { stdinClosed = true; maybeExit(); });

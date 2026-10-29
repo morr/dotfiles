@@ -27,7 +27,10 @@ sessions burned reasoning on converting between the two).
   sessions with the matching lines.
 - `get_session(session_id)` — metadata + every user input with timestamps and
   attachment counts + per-type part counts. The entry point: read this before
-  the transcript.
+  the transcript. `input_history` is a pruned recency cache — old sessions get
+  their inputs rebuilt from the transcript (wrapper injections filtered by
+  prefix), and transcripts of such sessions label USER/context by the same
+  prefixes instead of matching input_history.
 - `get_transcript(session_id, types, maxChars, limit, offset)` — chronological
   transcript. `types` selects parts: `text` (USER / assistant / context labels;
   `context` = environment injections like AGENTS.md — skip them), `tool`
@@ -39,6 +42,11 @@ sessions burned reasoning on converting between the two).
 - `query(sql)` — read-only SQL against the sessions database, a single
   SELECT/WITH only (tables are in the fallback section below). For aggregations
   and one-off filters no fixed tool covers.
+- `search_log(day, days, session_id, query, level, since, until, limit)` — search
+  the app's event logs (`~/.zcode/cli/log/zcode-YYYY-MM-DD.jsonl`, streamed —
+  days run 25–120 MB) for «what happened inside the app» a transcript cannot
+  answer: title generation, model network calls, turn phases. Time filters are
+  local (HH:MM or ISO); lines come back with their raw JSON for grep-style reading.
 - `rename_session(title, session_id?)` — sets the title and marks it `custom`
   so the app's generator leaves it alone. Without `session_id` renames the
   current session (newest rollout file; if several windows stream at once, the
@@ -92,9 +100,10 @@ The server is `~/dotfiles/bin/mcp-zcode-sessions.mjs` (test: `echo '{"jsonrpc":"
   `session_entry`: runtime facts only.
 - `~/.zcode/cli/rollout/model-io-<id>.jsonl` — exact model requests; **only
   exists while the session is open**.
-- `~/.zcode/cli/log/zcode-YYYY-MM-DD.jsonl` — event log with `sessionId`;
-  tool calls are logged **without inputs/outputs** (metadata only), so the
-  transcript source is `part`, not the log.
+- `~/.zcode/cli/log/zcode-YYYY-MM-DD.jsonl` — event log with `sessionId`
+  (through the MCP: `search_log`). Tool calls are logged **without
+  inputs/outputs** (metadata only), so the transcript source is `part`, not
+  the log.
 - `~/.zcode/cli/artifacts/<id>/` — tool media results (base64 data-URLs);
   `~/.zcode/cli/agents/<id>/<agent>/` — subagent metadata and output;
   `~/.zcode/cli/image-cache/<id>/` — images the user pasted.
