@@ -8,7 +8,9 @@ description: Work with ZCode sessions by id or title — inspect what happened i
 Reads and renames ZCode desktop sessions through the `zcode-sessions` MCP server
 (tools `mcp__zcode-sessions__*`), backed by the app's SQLite database
 `~/.zcode/cli/db/db.sqlite`. All read tools are read-only connections; the only
-write anywhere is `rename_session`.
+write anywhere is `rename_session`. Printed timestamps are machine-local —
+the same clock as the app UI and sqlite `localtime` (they used to be UTC and
+sessions burned reasoning on converting between the two).
 
 ## Tools
 
@@ -18,9 +20,11 @@ write anywhere is `rename_session`.
   subagent children — they outnumber the main ones). Find a session when only a
   title fragment or repo path is known.
 - `search_sessions(query, directory, title_source, since, until, include_subagents, limit)` —
-  case-insensitive substring across every session's user inputs and title; the
-  way in when no id is known and the words sit beyond the (clipped) title.
-  Returns sessions with the matching input lines.
+  find sessions by content when no id is known: titles and user inputs
+  case-insensitively, then the transcripts themselves (`input_history` holds
+  only recent inputs — a couple dozen sessions; parts cover weeks). Transcript
+  matches are case-insensitive for Latin, case-sensitive for Cyrillic. Returns
+  sessions with the matching lines.
 - `get_session(session_id)` — metadata + every user input with timestamps and
   attachment counts + per-type part counts. The entry point: read this before
   the transcript.

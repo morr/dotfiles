@@ -29,8 +29,14 @@ function ro() {
   return reader;
 }
 
+// Local time, not ISO/UTC: it matches the app UI and sqlite 'localtime', so
+// MCP output and direct SQL agree without mental conversion.
 function iso(ms) {
-  return ms ? new Date(ms).toISOString().replace('T', ' ').slice(0, 19) : null;
+  if (!ms) return null;
+  const d = new Date(ms);
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ` +
+    `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 }
 
 function clip(s, n) {
@@ -156,8 +162,9 @@ function d0f(d) {
   return d.path || d.name || JSON.stringify(d).slice(0, 120);
 }
 
-// Filtered in JS, not SQL LIKE/lower(): those are ASCII-only and would miss
-// Cyrillic matches; input_history is small enough to scan whole.
+// Titles and inputs are matched in JS (LIKE/lower() are ASCII-only and would
+// miss Cyrillic case variants); transcripts are prefiltered by LIKE over the
+// stored JSON — raw UTF-8, so Cyrillic matches there, but case-sensitively.
 function searchSessions(args) {
   const q = String(args.query || '').trim();
   if (!q) throw new Error('query is required');
@@ -173,10 +180,18 @@ function searchSessions(args) {
   if (until) { sql += ' AND time_updated <= ?'; params.push(Date.parse(until) || until); }
   sql += ' ORDER BY time_updated DESC';
   const needle = q.toLowerCase();
+  const like = q.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
   const inputsBySession = {};
   for (const r of ro().prepare('SELECT session_id, text, time_created FROM input_history').all()) {
     (inputsBySession[r.session_id] ??= []).push(r);
   }
+  const transcriptHit = ro().prepare(
+    'SELECT time_created, data FROM part WHERE session_id = ? AND data LIKE ? LIMIT 3'
+  );
+  const around = (text, at) => {
+    const start = Math.max(0, at - 60);
+    return ((start > 0 ? '…' : '') + text.slice(start, at + q.length + 120) + '…').replace(/\n/g, ' ⏎ ');
+  };
   const lines = [];
   let n = 0;
   for (const s of ro().prepare(sql).all(...params)) {
@@ -184,10 +199,17 @@ function searchSessions(args) {
     if (s.title.toLowerCase().includes(needle)) hits.push(`title: ${clip(s.title, 200)}`);
     for (const i of inputsBySession[s.id] || []) {
       const at = i.text.toLowerCase().indexOf(needle);
-      if (at < 0) continue;
-      const start = Math.max(0, at - 60);
-      const snippet = (start > 0 ? '…' : '') + i.text.slice(start, at + q.length + 120) + '…';
-      hits.push(`${iso(i.time_created)}  ${snippet.replace(/\n/g, ' ⏎ ')}`);
+      if (at >= 0) hits.push(`${iso(i.time_created)}  ${around(i.text, at)}`);
+    }
+    if (hits.length < 3) {
+      for (const p of transcriptHit.all(s.id, `%${like}%`)) {
+        const raw = JSON.parse(p.data);
+        const text = raw.text || raw.state?.output || JSON.stringify(raw.state?.input || '');
+        const at = text.toLowerCase().indexOf(needle);
+        if (at < 0) continue; // the LIKE hit lives in escaped JSON, not the visible text
+        hits.push(`${iso(p.time_created)}  [transcript] ${around(text, at)}`);
+        if (hits.length >= 3) break;
+      }
     }
     if (!hits.length) continue;
     n++;
@@ -349,10 +371,12 @@ const TOOLS = [
   },
   {
     name: 'search_sessions',
-    description: 'Find sessions by content: case-insensitive substring across every session\'s user ' +
-      'inputs and title — no session id needed (get_session/find_in_transcript require one). ' +
-      'Returns sessions with the matching input lines. Filters: directory, title_source, ' +
-      'since/until, include_subagents (default false), limit.',
+    description: 'Find sessions by content, no session id needed (get_session/find_in_transcript ' +
+      'require one). Matches titles and user inputs case-insensitively, then scans the full ' +
+      'transcripts (input_history holds only recent inputs — the transcripts cover weeks). ' +
+      'Transcript matches are case-insensitive only for Latin; Cyrillic matches there ' +
+      'case-sensitively. Returns sessions with the matching lines. Filters: directory, ' +
+      'title_source, since/until, include_subagents (default false), limit.',
     inputSchema: {
       type: 'object',
       properties: {
