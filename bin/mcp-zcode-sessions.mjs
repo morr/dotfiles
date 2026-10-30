@@ -498,6 +498,13 @@ function renameTitle(id, title) {
 // `mode` is honored end-to-end (2026-10-29: guarded survives to
 // session.permission.mode); the tasks.mode column is not — verify via the
 // session store or the runtime log, never via tasks.mode.
+// Placement: the scheduler copies the automation row's project_id onto the
+// created task, and that id is what pins the session to a project's list in
+// the app — without it the session shows under Tasks (verified 2026-10-30 on
+// ext-revive rows: their tasks got the automation's project_id). Default:
+// copy the newest known project_id of the workspace, so an explicit "spawn a
+// session" lands in the project; `task: true` (drills, background pipelines)
+// skips the copy and lands in Tasks.
 async function spawnSession(args) {
   const prompt = String(args.prompt || '').trim();
   if (!prompt) throw new Error('prompt is required');
@@ -515,6 +522,26 @@ async function spawnSession(args) {
   }
   const thoughtLevel = String(args.thought_level || 'max').trim();
   const title = args.title ? String(args.title).trim() : null;
+  const asTask = args.task === true;
+  // The app groups the session list per project by the task's project_id.
+  // One workspace maps to one project (checked over the whole task index), so
+  // the newest task's id is the workspace's project; a directory never opened
+  // in the app has no task rows and nothing to copy — such a spawn lands in
+  // Tasks regardless of the flag.
+  let projectId = null;
+  if (!asTask) {
+    const q = new DatabaseSync(TASKS_DB, { readOnly: true });
+    try {
+      projectId = q.prepare(
+        'SELECT project_id FROM tasks WHERE workspace_key = ? AND deleted = 0' +
+        " AND project_id IS NOT NULL AND project_id != ''" +
+        ' ORDER BY updated_at DESC LIMIT 1'
+      ).get(directory)?.project_id || null;
+    } finally {
+      q.close();
+    }
+  }
+  const placement = asTask ? 'Tasks' : projectId ? 'the project session list' : "Tasks (no project known for this directory yet)";
   const [providerId, modelId] = model.split('/');
   const selection = { providerId, modelId, options: { reasoningLevel: thoughtLevel } };
 
@@ -532,14 +559,14 @@ async function spawnSession(args) {
       ' automation_id, title, cron_expr, prompt, workspace_key, workspace_path,' +
       ' location_kind, recurring, run_count, scheduled_run_count,' +
       ' enabled, lifecycle_status, next_run_at, schedule_edited_by_user, model_selection,' +
-      ' mode, dispatch_status, dispatch_attempts, created_at, updated_at, host_id' +
-      ') VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+      ' mode, dispatch_status, dispatch_attempts, created_at, updated_at, host_id, project_id' +
+      ') VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
     ).run(
       aid, `spawn: ${prompt.slice(0, 60)}`, '* * * * *', prompt,
       directory, directory,
       'local', 0, 0, 0,
       1, 'active', now - 20000, 0, JSON.stringify(selection),
-      mode, 'idle', 0, now, now, 'local'
+      mode, 'idle', 0, now, now, 'local', projectId
     );
   } finally {
     db.close();
@@ -579,7 +606,8 @@ async function spawnSession(args) {
   }
   return `spawned: ${run.session_id}${renamed}` +
     `\nautomation: ${aid}\ndirectory: ${directory}  model: ${modelId}  thought: ${thoughtLevel}  mode: ${mode}` +
-    '\nThe session starts working on the prompt on its own (first response within ~20-60 s); it is a regular app session — visible in the session list, resumable, and reachable via send_message.';
+    `\nlands in: ${placement}` +
+    '\nThe session starts working on the prompt on its own (first response within ~20-60 s); it is a regular app session — resumable and reachable via send_message.';
 }
 
 // Best-effort id of the CALLING session — the one the user is talking to.
@@ -797,9 +825,12 @@ const TOOLS = [
   {
     name: 'spawn_session',
     description: 'Spawn a NEW background ZCode session running a prompt — a full app session ' +
-      '(own context, visible in the session list, resumable, reachable via send_message afterwards), ' +
-      'not a subagent. The app scheduler creates the session in `directory` with the model pin and ' +
-      'permission mode, then delivers the prompt; the session starts working on its own. ' +
+      '(own context, resumable, reachable via send_message afterwards), not a subagent. ' +
+      'Placement: by default the session is attached to the project `directory` belongs to and shows ' +
+      'in that project\'s session list (the default for an explicit "spawn a session" request); ' +
+      '`task: true` leaves it unattached so it shows under Tasks — use it for background workers ' +
+      'spawned by pipelines and drills. The app scheduler creates the session in `directory` with the ' +
+      'model pin and permission mode, then delivers the prompt; the session starts working on its own. ' +
       'Returns the new session id (waits up to 60 s for it). Use for background workers that must ' +
       'outlive the caller and report back.',
     inputSchema: {
@@ -811,6 +842,7 @@ const TOOLS = [
         mode: { type: 'string', enum: ['build', 'edit', 'plan', 'yolo', 'guarded'], description: 'permission mode of the new session, default build' },
         thought_level: { type: 'string', description: 'reasoning level of the model pin, default max' },
         title: { type: 'string', description: 'optional session title (title_source=custom), applied once the session exists' },
+        task: { type: 'boolean', description: 'true — the session shows under Tasks (drills, spawned pipelines); false/omitted — attached to the project of `directory`, its session list. A directory never opened in the app has no project to attach to — such a session lands in Tasks either way' },
       },
       required: ['prompt', 'directory', 'model'],
     },

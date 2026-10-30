@@ -62,16 +62,21 @@ sessions burned reasoning on converting between the two).
   message in the recipient's `input_history`; the ext-msg row's outcome in
   `automation_runs` finalizes when the recipient's turn ends, so `running`
   while the recipient is mid-turn is normal, not a failed delivery.
-- `spawn_session(prompt, directory, model, mode?, thought_level?, title?)` —
+- `spawn_session(prompt, directory, model, mode?, thought_level?, title?, task?)` —
   spawns a NEW background ZCode session (a full app session with its own
-  context — visible in the session list, resumable, reachable via
-  `send_message` — not a subagent). Same automation queue as `send_message`,
-  but with no target session: the app's scheduler calls createTask (new session
-  in `directory`, model pin `provider/model` required — a missing pin forces
-  the workspace default plan — and permission `mode`, default `build`) and
-  delivers the prompt. Waits up to 60 s and returns the new session id. Use for
-  background workers that must outlive the caller and report back; the
-  ZCode-side replacement for `claude --bg`. The mode is honored end-to-end:
+  context — resumable, reachable via `send_message` — not a subagent). Same
+  automation queue as `send_message`, but with no target session: the app's
+  scheduler calls createTask (new session in `directory`, model pin
+  `provider/model` required — a missing pin forces the workspace default plan
+  — and permission `mode`, default `build`) and delivers the prompt. Waits up
+  to 60 s and returns the new session id. The ZCode-side replacement for
+  `claude --bg`. **Placement** — `task` decides where the session shows in the
+  app: omitted/false attaches it to the project of `directory` (that project's
+  session list — the default for an explicit «запусти новую сессию» without a
+  task mention), `task: true` leaves it unattached and it shows under Tasks
+  (drills and pipelines spawning background workers pass it explicitly). A
+  directory never opened in the app has no project to attach to — such a
+  session lands in Tasks either way. The mode is honored end-to-end:
   `mode: 'guarded'` lands in the spawned session's permission (verify via the
   session store or the runtime log — the `tasks.mode` column of the task index
   can still show the default and is a red herring). Two 2026-10-29 live-test
@@ -116,9 +121,10 @@ Send a message to another session:
 Spawn a background worker session (drill-style pipelines):
 1. `current_session` once, at the START of the driving session — before any
    parallel session exists — to learn the driver's own id;
-2. `spawn_session(prompt, directory: <worktree>, model: '…/…', mode: <driver's mode>, title: <branch>)` —
-   the worker runs in its own context; the prompt carries the driver's session
-   id so the worker can report back;
+2. `spawn_session(prompt, directory: <worktree>, model: '…/…', mode: <driver's mode>, title: <branch>, task: true)` —
+   the worker runs in its own context and shows under Tasks, not in the
+   project's list (that's the point of a pipeline worker); the prompt carries
+   the driver's session id so the worker can report back;
 3. the worker finishes with `send_message(driver_id, <report>)` — the report
    lands in the driver as a user input, no polling needed (keep a file
    contract too: messages arrive only while the driver's app runs).
