@@ -68,7 +68,10 @@ sessions burned reasoning on converting between the two).
   automation queue as `send_message`, but with no target session: the app's
   scheduler calls createTask (new session in `directory`, model pin
   `provider/model` required — a missing pin forces the workspace default plan
-  — and permission `mode`, default `build`) and delivers the prompt. Waits up
+  — and permission `mode`: when omitted, the calling session's own mode is
+  inherited (resolved like `current_session` via process cwd), `build` only
+  as a last resort — a 2026-10-30 incident: an autonomous session omitted
+  mode, and the child started 'ask before changes') and delivers the prompt. Waits up
   to 60 s and returns the new session id. The ZCode-side replacement for
   `claude --bg`. **Placement** — `task` decides where the session shows in the
   app: omitted/false attaches it to the project of `directory` (that project's

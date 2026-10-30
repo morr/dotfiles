@@ -497,7 +497,10 @@ function renameTitle(id, title) {
 // the DB every ~20 s), then applies `title` if given.
 // `mode` is honored end-to-end (2026-10-29: guarded survives to
 // session.permission.mode); the tasks.mode column is not — verify via the
-// session store or the runtime log, never via tasks.mode.
+// session store or the runtime log, never via tasks.mode. When the caller
+// omits mode it inherits the calling session's mode (resolved via process
+// cwd), falling back to build — a silent default build has already produced
+// a 'ask before changes' child out of an autonomous parent.
 // Placement: the scheduler copies the automation row's project_id onto the
 // created task, and that id is what pins the session to a project's list in
 // the app — without it the session shows under Tasks (verified 2026-10-30 on
@@ -516,8 +519,26 @@ async function spawnSession(args) {
   if (!model.includes('/')) {
     throw new Error("model is required as 'provider/model' (e.g. 'account:zai-individual-coding-plan/GLM-5.3-Flash') — a missing pin forces the workspace default plan");
   }
-  const mode = String(args.mode || 'build').trim();
-  if (!['build', 'edit', 'plan', 'yolo', 'guarded'].includes(mode)) {
+  // Permission mode: explicit wins; when omitted, inherit the calling
+  // session's own mode — the 2026-10-30 incident: an /opsx:apply session
+  // running guarded omitted mode, guessed its own mode wrong, and the child
+  // got the default build ('ask before changes'). Inheritance, not escalation
+  // — same rule the sentry_drill docs state for fixers. The caller is the
+  // newest open main session in process cwd (the same resolution
+  // current_session uses); an unresolvable caller falls back to build.
+  const MODES = ['build', 'edit', 'plan', 'yolo', 'guarded'];
+  let mode = String(args.mode || '').trim();
+  let modeFrom = 'explicit';
+  if (!mode) {
+    const caller = openMainSessions(process.cwd())[0]?.s;
+    if (caller?.mode && MODES.includes(caller.mode)) {
+      mode = caller.mode;
+      modeFrom = `inherited from the calling session ${caller.id}`;
+    } else {
+      mode = 'build';
+      modeFrom = 'default (calling session not resolved in process cwd)';
+    }
+  } else if (!MODES.includes(mode)) {
     throw new Error(`unknown mode: ${mode} (build | edit | plan | yolo | guarded)`);
   }
   const thoughtLevel = String(args.thought_level || 'max').trim();
@@ -605,9 +626,28 @@ async function spawnSession(args) {
     }
   }
   return `spawned: ${run.session_id}${renamed}` +
-    `\nautomation: ${aid}\ndirectory: ${directory}  model: ${modelId}  thought: ${thoughtLevel}  mode: ${mode}` +
+    `\nautomation: ${aid}\ndirectory: ${directory}  model: ${modelId}  thought: ${thoughtLevel}` +
+    `\nmode: ${mode} (${modeFrom})` +
     `\nlands in: ${placement}` +
     '\nThe session starts working on the prompt on its own (first response within ~20-60 s); it is a regular app session — resumable and reachable via send_message.';
+}
+
+// Open main sessions in `dir` (open = streaming a rollout file — only open
+// ones have one), newest first, subagents excluded. The shared discovery
+// behind current_session and spawnSession's mode inheritance.
+function openMainSessions(dir) {
+  return readdirSync(ROLLOUT_DIR)
+    .filter(f => /^model-io-session_.+\.jsonl$/.test(f))
+    .map(f => ({
+      id: f.replace(/^model-io-|\.jsonl$/g, ''),
+      mtime: statSync(join(ROLLOUT_DIR, f)).mtimeMs,
+    }))
+    .sort((a, b) => b.mtime - a.mtime)
+    .map(o => ({ ...o, s: ro().prepare(
+      'SELECT id, title, title_source, directory, parent_id,' +
+      " json_extract(permission, '$.mode') AS mode FROM session WHERE id = ?"
+    ).get(o.id) }))
+    .filter(o => o.s && !o.s.parent_id && o.s.directory === dir);
 }
 
 // Best-effort id of the CALLING session — the one the user is talking to.
@@ -616,19 +656,7 @@ async function spawnSession(args) {
 // Ambiguity (two open main sessions in one directory) is reported, not hidden.
 function currentSession(args) {
   const dir = String(args.directory || process.cwd()).trim();
-  const open = readdirSync(ROLLOUT_DIR)
-    .filter(f => /^model-io-session_.+\.jsonl$/.test(f))
-    .map(f => ({
-      id: f.replace(/^model-io-|\.jsonl$/g, ''),
-      mtime: statSync(join(ROLLOUT_DIR, f)).mtimeMs,
-    }))
-    .sort((a, b) => b.mtime - a.mtime);
-  const rows = open
-    .map(o => ({ ...o, s: ro().prepare(
-      'SELECT id, title, title_source, directory, parent_id,' +
-      " json_extract(permission, '$.mode') AS mode FROM session WHERE id = ?"
-    ).get(o.id) }))
-    .filter(o => o.s && !o.s.parent_id && o.s.directory === dir);
+  const rows = openMainSessions(dir);
   if (!rows.length) {
     const any = ro().prepare(
       'SELECT id, title, directory FROM session WHERE directory = ? AND time_deleted IS NULL' +
@@ -839,7 +867,7 @@ const TOOLS = [
         prompt: { type: 'string', description: 'the prompt the new session runs (e.g. \'/sentry_fix <handoff path>\')' },
         directory: { type: 'string', description: 'absolute path — the new session\'s working directory (e.g. the worktree path)' },
         model: { type: 'string', description: "'provider/model' pin, e.g. 'account:zai-individual-coding-plan/GLM-5.3-Flash' — required; a missing pin forces the workspace default plan" },
-        mode: { type: 'string', enum: ['build', 'edit', 'plan', 'yolo', 'guarded'], description: 'permission mode of the new session, default build' },
+        mode: { type: 'string', enum: ['build', 'edit', 'plan', 'yolo', 'guarded'], description: 'permission mode of the new session. Default: the calling session\'s own mode (resolved like current_session), falling back to build — pass it explicitly only when the child must differ from yours' },
         thought_level: { type: 'string', description: 'reasoning level of the model pin, default max' },
         title: { type: 'string', description: 'optional session title (title_source=custom), applied once the session exists' },
         task: { type: 'boolean', description: 'true — the session shows under Tasks (drills, spawned pipelines); false/omitted — attached to the project of `directory`, its session list. A directory never opened in the app has no project to attach to — such a session lands in Tasks either way' },
