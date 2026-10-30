@@ -440,10 +440,16 @@ function sendMessage(args) {
     if (!model) {
       throw new Error(`no model for target session (no pin in the task index and nothing in model_usage): ${id}`);
     }
-    const [providerId, modelId] = model.split('/');
+    // A task-index pin can carry a reasoning-level suffix ("…/GLM-5.3-Flash$max")
+    // which the resume dispatch rejects as a model id — move it into the
+    // selection's reasoningLevel, where it belongs.
+    const [providerId, rawModelId] = model.split('/');
+    const dollar = rawModelId.indexOf('$');
+    const modelId = dollar === -1 ? rawModelId : rawModelId.slice(0, dollar);
+    const level = dollar === -1 ? (task.thought || 'max') : rawModelId.slice(dollar + 1);
     const selection = {
       providerId, modelId,
-      options: { reasoningLevel: thought || 'max' },
+      options: { reasoningLevel: level || 'max' },
     };
     // housekeeping: drop settled one-shot rows of ours older than 10 minutes
     db.prepare(
