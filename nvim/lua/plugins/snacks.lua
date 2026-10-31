@@ -95,6 +95,9 @@ return {
     picker = {
       enabled = true,
       sources = {
+        files = { exclude = { ".worktrees" } },
+        grep = { exclude = { ".worktrees" } },
+        grep_word = { exclude = { ".worktrees" } },
         explorer = {
           auto_close = true,
           win = {
