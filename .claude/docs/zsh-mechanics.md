@@ -1,38 +1,39 @@
-# Why the three zsh forms exist
+# zsh mechanics behind the shell rules
 
-Reference for debugging a Bash call that died oddly. The three mandatory forms live in
-`~/.claude/CLAUDE.md`; this file is the mechanics behind them — read it when a command
-failed in a way you don't recognise, not when composing one.
+Reference for debugging a Bash call that failed oddly. The two mandatory forms live in
+`~/.claude/CLAUDE.md` and `~/.zcode/AGENTS.md`; this file is the mechanics behind them —
+read it when a command failed in a way you don't recognise, not when composing one.
 
-## `=` at the start of a word (form 1)
+Agent shells on this machine get bash-compatible equals/glob semantics from `~/.zshenv`:
+for non-interactive zsh it unsets `EQUALS` and `NOMATCH`, so a bare `=`-word and an
+unmatched glob pass through as literals instead of killing the command line. The first two
+sections describe the option mechanics themselves — still live in interactive shells and on
+machines without this dotfiles setup.
 
-The Bash tool runs **zsh**, where the `EQUALS` option is on by default: a word starting with
-`=` is replaced by the full path to the command of that name (`echo =ls` → `/bin/ls`). So
-`echo ===` fails with `(eval):1: == not found` and exits 1. Worse, the expansion happens at
-parse time, so **the rest of the command line never runs** — it reads as "git worked, then
-grep silently printed nothing", and the failure becomes the exit code of the whole call.
+## `=` at the start of a word (EQUALS)
 
-Write separators as `echo ---` (zsh leaves a leading hyphen alone) or quote them:
-`echo '==='`. Same rule for any bare argument with a leading `=`.
+With `EQUALS` on — zsh's default — a word starting with `=` is replaced by the full path to
+the command of that name (`echo =ls` → `/bin/ls`); a word with no such command behind it
+fails at parse time (`(eval):1: == not found`), so the rest of the line never runs. If you
+need the expansion, or the command has to survive an interactive shell too, quote the word:
+`echo '==='`.
 
-## An unmatched glob (form 2)
+## An unmatched glob (NOMATCH)
 
-A glob with no matches is an error (`no matches found`) rather than a literal, and it kills the
-whole command before it runs — quote it or use `ls`/`find`. **This bites hardest when the glob
-sits inside a flag value, where it doesn't read as a glob:** an unquoted `--include=*.rb` dies
-with `(eval):1: no matches found`, because zsh expands the pattern against the *current*
-directory, not against grep's search target. Always quote it — `--include='*.rb'`,
-`--exclude='*.log'`, `-name '*.yml'`. The symptom is identical to the `=`-expansion one above
-(output stops right after the preceding `echo ---`), so check which of the two it actually is
-before "fixing" the separator.
+With `NOMATCH` on — zsh's default — a glob with no matches is an error (`no matches found`)
+rather than a literal, and it kills the whole command before it runs. This is the option
+`~/.zshenv` turns off for agent shells, which is why an unquoted `--include=*.rb` now
+reaches grep intact there. One behavior survives the option either way: a separate-word glob
+like `-name *.yml` expands against the *current* directory whenever a file there matches —
+silently changing what find sees — so flag-value globs stay quoted.
 
-## A probe at the tail of a chain (form 3)
+## A probe at the tail of a chain
 
 A `;`-chain reports the exit code of its **last** command only. If the chain ends with a
 probe that legitimately "fails" — a listing of a missing file, a `grep` with no matches,
 `[ -f … ]` — the whole Bash call shows "Exit code 1" even though every earlier part ran and
 printed fine. Before treating such a call as broken, check whether the tail was an existence
-probe answering "no". The fix is form 3: phrase every probe as
+probe answering "no". The fix is form 2: phrase every probe as
 `[ -d x ] && echo yes || echo no` (or `[ -f x ] && … `), which answers and exits 0 in one shape,
 so it never matters where in the chain it landed.
 

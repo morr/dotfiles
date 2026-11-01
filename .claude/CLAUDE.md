@@ -103,29 +103,30 @@ The same arithmetic applies to skills: a skill whose SKILL.md exceeds ~30K chara
 split into stages — SKILL.md keeps the map and the constants, the stages live in
 `references/` and are loaded when the session reaches them.
 
-## Shell is zsh — three mandatory forms when writing a Bash command
+## Shell is zsh — two mandatory forms when writing a Bash command
 
 Not prohibitions to recall, but the only shapes to type. Everything below them is mechanics —
 read that when debugging a failure, not when composing a command.
 
-1. **A separator is `echo ---`.** Never `echo ===`.
-2. **A glob inside a flag value is quoted:** `--include='*.rb'`, `--exclude='*.log'`,
+1. **A glob inside a flag value is quoted:** `--include='*.rb'`, `--exclude='*.log'`,
    `-name '*.yml'`.
-3. **An existence check is written as a test that always succeeds:**
+2. **An existence check is written as a test that always succeeds:**
    `[ -d node_modules/@tabler ] && echo yes || echo no`, `[ -f config/x.yml ] && echo yes || echo no`.
    Never a bare `ls maybe-missing/`, never `ls x.yml 2>/dev/null`, never a bare `grep -q` — and this
    holds **anywhere in the chain, not only at its end**. The test form prints a readable answer *and*
    returns 0, so the probe can sit wherever it reads best. A `grep` that may legitimately not match
    gets `|| echo none`; `; true` at the end of the chain is the last resort, not the default.
 
-Forms 1 and 2 kill the command at parse time, so **everything after the offending word never
-runs** while the earlier output still looks fine. Form 3 breaks nothing — it just makes a
-healthy call report "Exit code 1". All three read identically from the outside: output stops,
-exit 1. Before "fixing" one, check which it actually is.
+Neither form guards against a crash — `~/.zshenv` already unsets `nomatch` in non-interactive
+zsh, so agent shells pass an unmatched glob through as a literal instead of dying on it. Form 1
+is pure correctness: a separate-word glob like `-name *.yml` still expands against the *current*
+directory whenever a file there matches, quietly changing what find sees. Form 2 breaks nothing —
+it just makes a healthy call report "Exit code 1" where a bare probe reports nothing and exits 1.
+Before "fixing" one, check which it actually is.
 
-The mechanics behind all three — why an `=`-word and an unmatched glob die at parse time, why a
-tail probe reports exit 1 — are in `~/.claude/docs/zsh-mechanics.md`. Read it when a call fails
-in a way you don't recognise; you don't need it to write a correct command.
+The mechanics behind both — what `~/.zshenv` changes in agent shells, why a tail probe reports
+exit 1 — are in `~/.claude/docs/zsh-mechanics.md`. Read it when a call fails in a way you don't
+recognise; you don't need it to write a correct command.
 
 ## GitHub Issues / PRs
 
