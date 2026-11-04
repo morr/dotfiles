@@ -105,6 +105,7 @@ alias dev="cd ~/develop"
 alias zxc="cd ~/develop/bevy/zxc"
 alias qwe="cd ~/develop/bevy/qwe"
 alias bevy="cd ~/develop/bevy"
+alias minisnap="cd ~/develop/minisnap/"
 
 #-------------------------------------------------------------------------------
 # common aliases
