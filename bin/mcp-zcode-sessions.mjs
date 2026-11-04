@@ -381,7 +381,7 @@ function renameSession(args) {
     // "current session" = the rollout file written last (only open sessions
     // have rollout files; if several windows stream at once, newest wins).
     const latest = readdirSync(ROLLOUT_DIR)
-      .filter(f => /^model-io-session_.+\.jsonl$/.test(f))
+      .filter(f => /^model-io-(?:sess|session)_.+\.jsonl$/.test(f))
       .map(f => ({ f, mtime: statSync(join(ROLLOUT_DIR, f)).mtimeMs }))
       .sort((a, b) => b.mtime - a.mtime)[0];
     if (!latest) throw new Error('session_id is required (no open session found via rollout files)');
@@ -643,7 +643,7 @@ async function spawnSession(args) {
 // behind current_session and spawnSession's mode inheritance.
 function openMainSessions(dir) {
   return readdirSync(ROLLOUT_DIR)
-    .filter(f => /^model-io-session_.+\.jsonl$/.test(f))
+    .filter(f => /^model-io-(?:sess|session)_.+\.jsonl$/.test(f))
     .map(f => ({
       id: f.replace(/^model-io-|\.jsonl$/g, ''),
       mtime: statSync(join(ROLLOUT_DIR, f)).mtimeMs,
