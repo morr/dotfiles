@@ -24,6 +24,7 @@ files = %w[
   .zcode/AGENTS.md
   .agents/mcp.json
   .oh-my-zsh/custom/completions/_cargo
+  .oh-my-zsh/custom/completions/_worktree
   Library/LaunchAgents/com.morr.ssh-tunnel.plist
   Library/LaunchAgents/com.morr.mcp-autorestart.plist
 ]

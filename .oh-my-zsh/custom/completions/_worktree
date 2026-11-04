@@ -1,0 +1,81 @@
+#compdef worktree-create worktree-remove worktree-remove-all worktree-status worktree-dns-install worktree-hosts
+
+# Tab completion for the minisklad worktree scripts
+# (~/develop/work/minisklad/bin/worktree-{create,remove,remove-all,status,dns-install})
+# and ~/dotfiles/bin/worktree-hosts, which the create/remove pair drives
+# /etc/hosts with.
+#
+# Every branch argument is the directory name under the main checkout's
+# .worktrees/, so the candidates are exactly those directories, resolved the
+# way the scripts themselves resolve the main checkout — dirname of the git
+# common dir — so completing also works from inside a worktree. The glob
+# carries no (D) qualifier, so the .removing-* leftovers of an interrupted
+# worktree-remove never show up. _describe tolerates an empty list: a
+# checkout without worktrees, or a directory that is no git repo at all,
+# offers nothing instead of dying.
+#
+# One function, six commands, dispatched on $service. The scripts are invoked
+# path-qualified (`bin/worktree-remove <TAB>` from the repo root, `sudo
+# worktree-hosts` through _sudo); _normal strips the leading path and lands
+# here with service set to the basename.
+
+_minisklad_worktree_branches() {
+  local main_checkout
+  main_checkout="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)")" || return 0
+  [[ -d "$main_checkout/.worktrees" ]] || return 0
+  local -a branches
+  branches=("$main_checkout/.worktrees/"*(/N:t))
+  _describe -t worktree-branches 'worktree branch' branches
+}
+
+_worktree() {
+  case "$service" in
+    worktree-create)
+      # Re-running create on an existing worktree restarts its servers, so an
+      # existing name is a valid candidate here too.
+      _arguments \
+        '1:branch:_minisklad_worktree_branches' \
+        '(- *)-h[show usage]' \
+        '(- *)--help[show usage]' \
+        '--base[branch off this ref instead of origin/master]:ref:' \
+        '--brand[brands to serve]:brand:(kladovkin spacehub both)' \
+        '--no-server[set the worktree up but start nothing]' \
+        '--restart[restart the servers even when they are already answering]' \
+        '--reinstall[re-run yarn install even when node_modules looks complete]' \
+        '--no-test-db[skip preparing the parallel test databases]' \
+        '--reset-test-db[re-prepare the test databases even on an existing worktree]'
+      ;;
+    worktree-remove)
+      _arguments \
+        '1:branch:_minisklad_worktree_branches' \
+        '(- *)-h[show usage]' \
+        '(- *)--help[show usage]' \
+        '--force[remove even with uncommitted or unpushed work]' \
+        '--delete-branch[delete the local branch too, never the remote one]' \
+        '--servers-only[stop the servers and free the domains, keep the worktree]'
+      ;;
+    worktree-remove-all)
+      _arguments \
+        '(- *)-h[show usage]' \
+        '(- *)--help[show usage]' \
+        '--force[pass --force to every worktree-remove]' \
+        '--delete-branch[pass --delete-branch to every worktree-remove]' \
+        '--servers-only[pass --servers-only to every worktree-remove]'
+      ;;
+    worktree-status)
+      _arguments \
+        '1:branch:_minisklad_worktree_branches' \
+        '(- *)-h[show usage]' \
+        '(- *)--help[show usage]' \
+        '--timeout[seconds to wait per probe]:seconds:'
+      ;;
+    worktree-dns-install)
+      _message 'no arguments'
+      ;;
+    worktree-hosts)
+      _arguments \
+        '1:branch:_minisklad_worktree_branches' \
+        '2:action:(remove)'
+      ;;
+  esac
+}
