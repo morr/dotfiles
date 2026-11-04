@@ -15,8 +15,8 @@
         <string>-C</string>
         <string>-N</string>
         <string>-J</string>
-        <string>ms</string>
-        <string>spacehubstore</string>
+        <string>kladovkin</string>
+        <string>airflow</string>
     </array>
 
     <key>RunAtLoad</key>
