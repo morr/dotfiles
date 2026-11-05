@@ -531,7 +531,14 @@ async function spawnSession(args) {
   // got the default build ('ask before changes'). Inheritance, not escalation
   // — same rule the sentry_drill docs state for fixers. The caller is the
   // newest open main session in process cwd (the same resolution
-  // current_session uses); an unresolvable caller falls back to build.
+  // current_session uses); an unresolvable caller is refused, not defaulted
+  // (see below). The 2026-11-05 incident is the other direction: a caller
+  // with a stale plan-mode belief passed 'edit' explicitly ('yolo is risky')
+  // and the unattended child stalled twice on Bash approvals. Hence the
+  // schema rule — an explicit mode may only be yolo/guarded/plan (or an
+  // asking mode the user named) — and one invariant: no code path may EVER
+  // produce an asking child silently. A spawn inherits the caller's mode or
+  // fails loudly; it never falls back to build.
   const MODES = ['build', 'edit', 'plan', 'yolo', 'guarded'];
   let mode = String(args.mode || '').trim();
   let modeFrom = 'explicit';
@@ -541,8 +548,10 @@ async function spawnSession(args) {
       mode = caller.mode;
       modeFrom = `inherited from the calling session ${caller.id}`;
     } else {
-      mode = 'build';
-      modeFrom = 'default (calling session not resolved in process cwd)';
+      // 2026-11-05 rule: an approval-asking spawn must be impossible —
+      // refuse instead of defaulting to build (the 2026-10-30 incident came
+      // through exactly this fallback).
+      throw new Error('mode is required: the calling session could not be resolved in process cwd — pass mode explicitly (yolo/guarded/plan; never build, and never edit for unattended work unless the user asked for approval prompts)');
     }
   } else if (!MODES.includes(mode)) {
     throw new Error(`unknown mode: ${mode} (build | edit | plan | yolo | guarded)`);
@@ -873,7 +882,7 @@ const TOOLS = [
         prompt: { type: 'string', description: 'the prompt the new session runs (e.g. \'/sentry_fix <handoff path>\')' },
         directory: { type: 'string', description: 'absolute path — the new session\'s working directory (e.g. the worktree path)' },
         model: { type: 'string', description: "'provider/model' pin, e.g. 'account:zai-individual-coding-plan/GLM-5.3-Flash' — required; a missing pin forces the workspace default plan" },
-        mode: { type: 'string', enum: ['build', 'edit', 'plan', 'yolo', 'guarded'], description: 'permission mode of the new session. Default: the calling session\'s own mode (resolved like current_session), falling back to build — pass it explicitly only when the child must differ from yours' },
+        mode: { type: 'string', enum: ['build', 'edit', 'plan', 'yolo', 'guarded'], description: 'permission mode of the new session. Default: the calling session\'s own mode (resolved like current_session). NEVER pass an approval-asking mode: `build` is forbidden outright, and for an unattended job `edit` is too (there high-risk Bash still prompts — 2026-11-05: a child stalled twice on Bash approvals because its caller passed \'edit\' as "safer than yolo"). Omit the mode to inherit, or pass explicitly only `yolo`/`guarded`/`plan` when the child must differ — an asking mode is legitimate only if the user explicitly named it' },
         thought_level: { type: 'string', description: 'reasoning level of the model pin, default max' },
         title: { type: 'string', description: 'optional session title (title_source=custom), applied once the session exists' },
         task: { type: 'boolean', description: 'true — the session shows under Tasks (drills, spawned pipelines); false/omitted — attached to the project of `directory`, its session list. A directory never opened in the app has no project to attach to — such a session lands in Tasks either way' },

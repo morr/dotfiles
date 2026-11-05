@@ -69,9 +69,15 @@ sessions burned reasoning on converting between the two).
   scheduler calls createTask (new session in `directory`, model pin
   `provider/model` required — a missing pin forces the workspace default plan
   — and permission `mode`: when omitted, the calling session's own mode is
-  inherited (resolved like `current_session` via process cwd), `build` only
-  as a last resort — a 2026-10-30 incident: an autonomous session omitted
-  mode, and the child started 'ask before changes') and delivers the prompt. Waits up
+  inherited (resolved like `current_session` via process cwd); if the caller
+  cannot be resolved the call errors demanding an explicit mode. A spawned
+  session must NEVER land in an approval-asking mode — never `build` (a
+  2026-10-30 incident: an autonomous session omitted mode, and the child
+  started 'ask before changes'), and for unattended work never `edit` either
+  (high-risk Bash prompts there; a 2026-11-05 incident: a caller with a
+  stale plan-mode belief passed 'edit' as "safer than yolo", and the child
+  stalled twice on Bash approvals). Explicit modes: `yolo`/`guarded`/`plan`;
+  an asking mode only when the user names it) and delivers the prompt. Waits up
   to 60 s and returns the new session id. The ZCode-side replacement for
   `claude --bg`. **Placement** — `task` decides where the session shows in the
   app: omitted/false attaches it to the project of `directory` (that project's
