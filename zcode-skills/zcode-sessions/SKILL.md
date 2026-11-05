@@ -79,11 +79,14 @@ sessions burned reasoning on converting between the two).
   stalled twice on Bash approvals). Explicit modes: `yolo`/`guarded`/`plan`;
   an asking mode only when the user names it) and delivers the prompt. Waits up
   to 60 s and returns the new session id. The ZCode-side replacement for
-  `claude --bg`. **Placement** — `task` decides where the session shows in the
-  app: omitted/false attaches it to the project of `directory` (that project's
-  session list — the default for an explicit «запусти новую сессию» without a
-  task mention), `task: true` leaves it unattached and it shows under Tasks
-  (drills and pipelines spawning background workers pass it explicitly). A
+  `claude --bg`. **Placement** — by default (flag omitted or `task: true`) the
+  session shows under Tasks: spawn_session exists for background workers
+  (review/fixer sessions, pipeline steps) and their placement must not depend
+  on the caller's judgment — a 2026-11-05 incident: identical instructions in
+  two callers, one passed `task: true`, the other omitted it, and two review
+  workers landed in different places. `task: false` is the explicit opt-out
+  attaching the session to the project of `directory` and its session list —
+  pass it only for a session explicitly meant to live in that list. A
   directory never opened in the app has no project to attach to — such a
   session lands in Tasks either way. The mode is honored end-to-end:
   `mode: 'guarded'` lands in the spawned session's permission (verify via the
@@ -130,8 +133,8 @@ Send a message to another session:
 Spawn a background worker session (drill-style pipelines):
 1. `current_session` once, at the START of the driving session — before any
    parallel session exists — to learn the driver's own id;
-2. `spawn_session(prompt, directory: <worktree>, model: '…/…', mode: <driver's mode>, title: <branch>, task: true)` —
-   the worker runs in its own context and shows under Tasks, not in the
+2. `spawn_session(prompt, directory: <worktree>, model: '…/…', mode: <driver's mode>, title: <branch>)` —
+   no `task` argument needed: workers land under Tasks by default, not in the
    project's list (that's the point of a pipeline worker); the prompt carries
    the driver's session id so the worker can report back;
 3. the worker finishes with `send_message(driver_id, <report>)` — the report

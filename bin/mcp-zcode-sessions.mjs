@@ -511,9 +511,14 @@ function renameTitle(id, title) {
 // created task, and that id is what pins the session to a project's list in
 // the app — without it the session shows under Tasks (verified 2026-10-30 on
 // ext-revive rows: their tasks got the automation's project_id). Default:
-// copy the newest known project_id of the workspace, so an explicit "spawn a
-// session" lands in the project; `task: true` (drills, background pipelines)
-// skips the copy and lands in Tasks.
+// Tasks — spawn_session exists for background workers (review/fixer sessions,
+// pipeline steps), and their placement must not depend on the caller model's
+// judgment: the 2026-11-05 incident — identical user instructions in two
+// /opsx:apply sessions, one spawned the code-review worker with task: true,
+// the other omitted the flag and the reviewer landed in the project's list.
+// An explicit `task: false` is the opt-out for a session meant to live in the
+// project's list; the copy of the newest known project_id of the workspace
+// runs only for it.
 async function spawnSession(args) {
   const prompt = String(args.prompt || '').trim();
   if (!prompt) throw new Error('prompt is required');
@@ -558,7 +563,10 @@ async function spawnSession(args) {
   }
   const thoughtLevel = String(args.thought_level || 'max').trim();
   const title = args.title ? String(args.title).trim() : null;
-  const asTask = args.task === true;
+  // task defaults to true: spawned workers go to Tasks regardless of whether
+  // the caller thought about the flag; task: false is the explicit opt-out
+  // into the project's session list (see the placement note above).
+  const asTask = args.task !== false;
   // The app groups the session list per project by the task's project_id.
   // One workspace maps to one project (checked over the whole task index), so
   // the newest task's id is the workspace's project; a directory never opened
@@ -869,10 +877,12 @@ const TOOLS = [
     name: 'spawn_session',
     description: 'Spawn a NEW background ZCode session running a prompt — a full app session ' +
       '(own context, resumable, reachable via send_message afterwards), not a subagent. ' +
-      'Placement: by default the session is attached to the project `directory` belongs to and shows ' +
-      'in that project\'s session list (the default for an explicit "spawn a session" request); ' +
-      '`task: true` leaves it unattached so it shows under Tasks — use it for background workers ' +
-      'spawned by pipelines and drills. The app scheduler creates the session in `directory` with the ' +
+      'Placement: by default the session shows under Tasks — spawn_session is for background workers ' +
+      '(review/fixer sessions, pipeline steps, drills) and their placement must not depend on the ' +
+      'caller\'s judgment (2026-11-05: one caller passed task: true, another omitted it, and two ' +
+      'review workers landed in different places). Pass `task: false` only for a session explicitly ' +
+      'meant to live in the project of `directory` and its session list. The app scheduler creates ' +
+      'the session in `directory` with the ' +
       'model pin and permission mode, then delivers the prompt; the session starts working on its own. ' +
       'Returns the new session id (waits up to 60 s for it). Use for background workers that must ' +
       'outlive the caller and report back.',
@@ -885,7 +895,7 @@ const TOOLS = [
         mode: { type: 'string', enum: ['build', 'edit', 'plan', 'yolo', 'guarded'], description: 'permission mode of the new session. Default: the calling session\'s own mode (resolved like current_session). NEVER pass an approval-asking mode: `build` is forbidden outright, and for an unattended job `edit` is too (there high-risk Bash still prompts — 2026-11-05: a child stalled twice on Bash approvals because its caller passed \'edit\' as "safer than yolo"). Omit the mode to inherit, or pass explicitly only `yolo`/`guarded`/`plan` when the child must differ — an asking mode is legitimate only if the user explicitly named it' },
         thought_level: { type: 'string', description: 'reasoning level of the model pin, default max' },
         title: { type: 'string', description: 'optional session title (title_source=custom), applied once the session exists' },
-        task: { type: 'boolean', description: 'true — the session shows under Tasks (drills, spawned pipelines); false/omitted — attached to the project of `directory`, its session list. A directory never opened in the app has no project to attach to — such a session lands in Tasks either way' },
+        task: { type: 'boolean', description: 'default (omitted or true) — the session shows under Tasks (spawned workers: reviews, fixers, pipelines, drills); false — attached to the project of `directory`, its session list (explicit opt-out only). A directory never opened in the app has no project to attach to — such a session lands in Tasks either way' },
       },
       required: ['prompt', 'directory', 'model'],
     },
