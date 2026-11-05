@@ -20,8 +20,9 @@
 сообщением. Промпт — собственный вывод скилла, он пересылается на каждом вызове модели
 до конца сессии, а у саб-агентов есть `Read`.
 
-Наложить на: `~/.claude/skills/code-review/` — файлы **`SKILL.md`** и **`smells.md`**
-(второго в апстриме нет, он часть патча). `agents/openai.yaml` не трогаем.
+Наложить на: `~/.claude/skills/code-review/` — файлы **`SKILL.md`**, **`smells.md`** и
+**`review-wave.dwf.ts`** (второго и третьего в апстриме нет, они часть патча — волна ZCode
+и её smell baseline). `agents/openai.yaml` не трогаем.
 
 Скилл ставится из набора Matt Pocock — переустанавливается через `/setup-matt-pocock-skills`,
 то есть патч затирается целиком, вместе с `smells.md`.
@@ -313,6 +314,13 @@ point. It was omitted — ask for it, in one question, and don't offer to pick o
   и два пути протоколов — и **никаких подсказок**: ни «обрати особое внимание на…»,
   ни «проверь фактами, что…», ни предварительного разбора, какой пункт эскалации к какой
   находке относится;
+- **фиксеры волны — на `GLM-5.3-Flash`, а не на модели сессии**: Standards-агенты `auto`
+  правят инплейс, и эта работа не требует полной модели — в `review-wave.dwf.ts` константа
+  `FIXER_MODEL = "GLM-5.3-Flash"` и в персоне `model: auto ? FIXER_MODEL : undefined`
+  (bare id — Flash того же плана, на котором стоит сессия, не жёстко один аккаунт).
+  Spec-искатель и вся `manual`-волна остаются на модели сессии. Замер по логам 04–05.11:
+  в четырёх прогонах на полной GLM-5.3 все ~9 100 модельных вызовов сабагентов волны ушли
+  на неё — модель наследовалась от сессии, пина не было;
 - всё остальное в шаге стоит: две оси, расщепление по типам файлов, одно сообщение,
   пути вместо паст.
 
@@ -528,6 +536,13 @@ PR**; на PR завязаны только пуш и обновление оп�
   (`~/dotfiles/.claude/CLAUDE.md`, он же `AGENTS.md` для ZCode). В ZCode у `Agent`-вызова нет
   параметра модели — сабагенты бегают на модели сессии, дефолт и так совпадает, подъём
   просит оператора сменить модель сессии.
+- **05.11.2026** — фиксеры `auto`-волны (Standards-агенты) закреплены за `GLM-5.3-Flash`:
+  `FIXER_MODEL` в `review-wave.dwf.ts` (`model: auto ? FIXER_MODEL : undefined` — у `agent()`
+  workflow появилось поле `model` в персоне) и bullet в шаге 4 SKILL.md; Spec-искатель и
+  `manual`-волна остаются на модели сессии. До этого сабагенты workflow наследовали модель
+  сессии — замер по логам четырёх прогонов 04–05.11: ~9 100 вызовов на полной GLM-5.3.
+  Патч заодно стал называть `review-wave.dwf.ts` в «Наложить на» — файл жил в скилле
+  с самого появления волны, но в патче упомянут не был.
 
 ## Проверка
 
@@ -547,6 +562,7 @@ grep -n -F 'git status --porcelain && echo --- && git rev-parse HEAD' ~/.claude/
 grep -n -E 'commit messages of the branch|by hunk|regardless of whether the branch has a PR' ~/.claude/skills/code-review/SKILL.md
 grep -n -E 'four optional|worktree:<branch>|The worktree comes first|### 7\. Remove the worktree' ~/.claude/skills/code-review/SKILL.md
 grep -n -E 'The push does not depend on the walk|worktree не мой|never with `--delete-branch`' ~/.claude/skills/code-review/SKILL.md
+grep -n 'FIXER_MODEL' ~/.claude/skills/code-review/review-wave.dwf.ts  # пин GLM-5.3-Flash для фиксеров auto-волны (константа + model: в персоне)
 grep -c '^- \*\*' ~/.claude/skills/code-review/smells.md            # 14 = 2 правила + 12 запахов
 ```
 
