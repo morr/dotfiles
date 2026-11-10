@@ -103,6 +103,15 @@ The same arithmetic applies to skills: a skill whose SKILL.md exceeds ~30K chara
 split into stages — SKILL.md keeps the map and the constants, the stages live in
 `references/` and are loaded when the session reaches them.
 
+## Rubocop — не ценой читаемости
+
+Линтер не имеет приоритета над читаемостью кода. Ради зелёного rubocop-а нельзя ухудшать
+читаемость (упаковывать код в однострочники, разрывать естественные структуры, изворотливые
+формы ради лимита строк). Рефакторинг ради копа — только если он оправдан сам по себе
+(улучшает код и без линтера). Если не оправдан — оффенс глушится игнором рубокопа
+(в minisklad канон — inline `# rubocop:disable Metrics/ClassLength` на строке класса),
+не рефакторингом.
+
 ## Shell is zsh — two mandatory forms when writing a Bash command
 
 Not prohibitions to recall, but the only shapes to type. Everything below them is mechanics —
