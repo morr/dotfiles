@@ -51,11 +51,15 @@ sessions burned reasoning on converting between the two).
   so the app's generator leaves it alone. Without `session_id` renames the
   current session (newest rollout file; if several windows stream at once, the
   newest wins — the accepted ambiguity).
-- `send_message(session_id, message)` — cross-session messaging: queues the text
+- `send_message(session_id, message, delay_seconds?)` — cross-session messaging: queues the text
   into ZCode's automation table (`~/.zcode/v2/tasks-index.sqlite`); the app's
   scheduler delivers it as a user input within ~20 s (one-shot row, housekeeping
   is automatic). A busy session queues the message until its turn ends; idle and
-  error-stopped sessions are resumed for delivery. The tool pins the target's
+  error-stopped sessions are resumed for delivery. Caveat: a delivery landing while the
+  target runs a model turn is spliced in as a steer — text only, slash commands do not
+  execute; `delay_seconds` (0-3600) holds the row so it lands on an idle session instead
+  (for a slash-command message to the calling session — see the `self-compact` skill).
+  The tool pins the target's
   model — the task row's pin, or, when the row has none (interactive sessions),
   the model the session actually runs on (`model_usage`), so the resume keeps
   it on its model instead of the workspace default. Delivery proof is the

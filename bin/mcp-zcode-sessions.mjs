@@ -398,7 +398,9 @@ function renameSession(args) {
     db.close();
   }
   return `session: ${id}\nwas: ${s.title} [${s.title_source}]\nnow: ${title} [custom]` +
-    '\n(the app session list may not repaint instantly; the value is written)';
+    '\n(the running app is not notified of direct DB writes — its list keeps the old title' +
+    ' until the session is opened; switching to it repaints from the DB. The value itself' +
+    ' is final: title_source=custom blocks all later auto-titling)';
 }
 
 // Interactive sessions carry no model pin in the task index; model_usage has
@@ -456,6 +458,19 @@ function sendMessage(args) {
       "DELETE FROM automations WHERE automation_id LIKE 'ext-msg-%'" +
       " AND lifecycle_status = 'completed' AND updated_at < ?"
     ).run(Date.now() - 600000);
+    // Delivery timing. Default (delay 0): next_run_at = now-20 s — the row is
+    // already due, the scheduler's 20 s poll grabs it on its next tick. That is
+    // a race when the target is the CALLING session: a tick landing while its
+    // final turn still runs delivers the prompt as a steer (guide text spliced
+    // into the running turn — slash commands in it do NOT execute, verified
+    // 2026-11-16). delay_seconds moves next_run_at into the future so the
+    // delivery lands after the caller's turn has surely ended and the session
+    // is idle — then the scheduler resumes it with the prompt as a real user
+    // input and slash commands execute.
+    const delay = Math.floor(Number(args.delay_seconds ?? 0));
+    if (!Number.isInteger(delay) || delay < 0 || delay > 3600) {
+      throw new Error('delay_seconds must be an integer 0..3600');
+    }
     const now = Date.now();
     const aid = `ext-msg-${id.replace(/^session_/, '').slice(0, 12)}-${now}`;
     db.prepare(
@@ -469,11 +484,14 @@ function sendMessage(args) {
       aid, `send: ${message.slice(0, 60)}`, '* * * * *', message,
       task.workspace_key, task.workspace_path,
       id, 'local', 0, 0, 0,
-      1, 'active', now - 20000, 0, JSON.stringify(selection),
+      1, 'active', delay ? now + delay * 1000 : now - 20000, 0, JSON.stringify(selection),
       'idle', 0, now, now, task.project_id || null, task.host_id || 'local'
     );
     return `queued: ${aid}\nto: ${id} (model ${modelId}, thought ${selection.options.reasoningLevel})` +
-      '\nZCode delivers it as a user input within ~20 s (a busy session queues it until its turn ends).';
+      (delay
+        ? `\ndelivery not before ${new Date(now + delay * 1000).toLocaleTimeString()} (+20 s scheduler poll)` +
+          ' — by then the target session is idle, so the prompt arrives as a real user input'
+        : '\nZCode delivers it as a user input within ~20 s (a busy session queues it until its turn ends).');
   } finally {
     db.close();
   }
@@ -863,12 +881,22 @@ const TOOLS = [
     name: 'send_message',
     description: 'Send a message (prompt) to another ZCode session by id — cross-session messaging. ' +
       'Queues into the app automation table; the scheduler delivers it as a user input within ~20 s ' +
-      '(a busy session queues it until its turn ends). Works for idle and error-stopped sessions.',
+      '(a busy session queues it until its turn ends). Works for idle and error-stopped sessions. ' +
+      'For a message carrying a slash command (/compact and the like) delivered to the CALLING session, ' +
+      'pass delay_seconds: the default immediate delivery races the caller\'s own turn — a tick landing ' +
+      'mid-turn splices the text in as a steer and the command does not execute; a delayed row lands ' +
+      'when the session is idle and the command runs.',
     inputSchema: {
       type: 'object',
       properties: {
         session_id: sessionIdArg,
         message: { type: 'string', description: 'text to deliver as a user input' },
+        delay_seconds: {
+          type: 'integer',
+          description: 'Hold the row until now+N seconds (0-3600). Use when the target is the calling ' +
+            'session and the message must arrive after its current turn ends (slash commands), or to ' +
+            'sequence two messages (compact now, wake later).',
+        },
       },
       required: ['session_id', 'message'],
     },
