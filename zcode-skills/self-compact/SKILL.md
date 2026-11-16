@@ -30,26 +30,27 @@ on the right state: the compact on an idle session, the ping after the compactio
 2. Learn your own session id if it is not already in context:
    `mcp__zcode-sessions__current_session`.
 3. Compose the handoff (structure below).
-4. `mcp__zcode-sessions__send_message(<self>, "/compact " + handoff, delay_seconds: 90)`
-   — these two calls are the last tool calls of the turn, but the turn itself keeps
-   living after them: the closing answer, possibly a retry of a locked DB write
-   (~50 s observed in a failed run), so 90 s covers the turn end and the delivery
-   meets an idle session where `/compact` executes as a real input.
-5. `mcp__zcode-sessions__send_message(<self>, ping, delay_seconds: 270)` — the ping is a
+4. `mcp__zcode-sessions__send_message(<self>, "/compact " + handoff, delay_seconds: 45)`
+   — then STOP DEAD: no verification of the sends, no summary of what was done, no
+   retry loop on a failed ping, at most one short sentence to the user. The compact's
+   landing depends on the turn closing fast — the closing model step still runs (5-15 s,
+   with rare spikes), and 45 s covers it.
+5. `mcp__zcode-sessions__send_message(<self>, ping, delay_seconds: 240)` — the ping is a
    one-line wake-up: «Продолжай работу по плану из саммари. Если история до этого
    сообщения не свёрнута в саммари — /compact не исполнился, прогони /self-compact
    заново.» From the compact delivery to the finished summary takes ~180-200 s (a
-   ~100 s start gap plus the 80-100 s summary run); 270 s clears that window, and if
+   ~100 s start gap plus the 80-100 s summary run); 240 s clears that window, and if
    the compaction is still running the queue holds the ping and delivers it as the
    next real input — the session wakes and continues on its own.
-6. Stop and wait for the compaction: end the turn with a one-line note to the user,
-   start nothing new. Everything from here is automatic — the compaction turn runs, the
-   ping wakes the session.
+6. That is the whole turn: send, send, stop. Everything from here is automatic — the
+   compaction turn runs, the ping wakes the session.
 
-If the user keeps talking to the session inside the 90 s window, the compact may land as
+If the user keeps talking to the session inside the 45 s window, the compact may land as
 a steer and not execute — the ping's self-check catches exactly that: the session sees
 its full history instead of a summary and reruns `/self-compact` (a user interrupt with
-real work legitimately wins over the rerun; compaction waits for the next call). Reports
+real work legitimately wins over the rerun; compaction waits for the next call). A ping
+lost to a locked-DB write is not retried past the stop: the compact still runs, and the
+next incoming message (user input or a worker report) wakes the session anyway. Reports
 from other sessions queued during the compaction deliver afterwards, unaffected.
 
 ## Handoff structure
