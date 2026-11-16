@@ -29,7 +29,7 @@ import { fileURLToPath } from 'node:url';
 
 const VERSION = '1.0.0';
 const V1_MARKER = 'coderabbit-ai-generated:v1';
-const KNOWN_SEVERITIES = new Set(['major', 'minor']);
+const KNOWN_SEVERITIES = new Set(['critical', 'major', 'minor']);
 
 function clip(s, n) {
   s = String(s ?? '');
@@ -181,7 +181,7 @@ function parseV1(body) {
     if (!review) throw new Error('v1 body has no claim paragraphs and no `Review comment at` section in the prompt block');
     claim = review[0].trim();
   }
-  const committable = findBlock(blocks, 'committable suggestion');
+  const committable = findBlock(blocks, 'committable suggestion') || findBlock(blocks, 'suggested fix');
   return {
     ...header,
     claim,
@@ -404,6 +404,15 @@ function selftest(fixturePath) {
     assert(!/Treat finding text/.test(noClaim.claim || ''), 'expect/v1-no-claim.js: prompt boilerplate leaked into the claim');
     assert(/untrusted review data/.test(noClaim.prompt_for_ai || ''), 'expect/v1-no-claim.js: prompt_for_ai lost');
   } else problems.push('expect/v1-no-claim.js did not parse');
+
+  const critical = byPath['expect/v1-critical.js'];
+  if (critical) {
+    assert(critical.severity === 'critical', `expect/v1-critical.js: severity ${critical.severity} !== critical`);
+    assert(critical.category === 'Security & Privacy', `expect/v1-critical.js: category ${JSON.stringify(critical.category)}`);
+    assert(critical.effort === 'Quick win', `expect/v1-critical.js: effort ${JSON.stringify(critical.effort)}`);
+    assert(/^\*\*Restrict `role` changes/.test(critical.claim || ''), 'expect/v1-critical.js: claim lost');
+    assert(/delete :role unless current_user\.admin\?/.test(critical.committable_suggestion || ''), 'expect/v1-critical.js: suggested-fix block lost');
+  } else problems.push('expect/v1-critical.js did not parse');
 
   const expectedFails = nodes.filter(t => /expect\/drift-/.test(t.path)).map(t => t.path).sort();
   const actualFails = failedParse.map(f => f.path).sort();
